@@ -1,3 +1,4 @@
+#AF Excel Writer Nodes for KNIME Extension
 The AF Excel Writer Nodes for KNIME Extension consists of different nodes that serve various purposes for handling Excel files in KNIME.
 Technically, the nodes expose functionality of the Apache POI library to the KNIME users.
 
