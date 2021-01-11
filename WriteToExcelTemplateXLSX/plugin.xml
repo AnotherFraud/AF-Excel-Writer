@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/AF_Excel"
+            factory-class="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"
+            id="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"/>      
+      
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            description="Another Fraud Excel"
+            icon="ExcelCategory.png"
+            level-id="AF_Excel"
+            locked="true"
+            name="AF Excel"
+            path="/">
+      </category>
+   </extension>
+   
+</plugin>
