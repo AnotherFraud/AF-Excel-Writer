@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.anotherfraud.excel.feature" version="0.0.0">
+       <category name="anotherfraud-nodes" />
+   </feature>
+   <feature id="org.anotherfraud.excel.feature.source" version="0.0.0">
+       <category name="anotherfraud-nodes" />
+   </feature>
+
+   <category-def name="anotherfraud-nodes" label="Build artifacts from anotherfraud nodes">
+       <description>Build artifacts from anotherfraud nodes</description>
+   </category-def>
+</site>
