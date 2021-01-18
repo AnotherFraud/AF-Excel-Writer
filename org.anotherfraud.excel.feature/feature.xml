@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.anotherfraud.excel.feature"
+      label="AnotherFraudUser Excel Nodes"
+      version="1.0.0.qualifier"
+      provider-name="PLEASE Fill in">
+
+   <description>
+   Please add the description text here
+   </description>
+
+   <copyright>
+	Please add the copyright text here
+   </copyright>
+
+   <license>
+   Please add the license text here
+   </license>
+
+   <plugin
+         id="org.AnotherFraudExcel"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

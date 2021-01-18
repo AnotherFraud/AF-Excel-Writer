@@ -5,10 +5,8 @@
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/AF_Excel"
-            factory-class="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"
-            id="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"/>      
-      
+            category-path="/community/AF_Excel"
+            factory-class="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"/>
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">
@@ -18,7 +16,7 @@
             level-id="AF_Excel"
             locked="true"
             name="AF Excel"
-            path="/">
+            path="/community">
       </category>
    </extension>
    
