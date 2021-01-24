@@ -307,11 +307,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
 		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
-		
-		FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = fileHelperOutput.getPathFromSettings();
-		
-		
+			
 		String templatefilePath = pathTemplate.toAbsolutePath().toString();
 		String outputPath;
 
@@ -319,8 +315,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
 	
 	
+		
+		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
+			
+			FileChooserHelper fileHelperOutput;
+			fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
+			Path pathOutput = fileHelperOutput.getPathFromSettings();
 			outputPath = pathOutput.toAbsolutePath().toString();
 			
 		}
@@ -335,7 +337,11 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		
 		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null && m_overrideOrFail.getStringValue().equals("Fail") )
+		if (
+			isFileReachable(outputPath) != null 
+			&& m_overrideOrFail.getStringValue().equals("Fail") 
+			&& m_copyOrWrite.getStringValue().equals("CopyFrom")
+		)
 		{
 			throw new IOException("Output file exists and fail overwrite option was selected");
 		}
