@@ -686,6 +686,8 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 			if (stringCell.getStringValue().startsWith("=") && m_writeFormulaOption.getBooleanValue())
 			{
 				
+				textStyle = xlsxCell.getCellStyle();
+				textStyle.setDataFormat(df.getFormat("text"));
 				xlsxCell.setCellStyle(textStyle);
 				//escape formula 
 				xlsxCell.setCellValue(createHelper.createRichTextString(stringCell.getStringValue()));
