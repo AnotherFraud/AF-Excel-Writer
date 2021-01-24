@@ -587,7 +587,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		FormulaEvaluator evaluator = createHelper.createFormulaEvaluator();
 		DataFormat df = workbook.createDataFormat();
 		CellStyle textStyle = workbook.createCellStyle();
-		textStyle.setDataFormat(df.getFormat("text"));
+		
 		
 		Row row = sheet.getRow(rowIndex);
 		
