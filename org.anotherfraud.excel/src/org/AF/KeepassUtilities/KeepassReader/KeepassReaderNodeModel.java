@@ -24,6 +24,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.Node;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
@@ -50,6 +51,7 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.CredentialsStore.CredentialsNode;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.ICredentials;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.WorkflowLoadHelper;
 import org.knime.core.node.workflow.WorkflowManager;
 
@@ -59,7 +61,7 @@ import de.slackspace.openkeepass.KeePassDatabase;
 import de.slackspace.openkeepass.domain.Entry;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
-
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * This is an example implementation of the node model of the
@@ -166,14 +168,17 @@ public class KeepassReaderNodeModel extends NodeModel {
 		
 		pushFlowVariableString("DatabaseDriver", databaseDriver);
 		pushFlowVariableString("JDBCURL", jdbc);
-		pushFlowVariableString("User", userName);
-		pushFlowVariableString("Password", password);
+		//pushFlowVariableString("User", userName);
+		//pushFlowVariableString("Password", password);
 
 		
 
 
+		FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
+
+		Node.invokePushFlowVariable(this, flowVar);
 		}
-		
+		 
 		
 		
 		
