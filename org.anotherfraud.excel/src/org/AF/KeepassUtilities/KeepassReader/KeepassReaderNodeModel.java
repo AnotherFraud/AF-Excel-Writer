@@ -1,7 +1,9 @@
 package org.AF.KeepassUtilities.KeepassReader;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +11,8 @@ import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Optional;
+
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -57,11 +61,32 @@ import org.knime.core.node.workflow.WorkflowManager;
 
 import java.security.Security;
 import de.slackspace.openkeepass.domain.KeePassFile;
+import de.slackspace.openkeepass.domain.Property;
 import de.slackspace.openkeepass.KeePassDatabase;
 import de.slackspace.openkeepass.domain.Entry;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import org.knime.core.node.workflow.VariableType;
+
+
+/*
+ * This program is free software: you can redistribute it and/or modify
+ * Copyright [2021] [Another Fraud]
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+
 
 /**
  * This is an example implementation of the node model of the
@@ -151,37 +176,33 @@ public class KeepassReaderNodeModel extends NodeModel {
 		{
 			
 
+		String title = m_keypassEntryName.getStringValue();
 		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
 		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
 
 		String inputfilePath = pathTemplate.toAbsolutePath().toString();
 			
 		KeePassFile database = KeePassDatabase.getInstance(inputfilePath).openDatabase(m_pwd.getPassword());
-		Entry passEntry = database.getEntryByTitle(m_keypassEntryName.getStringValue());	
+		Entry passEntry = database.getEntryByTitle(title);	
 		
 		
 		String password = passEntry.getPassword();
 		String userName = passEntry.getUsername();
-		String databaseDriver = passEntry.getPropertyByName("DatabaseDriver").getValue();
-		String jdbc = passEntry.getPropertyByName("JDBCURL").getValue();
 
 		
-		pushFlowVariableString("DatabaseDriver", databaseDriver);
-		pushFlowVariableString("JDBCURL", jdbc);
-		//pushFlowVariableString("User", userName);
-		//pushFlowVariableString("Password", password);
-
-		
-
-
+		//create credentials varaiable
 		FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
-
 		Node.invokePushFlowVariable(this, flowVar);
+		
+		
+		List<Property> properties = passEntry.getCustomProperties();
+		for (Property property : properties) {
+			pushFlowVariableString(property.getKey(),property.getValue());
+			}
+		
+		
+		
 		}
-		 
-		
-		
-		
 		 catch (Exception e) {
 			 throw new InvalidSettingsException(
 						"Reason: "  + e.getMessage(), e);
@@ -197,7 +218,45 @@ public class KeepassReaderNodeModel extends NodeModel {
 	
 	
 	
-        
+	public static List<String> tryLoadKeePassEntryTitles(String filePath, String pass) {
+
+		
+		File checkFile = new File(filePath);
+	
+		
+
+		
+		if (checkFile.exists() && checkFile.canRead())
+		{
+			
+
+			try (FileInputStream fileStream = new FileInputStream(checkFile))
+			{
+									
+				KeePassFile database = KeePassDatabase.getInstance(checkFile).openDatabase(pass);
+				
+				List<String> entryNames = new ArrayList<String>();
+				List<Entry> entries = database.getEntries();
+				for (Entry entry : entries) {
+					entryNames.add(entry.getTitle());
+				}
+			
+				
+
+				return entryNames;
+			} catch (Exception e) { 
+				return null;
+			}
+		}
+		else
+		{
+			return null;
+		}	
+		
+		
+		
+		
+	}    
         
         
 
@@ -308,6 +367,8 @@ public class KeepassReaderNodeModel extends NodeModel {
 		 * and the data handled in loadInternals/saveInternals will be erased.
 		 */
 	}
+
+
 
 
 }
