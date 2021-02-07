@@ -17,4 +17,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.filehandling.core;bundle-version="4.2.3",
  org.knime.core.util
 Bundle-ActivationPolicy: lazy
+Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 
