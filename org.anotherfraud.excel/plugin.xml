@@ -10,7 +10,7 @@
             
       <node
             category-path="/community/AF_Excel"
-            factory-class="org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodeFactory">
+            factory-class="org.AF.PGPUtilities.PGPDecryptor.PGPDecryptNodeFactory">
       </node>
       <node
             category-path="/community/AF_Excel"
