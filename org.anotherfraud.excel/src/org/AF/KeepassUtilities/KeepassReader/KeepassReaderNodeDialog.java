@@ -24,27 +24,6 @@ import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
-
-/*
- * This program is free software: you can redistribute it and/or modify
- * Copyright [2021] [Another Fraud]
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- */
-
-
-
 /**
  * This is an example implementation of the node dialog of the
  * "KeepassReader" node.
@@ -66,34 +45,19 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
     protected KeepassReaderNodeDialog() {
         super();
 
+        
+       
 
+        	
         	final SettingsModelString keepassEntryNameModel = KeepassReaderNodeModel.createKeepassEntryNamesModel();
             final SettingsModelFileChooser2 inputFilePathModel2 = KeepassReaderNodeModel.createInputFilePath2SettingsModel();
             final SettingsModelAuthentication passwordModel = KeepassReaderNodeModel.createPassSettingsModel();
             
             final DialogComponentButton loadEntrys = new DialogComponentButton("Load entrys from file");
-            final DialogComponentStringSelection entryNameSelection = new DialogComponentStringSelection(keepassEntryNameModel, "Entry Name",
+            final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(keepassEntryNameModel, "Entry Name",
             		Arrays.asList("default", ""),true);
 
 
-            //listener check selection for password usage
-            loadEntrys.addActionListener(e -> {
-            	
-                if (inputFilePathModel2.getPathOrURL().length() > 0) {
-                	List<String> entryNames = KeepassReaderNodeModel.tryLoadKeePassEntryTitles(inputFilePathModel2.getPathOrURL(),passwordModel.getPassword());	
-                		if(entryNames != null)
-                		{
-                			if (!entryNames.contains(keepassEntryNameModel.getStringValue()))
-                			{
-                				entryNames.add(0, keepassEntryNameModel.getStringValue());
-                			}
-                			entryNameSelection.replaceListItems(entryNames, null);
-                		}
-
-                } else {
-     
-                }
-            }); 
             
             
             createNewGroup("File Selection");
@@ -110,8 +74,8 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             createNewGroup("Entry Selection");
             
             addDialogComponent(loadEntrys);
+            addDialogComponent(sheetNameSelection); 
             
-            addDialogComponent(entryNameSelection); 
             
                
             createNewGroup("Keepass Password");

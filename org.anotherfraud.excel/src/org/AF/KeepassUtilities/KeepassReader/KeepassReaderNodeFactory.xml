@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./keepassReader.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
     <name>KeepassReader</name>
-   
-    <shortDescription>Retrives passwords and properties from Keepass2 files</shortDescription>
+    
+    <shortDescription>
+        
+    </shortDescription>
     
     <fullDescription>
-		<intro>This node retrives username, password as well as properties from given Keepass2 files
-			<br/>The node supports Keepass2 formats - file extension: .kdbx
-		</intro>
-  	<option name="Input File - Selected File">
-			Enter a valid location where the file is located.
-			The required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
-				File System on Windows) or  &quot;/path/to/file&quot; (Local
-	            File System on Linux/MacOS and Mountpoint).
-		</option>
-		<option name="Entry Selection">Enter or select the entry you want to retrive.
-			After input file is selected and database password is entered you can retrive all entry names with the loadEntrys button
-		</option>
-			<option name="file password">
-			Enter the keepass database password.
-		</option>		
+        <intro>Insert long description here...</intro>
+        
+        
+        <option name="short name of first option (like in the dialog)">description of first option</option>
+        <option name="short name of second option (like in the dialog)">description of second option</option>
+        <!-- possibly more options that can also be grouped by tabs -->
+        <!--
+        <tab name="Standard Options">
+            <option name="short name of first option (like in the dialog)">description of first option</option>
+            <option name="short name of second option (like in the dialog)">description of second option</option>
+        </tab>
+        <tab name="Advanced Options">
+            <option name="short name of first advanced option (like in the dialog)">description of first advanced option</option>
+        </tab>
+        -->
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
-        <outPort index="0" name="Flow variable">Entry credentials as well as all properties of entry</outPort>
+        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
         <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
+        <!-- possibly more output ports here-->
     </ports>    
-    </knimeNode>
+    <views>
+        <view index="0" name="name of first view">Description of first view...</view>
+        <!--view index="1" name="name of second view">Description of second view...</view-->
+    </views>
+</knimeNode>
