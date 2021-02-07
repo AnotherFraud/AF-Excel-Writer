@@ -1,6 +1,7 @@
 package org.AF.KeepassUtilities.KeepassReader;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.io.File;
@@ -57,6 +58,7 @@ import org.knime.core.node.workflow.WorkflowManager;
 
 import java.security.Security;
 import de.slackspace.openkeepass.domain.KeePassFile;
+import de.slackspace.openkeepass.domain.Property;
 import de.slackspace.openkeepass.KeePassDatabase;
 import de.slackspace.openkeepass.domain.Entry;
 import javax.crypto.spec.SecretKeySpec;
@@ -151,32 +153,32 @@ public class KeepassReaderNodeModel extends NodeModel {
 		{
 			
 
-		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
 
-		String inputfilePath = pathTemplate.toAbsolutePath().toString();
+			String title = m_keypassEntryName.getStringValue();
+			FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
+			Path pathTemplate = fileHelperTemplate.getPathFromSettings();
+
+			String inputfilePath = pathTemplate.toAbsolutePath().toString();
+				
+			KeePassFile database = KeePassDatabase.getInstance(inputfilePath).openDatabase(m_pwd.getPassword());
+			Entry passEntry = database.getEntryByTitle(title);	
 			
-		KeePassFile database = KeePassDatabase.getInstance(inputfilePath).openDatabase(m_pwd.getPassword());
-		Entry passEntry = database.getEntryByTitle(m_keypassEntryName.getStringValue());	
+			
+			String password = passEntry.getPassword();
+			String userName = passEntry.getUsername();
+
+			
+			//create credentials varaiable
+			FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
+			Node.invokePushFlowVariable(this, flowVar);
+			
+			
+			List<Property> properties = passEntry.getCustomProperties();
+			for (Property property : properties) {
+				pushFlowVariableString(property.getKey(),property.getValue());
+				}
 		
-		
-		String password = passEntry.getPassword();
-		String userName = passEntry.getUsername();
-		String databaseDriver = passEntry.getPropertyByName("DatabaseDriver").getValue();
-		String jdbc = passEntry.getPropertyByName("JDBCURL").getValue();
 
-		
-		pushFlowVariableString("DatabaseDriver", databaseDriver);
-		pushFlowVariableString("JDBCURL", jdbc);
-		//pushFlowVariableString("User", userName);
-		//pushFlowVariableString("Password", password);
-
-		
-
-
-		FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
-
-		Node.invokePushFlowVariable(this, flowVar);
 		}
 		 
 		
@@ -198,7 +200,45 @@ public class KeepassReaderNodeModel extends NodeModel {
 	
 	
         
-        
+public static List<String> tryLoadKeePassEntryTitles(String filePath, String pass) {
+
+		
+		File checkFile = new File(filePath);
+	
+		
+
+		
+		if (checkFile.exists() && checkFile.canRead())
+		{
+			
+
+			try (FileInputStream fileStream = new FileInputStream(checkFile))
+			{
+									
+				KeePassFile database = KeePassDatabase.getInstance(checkFile).openDatabase(pass);
+				
+				List<String> entryNames = new ArrayList<String>();
+				List<Entry> entries = database.getEntries();
+				for (Entry entry : entries) {
+					entryNames.add(entry.getTitle());
+				}
+			
+				
+
+				return entryNames;
+			} catch (Exception e) { 
+				return null;
+			}
+		}
+		else
+		{
+			return null;
+		}	
+		
+		
+		
+		
+	}          
         
 
     

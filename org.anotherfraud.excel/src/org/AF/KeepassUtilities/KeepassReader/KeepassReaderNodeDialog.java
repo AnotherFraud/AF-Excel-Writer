@@ -1,6 +1,7 @@
 package org.AF.KeepassUtilities.KeepassReader;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 
@@ -46,11 +47,28 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             final SettingsModelAuthentication passwordModel = KeepassReaderNodeModel.createPassSettingsModel();
             
             final DialogComponentButton loadEntrys = new DialogComponentButton("Load entrys from file");
-            final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(keepassEntryNameModel, "Entry Name",
+            final DialogComponentStringSelection entryNameSelection = new DialogComponentStringSelection(keepassEntryNameModel, "Entry Name",
             		Arrays.asList("default", ""),true);
 
 
-            
+            //listener check selection for password usage
+            loadEntrys.addActionListener(e -> {
+            	
+                if (inputFilePathModel2.getPathOrURL().length() > 0) {
+                	List<String> entryNames = KeepassReaderNodeModel.tryLoadKeePassEntryTitles(inputFilePathModel2.getPathOrURL(),passwordModel.getPassword());	
+                		if(entryNames != null)
+                		{
+                			if (!entryNames.contains(keepassEntryNameModel.getStringValue()))
+                			{
+                				entryNames.add(0, keepassEntryNameModel.getStringValue());
+                			}
+                			entryNameSelection.replaceListItems(entryNames, null);
+                		}
+
+                } else {
+     
+                }
+            });           
             
             createNewGroup("File Selection");
             
@@ -66,7 +84,7 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             createNewGroup("Entry Selection");
             
             addDialogComponent(loadEntrys);
-            addDialogComponent(sheetNameSelection); 
+            addDialogComponent(entryNameSelection); 
             
             
                
