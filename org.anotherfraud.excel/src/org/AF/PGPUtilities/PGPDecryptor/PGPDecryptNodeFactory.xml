@@ -27,8 +27,7 @@
 				File System on Windows) or  &quot;/path/to/file&quot; (Local
 	            File System on Linux/MacOS and Mountpoint).
 		</option>
-	</option>
-			<option name="file password">
+		<option name="file password">
 			Enter the keyfile password.
 		</option>		
     </fullDescription>
