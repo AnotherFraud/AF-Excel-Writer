@@ -7,11 +7,6 @@
             category-path="/community/AF_Excel"
             factory-class="org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodeFactory"/>
             
-            
-      <node
-            category-path="/community/AF_Excel"
-            factory-class="org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodeFactory">
-      </node>
       <node
             category-path="/community/AF_Excel"
             factory-class="org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeFactory">	 
