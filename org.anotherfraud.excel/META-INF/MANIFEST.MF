@@ -17,11 +17,27 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
  org.knime.filehandling.core;bundle-version="4.2.3",
  org.knime.core.util;bundle-version="5.1.4",
  org.bouncycastle.bcpg;bundle-version="1.64.0",
- org.bouncycastle.bcprov;bundle-version="1.64.0"
+ org.bouncycastle.bcprov;bundle-version="1.64.0",
+ org.apache.httpcomponents.httpclient;bundle-version="4.5.10",
+ org.apache.httpcomponents.httpcore;bundle-version="4.4.9",
+ org.apache.httpcomponents.fluent-hc;bundle-version="4.5.3",
+ org.apache.httpcomponents.httpmime;bundle-version="4.5.4",
+ org.apache.commons.codec;bundle-version="1.11.0",
+ org.apache.commons.logging;bundle-version="1.2.0",
+ com.sun.jna;bundle-version="4.5.1",
+ com.sun.jna.platform;bundle-version="4.5.1",
+ org.json;bundle-version="20140107.0.0"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.WriteToExcelTemplate,
  org.AF.KeepassUtilities.KeepassReader,
- org.AF.PGPUtilities.PGPDecryptor
+ org.AF.PGPUtilities.PGPDecryptor,
+ org.AF.SharePointUtilities.GetRestAccessToken,
+ org.AF.SharePointUtilities.UploadFileToSP,
+ org.AF.SharePointUtilities.CreateSPFolder,
+ org.AF.SharePointUtilities.DeleteSPFolder,
+ org.AF.SharePointUtilities.DeleteSPFile,
+ org.AF.SharePointUtilities.CheckoutSPFile,
+ org.AF.SharePointUtilities.CheckinSPFile
