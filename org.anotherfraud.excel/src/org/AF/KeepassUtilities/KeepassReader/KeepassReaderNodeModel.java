@@ -185,7 +185,7 @@ public class KeepassReaderNodeModel extends NodeModel {
 			String userName = passEntry.getUsername();
 
 			
-			//create credentials varaiable
+			//create credentials variable
 			FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
 			Node.invokePushFlowVariable(this, flowVar);
 			

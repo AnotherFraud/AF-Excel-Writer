@@ -40,4 +40,6 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.DeleteSPFolder,
  org.AF.SharePointUtilities.DeleteSPFile,
  org.AF.SharePointUtilities.CheckoutSPFile,
- org.AF.SharePointUtilities.CheckinSPFile
+ org.AF.SharePointUtilities.CheckinSPFile,
+ org.AF.SharePointUtilities.MoveSPFile,
+ org.AF.SharePointUtilities.ListSPFiles

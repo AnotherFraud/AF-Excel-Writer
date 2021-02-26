@@ -36,20 +36,26 @@
             category-path="/community/AF_Utilities/SharePointUtil"
             factory-class="org.AF.SharePointUtilities.DeleteSPFolder.DeleteSPFolderNodeFactory">	 
       </node>           
-       <node
+      <node
             category-path="/community/AF_Utilities/SharePointUtil"
             factory-class="org.AF.SharePointUtilities.DeleteSPFile.DeleteSPFileNodeFactory">	 
       </node>      
-        <node
+      <node
             category-path="/community/AF_Utilities/SharePointUtil"
             factory-class="org.AF.SharePointUtilities.CheckoutSPFile.CheckoutSPFileNodeFactory">	 
       </node>        
-         <node
+      <node
             category-path="/community/AF_Utilities/SharePointUtil"
             factory-class="org.AF.SharePointUtilities.CheckinSPFile.CheckinSPFileNodeFactory">	 
       </node>             
-      
-      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.MoveSPFile.MoveSPFileNodeFactory">	 
+      </node>          
+       <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.ListSPFiles.ListSPFilesNodeFactory">	 
+      </node>         
      
       
    </extension>
