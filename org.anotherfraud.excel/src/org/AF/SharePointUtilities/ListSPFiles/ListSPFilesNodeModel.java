@@ -2,19 +2,11 @@ package org.AF.SharePointUtilities.ListSPFiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
-
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -22,15 +14,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell.IntCellFactory;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -46,12 +35,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.filehandling.core.connections.FSConnection;
 
 
 
@@ -68,8 +51,6 @@ import org.knime.filehandling.core.connections.FSConnection;
 public class ListSPFilesNodeModel extends NodeModel {
     
  	private static final NodeLogger LOGGER = NodeLogger.getLogger(ListSPFilesNodeModel.class);
-
-	private Optional<FSConnection> m_fs = Optional.empty();
 
 	
     static final String proxyAuth = "proxyAuth";
@@ -190,7 +171,11 @@ public class ListSPFilesNodeModel extends NodeModel {
 	    String sharePointName = m_sharePointName.getStringValue();
 
         
-         
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());	
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");        
 	
 	    
 	    /* Null or fail check */
@@ -203,53 +188,33 @@ public class ListSPFilesNodeModel extends NodeModel {
 	         * Files/
 	         */
 	  
-	    	
-	    	String proxyHost = m_proxyHost.getStringValue();
-			int proyPort = m_proxyPort.getIntValue();
+
 		    	
 	    	 String url = "https://"
 	        		+ sharePointSite
 	        		+ "/sites/"
 	        		+ sharePointName
 	        		+ "/_api/Web/GetFolderByServerRelativeUrl('"
-	        		+ buildCompleteSPPath(folderpath, sharePointName)
+	        		+ SharePointHelper.buildCompleteSPPath(folderpath, sharePointName)
 	        		+ "')?$expand=Folders,Files&select=FileLeafRef,FileRef,Id";
 	        
 
 	     	
-	        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-        	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-        		   UsernamePasswordCredentials(m_proxy.getUserName(getCredentialsProvider()), m_proxy.getPassword(getCredentialsProvider())));
-        		
-        	
+	
         	
         		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-	        
-	        
-
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+	   	 
 	        HttpClient client = clientbuilder.build();
 	        
-	        //HttpHost target = new HttpHost("google.de", 80, "http");
-	        
-	        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-	        
-	        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-	        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-	        RequestConfig config = reqconfigconbuilder.build();
 
-	        
 	        
  
 	        HttpPost post = new HttpPost(url);
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
-		    if (m_useProxy.getStringValue().equals("Use Proxy"))
-		    {
-		    	post.setConfig(config);    	
-		    }
 
-		    
 		    
 	        
 		    post.setHeader("Authorization", "Bearer " + token);
@@ -267,23 +232,8 @@ public class ListSPFilesNodeModel extends NodeModel {
 	        pushFlowVariableString("ResponseStatus", response.getStatusLine().toString());
 	        pushFlowVariableString("ResponseString", responseBody);
 	        
-	        
-	        /*
-	        JSONObject jsonObj = new JSONObject(responseBody);  
-		    
-	        //JSONObject pages = jsonObj.getJSONObject("d").getJSONObject("pages");
-	        
-	        JSONObject responseJson = jsonObj.getJSONObject("d");
 
-	        pushFlowVariableString("ServerRelativeUrl", responseJson.getString("ServerRelativeUrl"));
-	        pushFlowVariableString("TimeCreated", responseJson.getString("TimeCreated"));
-	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
-	        */
-
-	        
-	    
-
-	      BufferedDataContainer container = exec.createDataContainer(getSpec());
+	        BufferedDataContainer container = exec.createDataContainer(getSpec());
 	        
 	     if(response.getStatusLine().getStatusCode()==200)
 	     {
@@ -316,8 +266,6 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    JSONObject innerObject = jsonObj.getJSONObject("d").getJSONObject("Files");
 		    
 		    JSONArray jsonArray = innerObject.getJSONArray("results");
-		   
-		    
 		    int rowCnt = 0;
 		    
 		    
@@ -453,18 +401,6 @@ public class ListSPFilesNodeModel extends NodeModel {
 				
 				}));
 	}
-	
-	private String buildCompleteSPPath(String folderpath, String sharePointName) {
-		
-		String completeSPPath =
-		 "/sites/"
-		+ sharePointName 
-		+ "/"	
-		+ folderpath.replaceAll(" ","%20");
-		
-		return completeSPPath;
-	}
-	
 	
 	
 	private DataTableSpec getSpec()

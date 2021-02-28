@@ -2,36 +2,40 @@
 <knimeNode icon="./FolderDel.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
     <name>Delete SP Folder</name>
     
-    <shortDescription>
-        
-    </shortDescription>
+    <shortDescription>Deletes a folder in your SharePoint</shortDescription>
     
     <fullDescription>
-        <intro>Insert long description here...</intro>
-        
-        
-        <option name="short name of first option (like in the dialog)">description of first option</option>
-        <option name="short name of second option (like in the dialog)">description of second option</option>
-        <!-- possibly more options that can also be grouped by tabs -->
-        <!--
-        <tab name="Standard Options">
-            <option name="short name of first option (like in the dialog)">description of first option</option>
-            <option name="short name of second option (like in the dialog)">description of second option</option>
-        </tab>
-        <tab name="Advanced Options">
-            <option name="short name of first advanced option (like in the dialog)">description of first advanced option</option>
-        </tab>
-        -->
+		<intro>This nodes deletes a folder in a Sharepoint using the Sharepoint rest v1 API
+			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+		</intro>
+  	<option name="SharePoint Online Site URL">
+			Enter the url to your SharePoint 
+			Normally the URL looks like: mySharePoint.sharepoint.com
+		</option>
+		<option name="SharePoint Site Name">
+			The name of your Sharepoint
+			e.g. MySharePoint in https://mySharePoint.sharepoint.com/sites/<b>MySharePoint</b>/Shared%20Documents
+		</option>
+		<option name="Delete folder  (complete path)">
+			Complete Sharepoint path to the folder you want to delete.
+			e.g. Test1 in your shared document would be:
+				Shared Documents/Test1
+		</option>
+		<option name="Move file to recycle bin?">
+			By default the deleted file will only be moved to the recycle bin
+			Disable this option if you want to <b>permanently</b> remove the file
+		</option>		
+		
+		<option name="Proxy Options">
+			In case you are behind an internet proxy.
+			Here you can set the internet host and credentials
+		</option>				
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="Flow variable">SharePoint response</outPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
-        <!-- possibly more output ports here-->
     </ports>    
-    <views>
-        <view index="0" name="name of first view">Description of first view...</view>
-        <!--view index="1" name="name of second view">Description of second view...</view-->
-    </views>
 </knimeNode>

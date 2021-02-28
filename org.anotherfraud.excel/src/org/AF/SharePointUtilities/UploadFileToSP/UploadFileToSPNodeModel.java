@@ -7,16 +7,11 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import org.AF.SharePointUtilities.GetRestAccessToken.GetRestAccessTokenNodeModel;
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -79,7 +74,7 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	}
 	
 	static SettingsModelString createSpFolderPathSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(spFolderPath, "sites/Shared%20Documents/<FolderName>");
+		SettingsModelString coof = new SettingsModelString(spFolderPath, "Shared%20Documents/<FolderName>");
 		coof.setEnabled(true);
 		return coof;				
 	}	
@@ -188,10 +183,16 @@ public class UploadFileToSPNodeModel extends NodeModel {
          
 	
 		File file = new File(pathTemplate.toAbsolutePath().toString());
-	    
-
 		String fileuri = URLEncoder.encode(file.getName().replaceAll(" ","%20"), "UTF-8");
 		
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
+ 	    		
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
+	    
+	    
 	    
 	    /* Null or fail check */
 	    if (!token.isEmpty())
@@ -204,8 +205,6 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	         */
 	  
 	    	
-	    	String proxyHost = m_proxyHost.getStringValue();
-			int proyPort = m_proxyPort.getIntValue();
 		    	
 	    	String Url_parameter = "Add(url='" + fileuri + "',overwrite=true)";
 	        String url = "https://"
@@ -213,48 +212,28 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	        		+ "/sites/"
 	        		+ sharePointName
 	        		+ "/_api/Web/GetFolderByServerRelativeUrl('"
-	        		+ folderpath.replaceAll(" ","%20")
+	        		+ SharePointHelper.buildCompleteSPPath(folderpath, sharePointName)
 	        		+ "')/Files/" 
 	        		+ Url_parameter;
 	        
 
 
-	        
-	        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-        	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-        		   UsernamePasswordCredentials(m_proxy.getUserName(getCredentialsProvider()), m_proxy.getPassword(getCredentialsProvider())));
-        		
-        	
-        	
-        		
+		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-	        
-	        
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+		          
 
 	        HttpClient client = clientbuilder.build();
 	        
 	        //HttpHost target = new HttpHost("google.de", 80, "http");
 	        
-	        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-	        
-	        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-	        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-	        RequestConfig config = reqconfigconbuilder.build();
 
-	        
-	        
  
-	        HttpPost post = new HttpPost(url);
+	        HttpPost post = new HttpPost(url);   
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
-		    if (m_useProxy.getStringValue().equals("Use Proxy"))
-		    {
-		        post.setConfig(config);    	
-		    }
 
-		    
-		    
-	        
+
 	        post.setHeader("Authorization", "Bearer " + token);
 	        post.setHeader("accept", "application/json;odata=verbose");
 	        //post.addHeader("Proxy-Authorization", "Basic " + authenticationEncoded );
@@ -272,14 +251,14 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	        pushFlowVariableString("UploadStatus", response.getStatusLine().toString());
 	        pushFlowVariableString("UploadResponse", responseBody);
 	        
-	        
+		    if(response.getStatusLine().getStatusCode()==200)
+		    {	
+		    	
+		    	
+		    try {
 	        JSONObject jsonObj = new JSONObject(responseBody);  
-		    
-	        //JSONObject pages = jsonObj.getJSONObject("d").getJSONObject("pages");
-	        
 	        JSONObject responseJson = jsonObj.getJSONObject("d");
         
-	        
 	        pushFlowVariableString("CheckInComment", responseJson.getString("CheckInComment"));
 	        pushFlowVariableInt("CheckOutType", responseJson.getInt("CheckOutType"));
 	        pushFlowVariableString("ContentTag", responseJson.getString("ContentTag"));
@@ -295,7 +274,11 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	        pushFlowVariableString("TimeLastModified", responseJson.getString("TimeLastModified"));
 	        pushFlowVariableString("Title", responseJson.getString("Title"));
 	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
-	        
+		    } catch (Exception e)
+		    {
+		    	LOGGER.info("Error response - could not generate flow variables");
+		    }
+		    }
 	    }
 
 		return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};

@@ -3,36 +3,13 @@ package org.AF.SharePointUtilities.CheckinSPFile;
 import java.io.File;
 import java.io.IOException;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.IllegalFormatException;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -42,15 +19,14 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
+import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.filehandling.core.connections.FSConnection;
 
 
 /**
@@ -68,9 +44,8 @@ public class CheckinSPFileNodeModel extends NodeModel {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CheckinSPFileNodeModel.class);
 
-	private Optional<FSConnection> m_fs = Optional.empty();
 
-	
+
     static final String proxyAuth = "proxyAuth";
     static final String SharePointOnlineSiteURL = "SharePointOnlineSiteURL";
     static final String ClientToken = "ClientToken";
@@ -203,7 +178,14 @@ public class CheckinSPFileNodeModel extends NodeModel {
 	    String sharePointSite = m_sharePointUrl.getStringValue();
 	    String sharePointName = m_sharePointName.getStringValue();
 
-	
+	    
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
+ 	    		
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
+	    	
 	    
 	    /* Null or fail check */
 	    if (!token.isEmpty())
@@ -214,63 +196,33 @@ public class CheckinSPFileNodeModel extends NodeModel {
 	         * GetFolderByServerRelativeUrl('/Shared%20Documents/<FolderName>')/
 	         * Files/
 	         */
-	  
-	    	
-	    	String proxyHost = m_proxyHost.getStringValue();
-			int proyPort = m_proxyPort.getIntValue();
-		    
-			
-			
+
+	
 	    	 String url = "https://"
 	        		+ sharePointSite
 	        		+ "/sites/"
 	        		+ sharePointName
 	        		+ "/_api/Web/GetFileByServerRelativeUrl('"
-	        		+ "/sites/"
-	        		+ sharePointName 
-	        		+ "/"	
-	        		+ folderpath.replaceAll(" ","%20")
+	        		+ SharePointHelper.buildCompleteSPPath(folderpath, sharePointName)
 	        		+ "')/CheckIn(comment='"
 	        		+ m_comment.getStringValue().replaceAll(" ","%20")
 	        		+ "',checkintype=0)";
 
 	    	 
-	        
-	        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-        	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-        		   UsernamePasswordCredentials(m_proxy.getUserName(getCredentialsProvider()), m_proxy.getPassword(getCredentialsProvider())));
-        		
-        	
-        	
-        		
+		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-	        
-	        
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+	         
 
 	        HttpClient client = clientbuilder.build();
-	        
-	        //HttpHost target = new HttpHost("google.de", 80, "http");
-	        
-	        
-	        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-	        
-	        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-	        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-	        RequestConfig config = reqconfigconbuilder.build();
 
-	        
-	        
 
 	        
 	        
 	        HttpPost post = new HttpPost(url);
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
-		    if (m_useProxy.getStringValue().equals("Use Proxy"))
-		    {
-		    	post.setConfig(config);    	
-		    }
-		    
+
 	        
 		    post.setHeader("Authorization", "Bearer " + token);
 		    post.setHeader("accept", "application/json;odata=verbose");

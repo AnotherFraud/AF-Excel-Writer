@@ -3,7 +3,6 @@ package org.AF.SharePointUtilities.ListSPFiles;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import org.AF.SharePointUtilities.CreateSPFolder.CreateSPFolderNodeModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -18,7 +17,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
 
 /**
@@ -95,7 +93,7 @@ public class ListSPFilesNodeDialog extends DefaultNodeSettingsPane {
        	
        	addDialogComponent(new DialogComponentString(sharePointOnlineSiteURLModel, "SharePoint Online Site URL", true, 60));
        	addDialogComponent(new DialogComponentString(sharePointNameModel, "SharePoint Site Name", true, 60));
-       	addDialogComponent(new DialogComponentString(spFolderPathModel, "Create Folder:  (complete path)", true, 60));
+       	addDialogComponent(new DialogComponentString(spFolderPathModel, "Lists Folder content:  (complete path)", true, 60));
 
 
        	

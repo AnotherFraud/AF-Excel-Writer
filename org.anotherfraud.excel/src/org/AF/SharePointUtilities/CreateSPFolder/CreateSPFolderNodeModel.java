@@ -2,18 +2,11 @@ package org.AF.SharePointUtilities.CreateSPFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
-
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -35,7 +28,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.filehandling.core.connections.FSConnection;
 
 /**
  * This is an example implementation of the node model of the
@@ -50,9 +42,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 public class CreateSPFolderNodeModel extends NodeModel {
     
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateSPFolderNodeModel.class);
-	private Optional<FSConnection> m_fs = Optional.empty();
 
-	
     static final String proxyAuth = "proxyAuth";
     static final String SharePointOnlineSiteURL = "SharePointOnlineSiteURL";
     static final String ClientToken = "ClientToken";
@@ -170,7 +160,14 @@ public class CreateSPFolderNodeModel extends NodeModel {
 	    String folderpath = m_SPFolderPath.getStringValue();
 	    String sharePointSite = m_sharePointUrl.getStringValue();
 	    String sharePointName = m_sharePointName.getStringValue();
-
+	    
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
+ 	    		
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
+	    
         
          
 	
@@ -184,55 +181,31 @@ public class CreateSPFolderNodeModel extends NodeModel {
 	         * GetFolderByServerRelativeUrl('/Shared%20Documents/<FolderName>')/
 	         * Files/
 	         */
-	  
-	    	
-	    	String proxyHost = m_proxyHost.getStringValue();
-			int proyPort = m_proxyPort.getIntValue();
 		    	
 	    	 String url = "https://"
 	        		+ sharePointSite
 	        		+ "/sites/"
 	        		+ sharePointName
 	        		+ "/_api/Web/Folders/add('"
-	        		+ folderpath.replaceAll(" ","%20")
+	        		+ SharePointHelper.buildCompleteSPPath(folderpath, sharePointName)
+	        		//+ folderpath.replaceAll(" ","%20")
 	        		+ "')";
 	        
 
 	        
-	        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-        	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-        		   UsernamePasswordCredentials(m_proxy.getUserName(getCredentialsProvider()), m_proxy.getPassword(getCredentialsProvider())));
-        		
-        	
-        	
-        		
+
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-	        
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+		     
 	        
 
 	        HttpClient client = clientbuilder.build();
-	        
-	        //HttpHost target = new HttpHost("google.de", 80, "http");
-	        
-	        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-	        
-	        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-	        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-	        RequestConfig config = reqconfigconbuilder.build();
-
-	        
-	        
+ 
  
 	        HttpPost post = new HttpPost(url);
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
-		    if (m_useProxy.getStringValue().equals("Use Proxy"))
-		    {
-		        post.setConfig(config);    	
-		    }
 
-		    
-		    
 	        
 	        post.setHeader("Authorization", "Bearer " + token);
 	        post.setHeader("accept", "application/json;odata=verbose");
@@ -252,14 +225,17 @@ public class CreateSPFolderNodeModel extends NodeModel {
 	        
 	        JSONObject jsonObj = new JSONObject(responseBody);  
 		    
-	        //JSONObject pages = jsonObj.getJSONObject("d").getJSONObject("pages");
+
+
 	        
+	        if(response.getStatusLine().getStatusCode()==200)
+	        {
 	        JSONObject responseJson = jsonObj.getJSONObject("d");
 
 	        pushFlowVariableString("ServerRelativeUrl", responseJson.getString("ServerRelativeUrl"));
 	        pushFlowVariableString("TimeCreated", responseJson.getString("TimeCreated"));
 	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
-	        
+	        }
 
 	        
 	    }

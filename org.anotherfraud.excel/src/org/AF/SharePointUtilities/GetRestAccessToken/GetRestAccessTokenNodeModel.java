@@ -3,26 +3,18 @@ package org.AF.SharePointUtilities.GetRestAccessToken;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.bouncycastle.openpgp.PGPException;
 import org.json.JSONObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -34,8 +26,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -44,7 +36,6 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.filehandling.core.connections.FSConnection;
 
 
 /**
@@ -65,8 +56,6 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 	 * the class of this node model.
 	 */
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(GetRestAccessTokenNodeModel.class);
-	private Optional<FSConnection> m_fs = Optional.empty();
-
 
 	
     static final String proxyAuth = "proxyAuth";
@@ -183,10 +172,14 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 			
 		String tennant = m_tennantID.getStringValue();
 		String clientId = m_clientID.getStringValue();
-		String proxyHost = m_proxyHost.getStringValue();
-		int proyPort = m_proxyPort.getIntValue();
-		
-		
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
+ 	    		
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
+	    
+	    
 		String resource = "00000003-0000-0ff1-ce00-000000000000/"
 				+m_sharePointUrl.getStringValue()
 				+"@" + tennant;	
@@ -200,36 +193,18 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 	    
 		    
 	    	
-	        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-        	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-        		   UsernamePasswordCredentials(m_proxy.getUsername(), m_proxy.getPassword()));
-        		
-        		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-	        
-	        
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+		              
 
 	        HttpClient client = clientbuilder.build();
 	        
-	        //HttpHost target = new HttpHost("google.de", 80, "http");
-	        
-	        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-	        
-	        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-	        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-	        RequestConfig config = reqconfigconbuilder.build();
 
-	        
+    
 
 		    HttpPost post = new HttpPost(url);
 		    post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		    
-		    if (m_useProxy.getStringValue().equals("Use Proxy"))
-		    {
-		        post.setConfig(config);    	
-		    }
-
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 
 
 		    /* Adding URL Parameters */
@@ -245,24 +220,29 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 		    HttpResponse response = client.execute(post);
 
 
-		    System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
-		    
-		    
+	        pushFlowVariableString("ResponseStatus", response.getStatusLine().toString());
+
+	        
+	        
 		    String json_string = EntityUtils.toString(response.getEntity());
-		    
-		    JSONObject temp1 = new JSONObject(json_string);  
-		    System.out.println("Json : " + temp1.get("access_token").toString());
-		    
-		    String accessToken = temp1.get("access_token").toString();
+		    String accessToken = null;
 		    
 		    
-		    
+	        if (response.getStatusLine().getStatusCode()==200)
+	        {
+	        	
+	        	JSONObject temp1 = new JSONObject(json_string);  
+	    	    accessToken = temp1.get("access_token").toString();
+	        }	    
+	
+	        
+   
 		    if (accessToken != null)
 		    {
-				//create credentials varaiable
+
+		    	
 				FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("SP_AccessToken", clientId, accessToken, false, false);
 				Node.invokePushFlowVariable(this, flowVar);
-				//pushFlowVariableString("Token", accessToken);
 		    }
 		    else
 		    {

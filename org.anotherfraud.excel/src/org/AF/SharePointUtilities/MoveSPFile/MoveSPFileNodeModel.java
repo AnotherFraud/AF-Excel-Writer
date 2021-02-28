@@ -2,18 +2,11 @@ package org.AF.SharePointUtilities.MoveSPFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
-
-import org.apache.http.HttpHost;
+import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -26,8 +19,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -35,7 +28,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.filehandling.core.connections.FSConnection;
 
 
 /**
@@ -52,8 +44,6 @@ public class MoveSPFileNodeModel extends NodeModel {
     
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(MoveSPFileNodeModel.class);
-
-	private Optional<FSConnection> m_fs = Optional.empty();
 
 	
     static final String proxyAuth = "proxyAuth";
@@ -190,22 +180,30 @@ public class MoveSPFileNodeModel extends NodeModel {
 	    String folderpathTo = m_SPFolderPathTo.getStringValue();
 	    String sharePointSite = m_sharePointUrl.getStringValue();
 	    String sharePointName = m_sharePointName.getStringValue();
+	    
+ 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
+ 	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
+ 	    		
+    	String proxyHost = m_proxyHost.getStringValue();
+		int proyPort = m_proxyPort.getIntValue();    
+	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
+	    
+	    
 	    boolean copyFile = m_copyFile.getBooleanValue();
 	    String parameter = "";
 	  
 
-	    ;
         
          
 	    if (!copyFile)	{
 	    	parameter = "/moveto(newurl='"
-	        		+ buildCompleteSPPath(folderpathTo, sharePointName)
+	        		+ SharePointHelper.buildCompleteSPPath(folderpathTo, sharePointName)
 	    			+ "',flags=1)";
 	    }
 	    else
 	    {
 	    	parameter = "/copyto(strnewurl='"
-	        		+ buildCompleteSPPath(folderpathTo, sharePointName)
+	        		+ SharePointHelper.buildCompleteSPPath(folderpathTo, sharePointName)
 	    			+ "',boverwrite=false)";
 	    }
 	    
@@ -219,12 +217,14 @@ public class MoveSPFileNodeModel extends NodeModel {
 	         * Files/
 	         */
 	
+	    	
+	    	 
 	    	 String url = "https://"
 	        		+ sharePointSite
 	        		+ "/sites/"
 	        		+ sharePointName
 	        		+ "/_api/Web/GetFileByServerRelativeUrl('"
-	        		+ buildCompleteSPPath(folderpathFrom, sharePointName)
+	        		+ SharePointHelper.buildCompleteSPPath(folderpathFrom, sharePointName)
 	        		+ "')"
 	        		+parameter;
 	        
@@ -232,33 +232,21 @@ public class MoveSPFileNodeModel extends NodeModel {
 
         		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
+	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
 	        
-	        setProxyCredentials(clientbuilder);
-	        
-      
-	        
-
 	        HttpClient client = clientbuilder.build();
+	        HttpPost post = new HttpPost(url);  
+	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
 
-	        HttpPost post = new HttpPost(url);
 	        
-	        createProxyRequestConfig(post);
-	        
-
 		    post.setHeader("Authorization", "Bearer " + token);
 		    post.setHeader("accept", "application/json;odata=verbose");
 		    post.setHeader("IF-MATCH","*");
 		    
-		    
-		    
-		    
-	
 
 	        /* Executing the post request */
 	        HttpResponse response = client.execute(post);
-	       
-	        
 	        String responseBody = EntityUtils.toString(response.getEntity());
 	        
 
@@ -274,56 +262,8 @@ public class MoveSPFileNodeModel extends NodeModel {
 		
 	}
 
-	private String buildCompleteSPPath(String folderpath, String sharePointName) {
-		
-		String completeSPPath =
-		 "/sites/"
-		+ sharePointName 
-		+ "/"	
-		+ folderpath.replaceAll(" ","%20");
-		
-		return completeSPPath;
-	}
 
-	private void createProxyRequestConfig(HttpPost post) {
-		
-		if(checkProxyEnabled())
-		{
 
-	    String proxyHost = m_proxyHost.getStringValue();
-		int proyPort = m_proxyPort.getIntValue();	
-		
-        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
-        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
-        RequestConfig config = reqconfigconbuilder.build();
-
-    	post.setConfig(config);		
-		}
-
-	}
-
-	
-	private boolean checkProxyEnabled() {
-		return m_useProxy.getStringValue().equals("Use Proxy");
-	}
-
-	private void setProxyCredentials(HttpClientBuilder clientbuilder) {
-		
-		if(checkProxyEnabled())
-		{
- 	    String proxyUser = m_proxy.getUserName(getCredentialsProvider());
-    	String proxyHost = m_proxyHost.getStringValue();
-		int proyPort = m_proxyPort.getIntValue();
-	    
-        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
-    	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-    		   UsernamePasswordCredentials(proxyUser, m_proxy.getPassword(getCredentialsProvider())));
-    		
-    	clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
-		}
-		
-	}
 
 	/**
 	 * {@inheritDoc}
