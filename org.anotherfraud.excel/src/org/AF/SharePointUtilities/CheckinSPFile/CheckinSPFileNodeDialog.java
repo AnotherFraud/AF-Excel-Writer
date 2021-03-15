@@ -56,7 +56,10 @@ public class CheckinSPFileNodeDialog extends DefaultNodeSettingsPane {
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{
+		private static final long serialVersionUID = -3983032018710953380L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Client Token Credential","Client Token Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Client Token String","Client Token String"));
 
@@ -64,11 +67,14 @@ public class CheckinSPFileNodeDialog extends DefaultNodeSettingsPane {
        	
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> mapProxy = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{
+		private static final long serialVersionUID = -8258714235496570004L;
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Login Credential","Proxy Login Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
 
-       	}};      	
+       	}};  
+       	
         m_authenticationTokenPanel = new  DialogComponentAuthentication(clientTokenModel, "Client Token", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), map);    	
         m_authenticationProxyPanel = new  DialogComponentAuthentication(proxyAuth, "Proxy User/Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.USER_PWD), mapProxy);
         

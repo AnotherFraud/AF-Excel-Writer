@@ -71,7 +71,12 @@ public class UploadFileToSPNodeDialog extends DefaultNodeSettingsPane {
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = 8655322170602238215L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Client Token Credential","Client Token Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Client Token String","Client Token String"));
 
@@ -79,7 +84,12 @@ public class UploadFileToSPNodeDialog extends DefaultNodeSettingsPane {
        	
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> mapProxy = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = 4293690106264795303L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Login Credential","Proxy Login Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
 

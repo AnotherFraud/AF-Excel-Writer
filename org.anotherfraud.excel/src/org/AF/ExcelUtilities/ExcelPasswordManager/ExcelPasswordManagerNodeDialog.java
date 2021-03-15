@@ -118,7 +118,8 @@ public class ExcelPasswordManagerNodeDialog extends DefaultNodeSettingsPane {
                 new String[]{templateFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
-
+            
+            
 
             addDialogComponent(new DialogComponentFileChooser2(0, templateFilePathModel2, "XLStemplate", JFileChooser.OPEN_DIALOG,
                 JFileChooser.FILES_ONLY, fvm));

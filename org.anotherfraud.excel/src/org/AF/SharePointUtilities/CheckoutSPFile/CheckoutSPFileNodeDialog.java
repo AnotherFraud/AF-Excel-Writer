@@ -55,7 +55,12 @@ public class CheckoutSPFileNodeDialog extends DefaultNodeSettingsPane {
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = -3343703597314463653L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Client Token Credential","Client Token Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Client Token String","Client Token String"));
 
@@ -63,7 +68,12 @@ public class CheckoutSPFileNodeDialog extends DefaultNodeSettingsPane {
        	
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> mapProxy = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = 7369059968331602524L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Login Credential","Proxy Login Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
 

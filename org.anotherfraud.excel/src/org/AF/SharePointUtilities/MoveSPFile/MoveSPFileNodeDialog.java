@@ -60,7 +60,12 @@ public class MoveSPFileNodeDialog extends DefaultNodeSettingsPane {
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1689450617829381973L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Client Token Credential","Client Token Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Client Token String","Client Token String"));
 
@@ -68,7 +73,12 @@ public class MoveSPFileNodeDialog extends DefaultNodeSettingsPane {
        	
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> mapProxy = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1253319828305601910L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Login Credential","Proxy Login Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
 

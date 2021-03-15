@@ -57,7 +57,12 @@ public class CreateSPFolderNodeDialog extends DefaultNodeSettingsPane {
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = -5030808695799862357L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Client Token Credential","Client Token Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Client Token String","Client Token String"));
 
@@ -65,7 +70,12 @@ public class CreateSPFolderNodeDialog extends DefaultNodeSettingsPane {
        	
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> mapProxy = new HashMap<AuthenticationType, Pair<String, String>>()
-       	{{
+       	{/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1163854885785837465L;
+
+		{
        	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Login Credential","Proxy Login Credentials"));
        	     put(AuthenticationType.PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
 
