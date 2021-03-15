@@ -15,6 +15,8 @@ package org.AF.KeepassUtilities.KeepassReader;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
+ * this is an implementation of the openkeepass library of cternes
+ * see  https://github.com/cternes/openkeepass
  */
 
 import java.io.File;
