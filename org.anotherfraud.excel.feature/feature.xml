@@ -6,8 +6,10 @@
       provider-name="Another Fraud">
 
    <description>
-      he AF Excel Writer Nodes for KNIME Extension consists of different nodes that serve various purposes for handling Excel files in KNIME. Technically, the nodes expose functionality of the Apache POI library to the KNIME users.
-   </description>
+      The AF Nodes for KNIME Extension consists of different nodes that serve various purposes for handling files in KNIME. 
+      E.g. Excel, SharePoint and Keepass
+      Technically, the nodes expose functionality of existing Java libraries e.g. Apache POI to the KNIME users.
+    </description>
    
     <copyright>
       Copyright (c) 2021 AnotherFraud
