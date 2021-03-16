@@ -221,7 +221,7 @@
    </license>
 
    <plugin
-         id="org.AnotherFraudExcel"
+         id="org.AnotherFraudExcel.PasswordManager"
          download-size="0"
          install-size="0"
          version="0.0.0"
