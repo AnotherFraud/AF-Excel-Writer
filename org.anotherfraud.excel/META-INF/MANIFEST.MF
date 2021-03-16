@@ -16,15 +16,11 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.13.0,4.0.0)",
  org.knime.filehandling.core;bundle-version="4.1.4",
  org.apache.servicemix.bundles.poi;bundle-version="3.17.1",
  org.knime.core.util;bundle-version="5.13",
- org.knime.filehandling.core;bundle-version="4.1.4",
- org.bouncycastle.bcpg;bundle-version="1.64.0",
- org.bouncycastle.bcprov;bundle-version="1.64.0"
+ org.knime.filehandling.core;bundle-version="4.1.4"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.WriteToExcelTemplate,
- org.AF.KeepassUtilities.KeepassReader,
- org.AF.PGPUtilities.PGPDecryptor
-
+ org.AF.KeepassUtilities.KeepassReader
 
