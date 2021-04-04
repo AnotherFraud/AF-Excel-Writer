@@ -5,6 +5,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -23,6 +24,12 @@ public class SharePointHelper {
 		return completeSPPath;
 	}
 	
+
+	
+	public static String formatStringForUrl(String urlString) {		
+		return urlString.replaceAll(" ","%20");
+	}
+	
 	
 	public static void createProxyRequestConfig(HttpPost post, boolean proxyEnabled, String proxyHost, int proyPort) {
 		
@@ -39,7 +46,19 @@ public class SharePointHelper {
 	}
 
 	
-	
+	public static void createProxyRequestConfig(HttpGet get, boolean proxyEnabled, String proxyHost, int proyPort) {
+		
+		if(proxyEnabled)
+		{
+        RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
+        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
+        reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
+        RequestConfig config = reqconfigconbuilder.build();
+        
+        get.setConfig(config);		
+		}
+
+	}	
 	
 	public static void setProxyCredentials(HttpClientBuilder clientbuilder,boolean proxyEnabled, String proxyHost, int proyPort,String proxyUser, String proxyPass) {
 		
