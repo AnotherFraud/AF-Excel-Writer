@@ -1,23 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/community/AF_Excel"
-            factory-class="org.AnotherFraudExcel.WriteToExcelTemplateXLSXNodeFactory"/>
+            category-path="/community/AF_Utilities/ExcelUtil"
+            factory-class="org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodeFactory"/>
+            
+      <node
+            category-path="/community/AF_Utilities/ExcelUtil"
+            factory-class="org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeFactory">	 
+      </node>	 
+      <node
+            category-path="/community/AF_Utilities"
+            factory-class="org.AF.KeepassUtilities.KeepassReader.KeepassReaderNodeFactory">	 
+      </node>
+      <node
+            category-path="/community/AF_Utilities"
+            factory-class="org.AF.PGPUtilities.PGPDecryptor.PGPDecryptNodeFactory">	 
+      </node>
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.GetRestAccessToken.GetRestAccessTokenNodeFactory">	 
+      </node>    
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.UploadFileToSP.UploadFileToSPNodeFactory">	 
+      </node>       
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.CreateSPFolder.CreateSPFolderNodeFactory">	 
+      </node>   
+              
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.DeleteSPFolder.DeleteSPFolderNodeFactory">	 
+      </node>           
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.DeleteSPFile.DeleteSPFileNodeFactory">	 
+      </node>      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.CheckoutSPFile.CheckoutSPFileNodeFactory">	 
+      </node>        
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.CheckinSPFile.CheckinSPFileNodeFactory">	 
+      </node>             
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.MoveSPFile.MoveSPFileNodeFactory">	 
+      </node>          
+       <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.ListSPFiles.ListSPFilesNodeFactory">	 
+      </node>
+               
+       <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.GetSPListItems.GetSPListItemsNodeFactory">	 
+      </node>         
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.DownloadFileFromSP.DownloadFileFromSPNodeFactory">	 
+      </node>      
+      
+      
+      
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">
       <category
-            description="Another Fraud Excel"
-            icon="ExcelCategory.png"
-            level-id="AF_Excel"
+            description="AF Utilities"
+            icon="AFUtilCategory.png"
+            level-id="AF_Utilities"
             locked="true"
-            name="AF Excel"
+            name="AF Utilities"
             path="/community">
       </category>
+      
+      <category
+            description="AF SharePointUtilities"
+            icon="SharePointCaregory.png"
+            level-id="SharePointUtil"
+            locked="true"
+            name="SharePointUtil"
+            path="/community/AF_Utilities">
+      </category>
+      
+       <category
+            description="AF ExcelUtilities"
+            icon="ExcelCategory.png"
+            level-id="ExcelUtil"
+            locked="true"
+            name="ExcelUtil"
+            path="/community/AF_Utilities">
+      </category>     
+      
    </extension>
-   
 </plugin>

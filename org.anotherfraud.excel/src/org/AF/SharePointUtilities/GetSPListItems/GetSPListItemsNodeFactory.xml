@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./getlistitems.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Get SP List Items</name>
+    
+    <shortDescription>This node returns a List from your SharePoint as JSON</shortDescription>
+    
+    <fullDescription>
+		<intro>This nodes returns a list (top 5000 entrys) from Sharepoint using the Sharepoint rest v1 API
+			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+		</intro>
+  	<option name="SharePoint Online Site URL">
+			Enter the url to your SharePoint 
+			Normally the URL looks like: mySharePoint.sharepoint.com
+		</option>
+		<option name="SharePoint Site Name">
+			The name of your Sharepoint
+			e.g. MySharePoint in https://mySharePoint.sharepoint.com/sites/<b>MySharePoint</b>/Shared%20Documents
+		</option>
+		<option name="List Title">
+			The Title of the List you want to retrieve (should be unique)
+		</option>
+	
+		<option name="Proxy Options">
+			In case you are behind an internet proxy.
+			Here you can set the internet host and credentials
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="Out-Port name">details of the files and folders</outPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+</knimeNode>

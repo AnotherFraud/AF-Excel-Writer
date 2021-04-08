@@ -1,20 +1,22 @@
-package org.AnotherFraudExcel;
+package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
 
 /*
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Copyright [2021] [Another Fraud]
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * @author Another Fraud
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
  */
 
 
@@ -83,12 +85,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-
-
 
 
 
@@ -307,7 +307,11 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
 		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
-			
+		
+		FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
+		Path pathOutput = fileHelperOutput.getPathFromSettings();
+		
+		
 		String templatefilePath = pathTemplate.toAbsolutePath().toString();
 		String outputPath;
 
@@ -315,14 +319,8 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
 	
 	
-		
-		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
-			
-			FileChooserHelper fileHelperOutput;
-			fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-			Path pathOutput = fileHelperOutput.getPathFromSettings();
 			outputPath = pathOutput.toAbsolutePath().toString();
 			
 		}
@@ -337,11 +335,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		
 		//fail if file exists and fail on exists was selected
-		if (
-			isFileReachable(outputPath) != null 
-			&& m_overrideOrFail.getStringValue().equals("Fail") 
-			&& m_copyOrWrite.getStringValue().equals("CopyFrom")
-		)
+		if (isFileReachable(outputPath) != null && m_overrideOrFail.getStringValue().equals("Fail") )
 		{
 			throw new IOException("Output file exists and fail overwrite option was selected");
 		}
@@ -587,7 +581,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		FormulaEvaluator evaluator = createHelper.createFormulaEvaluator();
 		DataFormat df = workbook.createDataFormat();
 		CellStyle textStyle = workbook.createCellStyle();
-		
+		textStyle.setDataFormat(df.getFormat("text"));
 		
 		Row row = sheet.getRow(rowIndex);
 		
@@ -668,14 +662,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 			
 		}
 		
-		else if(cell.getType().getCellClass().equals((FSLocationCell.class))) 
-		{
-			FSLocationCell locCell = (FSLocationCell) cell;
-			
-			xlsxCell.setCellValue(
-					locCell.getFSLocation().getPath());
-			
-		}
 		
 		
 		
@@ -686,8 +672,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 			if (stringCell.getStringValue().startsWith("=") && m_writeFormulaOption.getBooleanValue())
 			{
 				
-				textStyle = xlsxCell.getCellStyle();
-				textStyle.setDataFormat(df.getFormat("text"));
 				xlsxCell.setCellStyle(textStyle);
 				//escape formula 
 				xlsxCell.setCellValue(createHelper.createRichTextString(stringCell.getStringValue()));

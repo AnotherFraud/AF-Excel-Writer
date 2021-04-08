@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./listfiles.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>ListSPFiles</name>
+    
+    <shortDescription>Lists all files and folder in a given path on your SharePoint</shortDescription>
+    
+    <fullDescription>
+		<intro>This nodes lists  all files and folder in a given path on your Sharepoint using the Sharepoint rest v1 API
+			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+		</intro>
+  	<option name="SharePoint Online Site URL">
+			Enter the url to your SharePoint 
+			Normally the URL looks like: mySharePoint.sharepoint.com
+		</option>
+		<option name="SharePoint Site Name">
+			The name of your Sharepoint
+			e.g. MySharePoint in https://mySharePoint.sharepoint.com/sites/<b>MySharePoint</b>/Shared%20Documents
+		</option>
+		<option name="Lists Folder content  (complete path)">
+			Complete Sharepoint path to the folder you want to retrieve.
+			e.g. Test1 in your shared document would be:
+				Shared Documents/Test1
+		</option>
+	
+		<option name="Proxy Options">
+			In case you are behind an internet proxy.
+			Here you can set the internet host and credentials
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="Out-Port name">details of the files and folders</outPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+</knimeNode>
+
