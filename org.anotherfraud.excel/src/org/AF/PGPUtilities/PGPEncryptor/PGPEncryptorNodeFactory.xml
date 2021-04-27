@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./PGPEncrypt.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>PGP Encrypt</name>
+    
+  
+    <shortDescription>Encrypt PGP files</shortDescription>
+    
+    <fullDescription>
+		<intro>This node encrypts pgp files with a given public keyfile and password
+		</intro>
+  	<option name="Input File - Selected File">
+			Enter a valid location where the to be encrypted file is located.
+			The required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint).
+		</option>
+		  	<option name="Output File - Selected File">
+			Enter a valid location where the encrypted file should be written to.
+			The required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint).
+		</option>
+		
+		  	<option name="Public Keyfile File - Selected File">
+			Enter a valid location where the pgp keyfile is located.
+			The required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint).
+		</option>
+		
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="Flow variable">Output file as well as properties of entry</outPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+</knimeNode>
