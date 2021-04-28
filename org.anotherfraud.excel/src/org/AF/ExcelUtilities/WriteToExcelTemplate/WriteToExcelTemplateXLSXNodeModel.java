@@ -116,6 +116,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     static final String sheetNameOrIndex = "sheetOrIndex";
     static final String writeHeaderOption = "writeHeader";
     static final String writeFormulaOption = "writeFormula";
+    static final String froceFormulaUpdate = "forceFormula";
     static final String writeLastRowOption = "lastRowOption";
     static final String password = "pwd";
     static final String outPassword = "outpwd";
@@ -242,7 +243,8 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     private final SettingsModelBoolean m_writeFormulaOption =
             new SettingsModelBoolean(writeFormulaOption, false);
     
-    
+    private final SettingsModelBoolean m_forceFormulaUpdateOption =
+            new SettingsModelBoolean(froceFormulaUpdate, false);
     
 	/**
 	 * The settings model to manage the shared settings. This model will hold the
@@ -335,7 +337,10 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		
 		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null && m_overrideOrFail.getStringValue().equals("Fail") )
+		if (isFileReachable(outputPath) != null 
+				&& m_overrideOrFail.getStringValue().equals("Fail") 
+				&& m_copyOrWrite.getStringValue().equals("CopyFrom")
+				)
 		{
 			throw new IOException("Output file exists and fail overwrite option was selected");
 		}
@@ -416,6 +421,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 				
 
 			}
+			workbook.setForceFormulaRecalculation(m_forceFormulaUpdateOption.getBooleanValue());
 			
 			
 		
@@ -917,6 +923,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_templatefilePath2.saveSettingsTo(settings);
 		m_outputfilePath2.saveSettingsTo(settings);
 		m_enablePassOption.saveSettingsTo(settings);
+		m_forceFormulaUpdateOption.saveSettingsTo(settings);
 	}
 
 	/**
@@ -950,6 +957,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_templatefilePath2.loadSettingsFrom(settings);
 		m_outputfilePath2.loadSettingsFrom(settings);
 		m_enablePassOption.loadSettingsFrom(settings);
+		m_forceFormulaUpdateOption.loadSettingsFrom(settings);
 	}
 
 	/**
@@ -979,6 +987,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_templatefilePath2.validateSettings(settings);
 		m_outputfilePath2.validateSettings(settings);
 		m_enablePassOption.validateSettings(settings);
+		m_forceFormulaUpdateOption.validateSettings(settings);
 		validateUserInput();
 
 	}

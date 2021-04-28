@@ -101,6 +101,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
             } else {
  
             }
+            
         });
         
         
@@ -111,6 +112,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
             if (copyOrWriteModel.getStringValue().equals("WriteInto")) {
             	outputFilePathModel2.setEnabled(false);  
             	overrideOrFailModel.setEnabled(false); 
+            	
             } else if (copyOrWriteModel.getStringValue().equals("CopyFrom")) {
             	outputFilePathModel2.setEnabled(true); 
             	overrideOrFailModel.setEnabled(true);  
@@ -243,6 +245,8 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
         		WriteToExcelTemplateXLSXNodeModel.writeFormulaOption, false), "Do not write string cells starting with = as formulas?"));
         
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
+        		WriteToExcelTemplateXLSXNodeModel.froceFormulaUpdate, false), "Should all exising formulas be recalculated?"));
         
         closeCurrentGroup();
         

@@ -42,7 +42,12 @@
 		</option>		
 		<option name="Write Options - Do not write '=' cells as formulas">Select if string columns containing = should be escaped by '
 			so they are not interpreted as formulas.
+		</option>	
+		<option name="Should all exising formulas be recalculated?">Select if you want to recalculate all existing formulas in your Excel
+			file.
 		</option>			
+		
+			
 		<option name="Offsets">Select on which row/column the writer should start.
 			By default the input table will write from A2 till the last row of the input table.
 			If you want to shift this by 2 rows and 1 column (so starting at C4):
