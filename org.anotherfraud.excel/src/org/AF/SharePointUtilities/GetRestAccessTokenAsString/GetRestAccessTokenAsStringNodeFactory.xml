@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./token.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Get SP AccessToken as String</name>
+    
+    <shortDescription>Generates a rest access token to your SharePoint (return string variable)</shortDescription>
+    
+    <fullDescription>
+		<intro>This nodes generates an access token to your Sharepoint using the Sharepoint rest v1 API
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+			<br/>You will have to setup your SharePoint/MS Teams SharePoint:
+				https://docs.microsoft.com/en-us/sharepoint/dev/sp-add-ins/register-sharepoint-add-ins
+			<br/>An example on how to use the rest API manually or through single httpPosts (e.g. with the post node)
+				see: https://global-sharepoint.com/sharepoint-online/in-4-steps-access-sharepoint-online-data-using-postman-tool/		
+			<br/>Node Code can be found here: https://github.com/AnotherFraud/AF-Excel-Writer
+			<br/>Note this nodes returns the access token as a visible string variable 
+				- use simple the Get Rest Access Token if you do not need to use string variables
+		</intro>
+  	<option name="Client ID">
+			Client ID of the connection you setup in the appregnew SharePoint service
+				e.g.: https://MySharePointOnlineSiteUrl/_layouts/15/appregnew.aspx
+				Can be found in the SharePoint Website app authorization configuration
+		</option>
+		<option name="Tennant ID">
+			Tennant ID of you SharePoint
+			Can be found in the SharePoint Website app authorization configuration
+		</option>
+  		<option name="SharePoint Online Site URL">
+			Enter the url to your SharePoint 
+			Normally the URL looks like: mySharePoint.sharepoint.com
+		</option>
+		
+		<option name="Client Secret">
+			Client Secret of the connection you setup in the appregnew SharePoint service
+				e.g.: https://MySharePointOnlineSiteUrl/_layouts/15/appregnew.aspx
+		</option>		
+		
+		<option name="Proxy Options">
+			In case you are behind an internet proxy.
+			Here you can set the internet host and credentials
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="Flow variable">SharePoint response</outPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+</knimeNode>

@@ -26,6 +26,10 @@
       <node
             category-path="/community/AF_Utilities/SharePointUtil"
             factory-class="org.AF.SharePointUtilities.GetRestAccessToken.GetRestAccessTokenNodeFactory">	 
+      </node>  
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil"
+            factory-class="org.AF.SharePointUtilities.GetRestAccessTokenAsString.GetRestAccessTokenAsStringNodeFactory">	 
       </node>    
       <node
             category-path="/community/AF_Utilities/SharePointUtil"
