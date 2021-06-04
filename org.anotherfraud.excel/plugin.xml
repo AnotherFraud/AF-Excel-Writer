@@ -108,4 +108,14 @@
       </category>     
       
    </extension>
+   <extension
+         point="org.knime.core.PortType">
+      <portType
+            hidden="false"
+            name="org.AF.Connections.SPPort"
+            objectClass="org.AF.Connections.SPConnectionInformationPortObject"
+            objectSerializer="org.AF.Connections.SPConnectionInformationPortObject$Serializer"
+            specClass="org.AF.Connections.ConnectionInformationPortObjectSpec">
+      </portType>
+   </extension>
 </plugin>
