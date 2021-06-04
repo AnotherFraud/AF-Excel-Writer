@@ -161,7 +161,7 @@ public class ConnectionInformation implements Serializable {
      * @param protocol the protocol to set
      */
     public void setProtocol(final String protocol) {
-        m_protocol = protocol.toLowerCase();
+        m_protocol = protocol;
 //        // Change sftp and scp to ssh
 //        if (m_protocol.equals("sftp")) {
 //            m_protocol = m_protocol.replace("sftp", "ssh");
@@ -179,7 +179,7 @@ public class ConnectionInformation implements Serializable {
      * @param host the host to set
      */
     public void setHost(final String host) {
-        m_host = host.toLowerCase();
+        m_host = host;
     }
 
     /**
@@ -229,6 +229,7 @@ public class ConnectionInformation implements Serializable {
     public void setTennant(final String tennant) {
         m_tennantID = tennant;
     }  
+
 
     
     /**
@@ -300,6 +301,17 @@ public class ConnectionInformation implements Serializable {
         return m_host;
     }
 
+    
+    /**
+     * Get the tennant.
+     *
+     *
+     * @return the tennant
+     */   
+    public String getTennant() {
+        return m_tennantID;
+    }  
+    
     /**
      * Get the port.
      *
@@ -340,7 +352,16 @@ public class ConnectionInformation implements Serializable {
     }
 
 
-
+    /**
+     * Get the SharePointOnlineSiteURL.
+     *
+     *
+     * @return the SharePointOnlineSiteURL
+     */   
+    public String getSharePointOnlineSiteURL() {
+        return m_sharePointOnlineSiteURL;
+    }  
+    
     /**
      * Returns the timeout for the connection.
      *
@@ -349,6 +370,17 @@ public class ConnectionInformation implements Serializable {
     public int getTimeout() {
         return m_timeout;
     }
+    
+    
+    /**
+     * Returns UseProxy.
+     *
+     * @return UseProxy
+     */ 
+    public boolean getUseProxy() {
+        return m_useProxy;
+    }
+
 
 
     /**

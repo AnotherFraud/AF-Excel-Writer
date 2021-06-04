@@ -135,12 +135,11 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 
 	
     /** Settings containing information about the SP connection. */
-    private final ConnectionInformation m_ConnectionModel = createSPConnectionModel();
+    private final SPConnectionInformationPortObject m_ConnectionModel = createSPConnectionModel();
 
     /** Method to create a new settings object containing information about the AWS connection. */
-    static final ConnectionInformation createSPConnectionModel() {
-    	ConnectionInformation newSPConn = new ConnectionInformation();
-    	
+    static final SPConnectionInformationPortObject createSPConnectionModel() {
+    	SPConnectionInformationPortObject newSPConn = new SPConnectionInformationPortObject();
     	return newSPConn;
     }	
 	
@@ -162,21 +161,23 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
      * Create the spec
      *
      */
-    private ConnectionInformationPortObjectSpec createSpec() {
+    private ConnectionInformationPortObjectSpec createSpec(String accessToken) {
+    	ConnectionInformation connInfo = new ConnectionInformation();
     	
-    	m_ConnectionModel.setHost(m_proxyHost.getStringValue());
-    	m_ConnectionModel.setPort(m_proxyPort.getIntValue());
-    	m_ConnectionModel.setUseProxy(m_useProxy.getStringValue().equals("Use Proxy"));
-    	m_ConnectionModel.setToken(m_clientSecret.getPassword());    	
     	
-    	m_ConnectionModel.setSharePointOnlineSiteURL(m_sharePointUrl.getStringValue());
-    	m_ConnectionModel.setUser(m_proxy.getUserName(getCredentialsProvider()));
-    	m_ConnectionModel.setPassword(m_proxy.getPassword(getCredentialsProvider())); 
-    	m_ConnectionModel.setTennant(m_tennantID.getStringValue());
+    	connInfo.setHost(m_proxyHost.getStringValue());
+    	connInfo.setPort(m_proxyPort.getIntValue());
+    	connInfo.setUseProxy(m_useProxy.getStringValue().equals("Use Proxy"));
+    	connInfo.setToken(accessToken);    	
+    	
+    	connInfo.setSharePointOnlineSiteURL(m_sharePointUrl.getStringValue());
+    	connInfo.setUser(m_proxy.getUserName(getCredentialsProvider()));
+    	connInfo.setPassword(m_proxy.getPassword(getCredentialsProvider())); 
+    	connInfo.setTennant(m_tennantID.getStringValue());
     
 
  
-        return new ConnectionInformationPortObjectSpec(m_ConnectionModel);
+        return new ConnectionInformationPortObjectSpec(connInfo);
     }
     
     
@@ -278,8 +279,8 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 		    if (accessToken != null)
 		    {
 
-		    	
 				FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("SP_AccessToken", clientId, accessToken, false, false);
+				
 				Node.invokePushFlowVariable(this, flowVar);
 		    }
 		    else
@@ -293,7 +294,7 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 						 );
 		    }
 		
-			return new PortObject[]{new SPConnectionInformationPortObject(createSpec())};
+			return new PortObject[]{new SPConnectionInformationPortObject(createSpec(accessToken))};
 	}
 
 	/**
@@ -311,7 +312,7 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 		 */
 		//DataTableSpec inputTableSpec = inSpecs[0];
 		//return new DataTableSpec[] { createOutputSpec(inputTableSpec) };
-		return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+		return new PortObjectSpec[]{createSpec("aa")};
 	}
 
 
@@ -336,6 +337,7 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 		m_proxyPort.saveSettingsTo(settings);
 		m_proxyHost.saveSettingsTo(settings);
 		m_sharePointUrl.saveSettingsTo(settings);
+
 	}
 
 	/**
@@ -359,6 +361,7 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 		m_proxyPort.loadSettingsFrom(settings);
 		m_proxyHost.loadSettingsFrom(settings);
 		m_sharePointUrl.loadSettingsFrom(settings);
+
 		
 	}
 
@@ -381,6 +384,7 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 		m_proxyPort.validateSettings(settings);
 		m_proxyHost.validateSettings(settings);
 		m_sharePointUrl.validateSettings(settings);
+
 	}
 
 	@Override

@@ -75,6 +75,16 @@
             factory-class="org.AF.SharePointUtilities.DownloadFileFromSP.DownloadFileFromSPNodeFactory">	 
       </node>      
       
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.GetSharePointRestConnection.GetSharePointRestConnectionNodeFactory">	 
+      </node>        
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.SPConnListFiles.SPConnListFilesNodeFactory">	 
+      </node>        
+            
       
       
    </extension>
@@ -98,6 +108,16 @@
             path="/community/AF_Utilities">
       </category>
       
+      
+       <category
+            description="AF SharePointUtilities Connection"
+            icon="SharePointCaregory.png"
+            level-id="SharePointConn"
+            locked="true"
+            name="SharePointConn"
+            path="/community/AF_Utilities/SharePointUtil">
+      </category>
+           
        <category
             description="AF ExcelUtilities"
             icon="ExcelCategory.png"
@@ -111,11 +131,14 @@
    <extension
          point="org.knime.core.PortType">
       <portType
+            color="#0080ff"
             hidden="false"
             name="org.AF.Connections.SPPort"
             objectClass="org.AF.Connections.SPConnectionInformationPortObject"
             objectSerializer="org.AF.Connections.SPConnectionInformationPortObject$Serializer"
-            specClass="org.AF.Connections.ConnectionInformationPortObjectSpec">
+            specClass="org.AF.Connections.ConnectionInformationPortObjectSpec"
+            specSerializer="org.AF.Connections.ConnectionInformationPortObjectSpec$Serializer">
       </portType>
    </extension>
 </plugin>
+
