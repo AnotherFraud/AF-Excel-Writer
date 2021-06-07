@@ -1,9 +1,13 @@
 package org.AF.SharePointUtilities.ListSPFiles;
 
+import static java.lang.Math.toIntExact;
+
 import java.io.File;
 import java.io.IOException;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -16,6 +20,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
@@ -161,7 +166,7 @@ public class ListSPFilesNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Starting SP Upload");
+		LOGGER.info("Starting List SP Files");
 
 		
 	    /* Token variable declaration */
@@ -259,6 +264,7 @@ public class ListSPFilesNodeModel extends NodeModel {
 	}
 
 
+
 	private void parseJsonResult(String responseBody, BufferedDataContainer container) {
 		JSONObject jsonObj = new JSONObject(responseBody); 
 		    // "I want to iterate though the objects in the array..."
@@ -272,30 +278,34 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    for (int i = 0, size = jsonArray.length(); i < size; i++)
 		    {
 		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		            
+		      
 		      addRow(
 		    		  container
 		    		  ,"Row:"+String.valueOf(rowCnt)
-		    		  ,objectInArray.getString("CheckInComment")
-		    		  ,objectInArray.getInt("CheckOutType")
-		    		  ,objectInArray.getString("ContentTag")
-		    		  ,objectInArray.getString("ETag")
-		    		  ,objectInArray.getBoolean("Exists")
-		    		  ,objectInArray.getBoolean("IrmEnabled")
-		    		  ,objectInArray.getString("Length")
-		    		  ,objectInArray.getInt("Level")
-		    		  ,objectInArray.getString("LinkingUri")
-		    		  ,objectInArray.getString("LinkingUrl")
-		    		  ,objectInArray.getInt("MajorVersion")
-		    		  ,objectInArray.getInt("MinorVersion")
-		    		  ,objectInArray.getString("Name")
-		    		  ,objectInArray.getString("ServerRelativeUrl")
-		    		  ,objectInArray.getString("TimeCreated")
-		    		  ,objectInArray.getString("TimeLastModified")
-		    		  ,objectInArray.getString("Title")
-		    		  ,objectInArray.getString("UniqueId")
+		    		  ,getJsonString(objectInArray, "CheckInComment")
+		    		  ,getJsonInt(objectInArray, "CheckOutType")
+		    		  ,getJsonString(objectInArray, "ContentTag")
+		    		  ,getJsonString(objectInArray, "ETag")
+		    		  ,getJsonBoolean(objectInArray, "Exists")
+		    		  ,getJsonBoolean(objectInArray, "IrmEnabled")
+		    		  ,getJsonString(objectInArray, "Length")
+		    		  ,getJsonInt(objectInArray, "Level")
+		    		  ,getJsonString(objectInArray, "LinkingUri")
+		    		  ,getJsonString(objectInArray, "LinkingUrl")
+		    		  ,getJsonInt(objectInArray, "MajorVersion")
+		    		  ,getJsonInt(objectInArray, "MinorVersion")
+		    		  ,getJsonString(objectInArray, "Name")
+		    		  ,getJsonString(objectInArray, "ServerRelativeUrl")
+		    		  ,getJsonString(objectInArray, "TimeCreated")
+		    		  ,getJsonString(objectInArray, "TimeLastModified")
+		    		  ,getJsonString(objectInArray, "Title")
+		    		  ,getJsonString(objectInArray, "UniqueId")
 		    		  ,"SP.File"
-		    		  ,-1
-		       );
+		    		  ,null
+		       );		      
+		      
+		      
 		      rowCnt++;
 		    }
 		    
@@ -303,6 +313,7 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    
 		    innerObject = jsonObj.getJSONObject("d").getJSONObject("Folders"); 
 		    jsonArray = innerObject.getJSONArray("results");
+
 		    
 		    for (int i = 0, size = jsonArray.length(); i < size; i++)
 		    {
@@ -311,25 +322,25 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    		  container
 		    		  ,"Row:"+String.valueOf(rowCnt)
 		    		  ,""
-		    		  ,-1
+		    		  ,null
 		    		  ,""
 		    		  ,""
-		    		  ,objectInArray.getBoolean("Exists")
-		    		  ,false
+		    		  ,getJsonBoolean(objectInArray, "Exists")
+		    		  ,null
 		    		  ,""
-		    		  ,-1
+		    		  ,null
 		    		  ,""
 		    		  ,""
-		    		  ,-1
-		    		  ,-1
-		    		  ,objectInArray.getString("Name")
-		    		  ,objectInArray.getString("ServerRelativeUrl")
-		    		  ,objectInArray.getString("TimeCreated")
-		    		  ,objectInArray.getString("TimeLastModified")
+		    		  ,null
+		    		  ,null
+		    		  ,getJsonString(objectInArray, "Name")
+		    		  ,getJsonString(objectInArray, "ServerRelativeUrl")
+		    		  ,getJsonString(objectInArray, "TimeCreated")
+		    		  ,getJsonString(objectInArray, "TimeLastModified")
 		    		  ,""
-		    		  ,objectInArray.getString("UniqueId")
+		    		  ,getJsonString(objectInArray, "UniqueId")
 		    		  ,"SP.Folder"
-		    		  ,objectInArray.getInt("ItemCount")
+		    		  ,getJsonInt(objectInArray, "ItemCount")
 		       );
 		      rowCnt++;
 		    }		    
@@ -337,26 +348,22 @@ public class ListSPFilesNodeModel extends NodeModel {
 	
 	}
 
-	
-	
-	
-	
-	
+
 	private void addRow(
 			BufferedDataContainer container
 			,String key
 			,String CheckInComment
-			,int CheckOutType
+			,Integer CheckOutType
 			,String ContentTag
 			,String ETag
-			,boolean Exists
-			,boolean IrmEnabled
+			,Boolean Exists
+			,Boolean IrmEnabled
 			,String Length
-			,int Level
+			,Integer Level
 			,String LinkingUri
 			,String LinkingUrl
-			,int MajorVersion
-			,int MinorVersion
+			,Integer MajorVersion
+			,Integer MinorVersion
 			,String Name
 			,String ServerRelativeUrl
 			,String TimeCreated
@@ -364,12 +371,13 @@ public class ListSPFilesNodeModel extends NodeModel {
 			,String Title
 			,String UniqueId
 			,String Type
-			,int ItemCount
+			,Integer ItemCount
 			)
 	{
 		container.addRowToTable(
 				new DefaultRow(new RowKey(key), new DataCell[] { 
-					
+						
+						
 						StringCellFactory.create(Name)
 						,StringCellFactory.create(Type)
 						,StringCellFactory.create(TimeCreated)
@@ -382,26 +390,41 @@ public class ListSPFilesNodeModel extends NodeModel {
 						,StringCellFactory.create(LinkingUrl)
 						,StringCellFactory.create(ServerRelativeUrl)
 						
-						,IntCellFactory.create(MajorVersion)
-						,IntCellFactory.create(MinorVersion)
+						,nullableIntCell(MajorVersion)
+						,nullableIntCell(MinorVersion)
 								
 						
 						,StringCellFactory.create(CheckInComment)
-						,IntCellFactory.create(CheckOutType)
+						,nullableIntCell(CheckOutType)
 						,StringCellFactory.create(ContentTag)
 						,StringCellFactory.create(ETag)
-						,BooleanCellFactory.create(Exists)
-						,BooleanCellFactory.create(IrmEnabled)
+						,nullableBoolCell(Exists)
+						,nullableBoolCell(IrmEnabled)
 						,StringCellFactory.create(Length)
-						,IntCellFactory.create(Level)
-						,IntCellFactory.create(ItemCount)
-						
-						
+						,nullableIntCell(Level) 
+						,nullableIntCell(ItemCount)
+
 	
 				
 				}));
 	}
 	
+	
+	private DataCell nullableIntCell(Integer i){
+        if (i == null) {
+            return DataType.getMissingCell();
+        }
+        return IntCellFactory.create(i);	
+		
+	}
+	
+	private DataCell nullableBoolCell(Boolean b){
+        if (b == null) {
+            return DataType.getMissingCell();
+        }
+        return BooleanCellFactory.create(b);	
+		
+	}
 	
 	private DataTableSpec getSpec()
 	{
@@ -436,18 +459,169 @@ public class ListSPFilesNodeModel extends NodeModel {
 		crator.addColumns(new DataColumnSpecCreator("Length", StringCellFactory.TYPE).createSpec());
 		crator.addColumns(new DataColumnSpecCreator("Level", IntCellFactory.TYPE).createSpec());
 		crator.addColumns(new DataColumnSpecCreator("ItemCount", IntCellFactory.TYPE).createSpec());	
-
-
-		
-
-        
-        
-        
-
-        	
+  	
         	
 		return crator.createSpec();
 	}
+	
+	
+	
+	
+	
+	
+	
+	private String getJsonString (JSONObject json, String key)
+	{
+	
+		
+		Object value = json.get(key);
+        String dataType = value.getClass().getSimpleName();
+
+
+        if (json.has(key))
+		{  
+	        if (dataType.equalsIgnoreCase("Integer")) {	
+	        	return String.valueOf((int) value);
+	        } else if (dataType.equalsIgnoreCase("Long")) {
+	        	
+	        	return String.valueOf((long) value);
+	        	
+	        } else if (dataType.equalsIgnoreCase("Float")) {
+	        	return String.valueOf((float) value);
+	        } else if (dataType.equalsIgnoreCase("Double")) {
+	        	return String.valueOf((double) value);
+	
+	        } else if (dataType.equalsIgnoreCase("Boolean")) {
+	        	return String.valueOf((boolean) value);
+	        	
+	        } else if (dataType.equalsIgnoreCase("String")) {
+	        	return (String) value;
+	        }	
+	        else if (dataType.equalsIgnoreCase("Null")) {
+	        	return "";
+	        }
+		}
+		return new String("not defined data " + dataType);
+		
+	}
+
+	
+	
+	private Integer getJsonInt (JSONObject json, String key)
+	{
+	
+		
+		Object value = json.get(key);
+        String dataType = value.getClass().getSimpleName();
+
+
+        if (json.has(key))
+		{  
+	        if (dataType.equalsIgnoreCase("Integer")) {	
+	        	return (int) value;
+	        	
+	        } else if (dataType.equalsIgnoreCase("Long")) {
+	        	
+	        	return toIntExact((long) value);
+	        	
+	        } else if (dataType.equalsIgnoreCase("Float")) {
+	        	return Math.round((float) value);
+	        	
+	        	
+	        } else if (dataType.equalsIgnoreCase("Double")) {
+	        	return (int) Math.round((double) value);
+	
+	        } else if (dataType.equalsIgnoreCase("Boolean")) {
+	        	return (boolean) value ? 1 : 0; 
+	        	
+	        } else if (dataType.equalsIgnoreCase("String")) {
+	        	if (NumberUtils.isNumber(((String) value)))
+	        	{
+	        		return NumberUtils.toInt((String) value);
+	        	}
+	        	else
+	        	{
+	        		return null;
+	        	}
+	        }					
+		}
+		return null;
+		
+	}
+	
+	private Boolean intToBooleanOrNull (int value)
+	{
+		
+		if (value == 1)
+    	{
+    		return true;
+    	}
+    	else if (value == 0)
+    	{
+    		return false;
+    	}
+    	else
+    	{
+    		return null;
+    	}
+	}
+	
+	private Boolean getJsonBoolean (JSONObject json, String key)
+	{
+	
+		
+		Object value = json.get(key);
+        String dataType = value.getClass().getSimpleName();
+
+        if (json.has(key))
+		{  
+	        if (dataType.equalsIgnoreCase("Integer")) {	
+	        	return intToBooleanOrNull((int) value);
+	        	
+	        } else if (dataType.equalsIgnoreCase("Long")) {
+	        	return intToBooleanOrNull(toIntExact((long) value));
+	        	
+	        } else if (dataType.equalsIgnoreCase("Float")) {
+	        	float f = (float) value;
+	        	
+	        	if(f % 1 == 0)
+	        	{
+	        		return intToBooleanOrNull(Math.round(f));
+	        	}
+	        	else
+	        	{
+	        		return null;
+	        	}
+
+	        } else if (dataType.equalsIgnoreCase("Double")) {
+	        	
+	        	double f = (double) value;
+	        	
+	        	if(f % 1 == 0)
+	        	{
+	        		return intToBooleanOrNull((int) Math.round(f));
+	        	}
+	        	else
+	        	{
+	        		return null;
+	        	}	        	
+	        	
+
+	        } else if (dataType.equalsIgnoreCase("Boolean")) {
+	        	return (boolean) value; 
+	        	
+	        } else if (dataType.equalsIgnoreCase("String")) {
+	        	
+	        	return BooleanUtils.toBooleanObject((String) value);
+	        		
+	        	
+	        }					
+		}
+		return null;
+	
+	}	
+	
+	
 	
 	/**
 	 * {@inheritDoc}
