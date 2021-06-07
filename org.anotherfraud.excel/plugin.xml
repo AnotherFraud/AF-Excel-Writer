@@ -77,16 +77,54 @@
       
       <node
             category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
-            factory-class="org.AF.SharePointUtilities.GetSharePointRestConnection.GetSharePointRestConnectionNodeFactory">	 
+            factory-class="org.AF.SharePointUtilities.Conn.GetSharePointRestConnection.GetSharePointRestConnectionNodeFactory">	 
       </node>        
       
       <node
             category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
-            factory-class="org.AF.SharePointUtilities.SPConnListFiles.SPConnListFilesNodeFactory">	 
+            factory-class="org.AF.SharePointUtilities.Conn.SPConnListFiles.SPConnListFilesNodeFactory">	 
+      </node>    
+         
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.UploadFileToSP.UploadFileToSPNodeFactory">	 
       </node>        
-            
       
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.CheckinSPFile.CheckinSPFileNodeFactory">	 
+      </node>                
       
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.CheckoutSPFile.CheckoutSPFileNodeFactory">	 
+      </node>   
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.CreateSPFolder.CreateSPFolderNodeFactory">	 
+      </node>        
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.DeleteSPFile.DeleteSPFileNodeFactory">	 
+      </node>      
+       
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.DownloadFileFromSP.DownloadFileFromSPNodeFactory">	 
+      </node>        
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.MoveSPFile.MoveSPFileNodeFactory">	 
+      </node>  
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.GetSPListItems.GetSPListItemsNodeFactory">	 
+      </node>        
+                 
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">
@@ -131,11 +169,11 @@
    <extension
          point="org.knime.core.PortType">
       <portType
-            color="#0080ff"
+            color="#34c3eb"
             hidden="false"
-            name="org.AF.Connections.SPPort"
-            objectClass="org.AF.Connections.SPConnectionInformationPortObject"
-            objectSerializer="org.AF.Connections.SPConnectionInformationPortObject$Serializer"
+            name="SP_Conn"
+            objectClass="org.AF.Connections.ConnectionInformationPortObject"
+            objectSerializer="org.AF.Connections.ConnectionInformationPortObject$Serializer"
             specClass="org.AF.Connections.ConnectionInformationPortObjectSpec"
             specSerializer="org.AF.Connections.ConnectionInformationPortObjectSpec$Serializer">
       </portType>

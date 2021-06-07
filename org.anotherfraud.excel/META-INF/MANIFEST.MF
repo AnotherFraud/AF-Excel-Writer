@@ -27,7 +27,8 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
  com.sun.jna;bundle-version="4.5.1",
  com.sun.jna.platform;bundle-version="4.5.1",
  org.json;bundle-version="20140107.0.0",
- org.apache.commons.lang;bundle-version="2.6.0"
+ org.apache.commons.lang;bundle-version="2.6.0",
+ org.openqa.selenium;bundle-version="3.12.0"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -47,7 +48,15 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.GetSPListItems,
  org.AF.SharePointUtilities.ListSPFiles,
  org.AF.SharePointUtilities.MoveSPFile,
- org.AF.SharePointUtilities.SPConnector,
  org.AF.SharePointUtilities.UploadFileToSP,
- org.AF.SharePointUtilities.GetSharePointRestConnection,
- org.AF.SharePointUtilities.SPConnListFiles
+ org.AF.SharePointUtilities.Conn.GetSharePointRestConnection,
+ org.AF.SharePointUtilities.Conn.SPConnListFiles,
+ org.AF.SharePointUtilities.Conn.UploadFileToSP,
+ org.AF.SharePointUtilities.Conn.CheckinSPFile,
+ org.AF.SharePointUtilities.Conn.CheckoutSPFile,
+ org.AF.SharePointUtilities.Conn.CreateSPFolder,
+ org.AF.SharePointUtilities.Conn.DeleteSPFile,
+ org.AF.SharePointUtilities.Conn.DownloadFileFromSP,
+ org.AF.SharePointUtilities.Conn.MoveSPFile,
+ org.AF.SharePointUtilities.Conn.GetSPListItems
+
