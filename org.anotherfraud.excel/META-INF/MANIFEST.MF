@@ -58,5 +58,6 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.Conn.DeleteSPFile,
  org.AF.SharePointUtilities.Conn.DownloadFileFromSP,
  org.AF.SharePointUtilities.Conn.MoveSPFile,
- org.AF.SharePointUtilities.Conn.GetSPListItems
+ org.AF.SharePointUtilities.Conn.GetSPListItems,
+ org.AF.SharePointUtilities.Conn.GetSharePointListColumns
 

@@ -123,7 +123,14 @@
       <node
             category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
             factory-class="org.AF.SharePointUtilities.Conn.GetSPListItems.GetSPListItemsNodeFactory">	 
-      </node>        
+      </node> 
+      
+      <node
+            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+            factory-class="org.AF.SharePointUtilities.Conn.GetSharePointListColumns.GetSharePointListColumnsNodeFactory">	 
+      </node>       
+      
+             
                  
    </extension>
    <extension

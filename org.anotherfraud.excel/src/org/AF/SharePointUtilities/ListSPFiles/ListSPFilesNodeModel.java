@@ -283,24 +283,24 @@ public class ListSPFilesNodeModel extends NodeModel {
 		      addRow(
 		    		  container
 		    		  ,"Row:"+String.valueOf(rowCnt)
-		    		  ,getJsonString(objectInArray, "CheckInComment")
-		    		  ,getJsonInt(objectInArray, "CheckOutType")
-		    		  ,getJsonString(objectInArray, "ContentTag")
-		    		  ,getJsonString(objectInArray, "ETag")
-		    		  ,getJsonBoolean(objectInArray, "Exists")
-		    		  ,getJsonBoolean(objectInArray, "IrmEnabled")
-		    		  ,getJsonString(objectInArray, "Length")
-		    		  ,getJsonInt(objectInArray, "Level")
-		    		  ,getJsonString(objectInArray, "LinkingUri")
-		    		  ,getJsonString(objectInArray, "LinkingUrl")
-		    		  ,getJsonInt(objectInArray, "MajorVersion")
-		    		  ,getJsonInt(objectInArray, "MinorVersion")
-		    		  ,getJsonString(objectInArray, "Name")
-		    		  ,getJsonString(objectInArray, "ServerRelativeUrl")
-		    		  ,getJsonString(objectInArray, "TimeCreated")
-		    		  ,getJsonString(objectInArray, "TimeLastModified")
-		    		  ,getJsonString(objectInArray, "Title")
-		    		  ,getJsonString(objectInArray, "UniqueId")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "CheckInComment")
+		    		  ,SharePointHelper.getJsonInt(objectInArray, "CheckOutType")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "ContentTag")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "ETag")
+		    		  ,SharePointHelper.getJsonBoolean(objectInArray, "Exists")
+		    		  ,SharePointHelper.getJsonBoolean(objectInArray, "IrmEnabled")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "Length")
+		    		  ,SharePointHelper.getJsonInt(objectInArray, "Level")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "LinkingUri")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "LinkingUrl")
+		    		  ,SharePointHelper.getJsonInt(objectInArray, "MajorVersion")
+		    		  ,SharePointHelper.getJsonInt(objectInArray, "MinorVersion")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "Name")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "ServerRelativeUrl")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "TimeCreated")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "TimeLastModified")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "Title")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "UniqueId")
 		    		  ,"SP.File"
 		    		  ,null
 		       );		      
@@ -325,7 +325,7 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    		  ,null
 		    		  ,""
 		    		  ,""
-		    		  ,getJsonBoolean(objectInArray, "Exists")
+		    		  ,SharePointHelper.getJsonBoolean(objectInArray, "Exists")
 		    		  ,null
 		    		  ,""
 		    		  ,null
@@ -333,14 +333,14 @@ public class ListSPFilesNodeModel extends NodeModel {
 		    		  ,""
 		    		  ,null
 		    		  ,null
-		    		  ,getJsonString(objectInArray, "Name")
-		    		  ,getJsonString(objectInArray, "ServerRelativeUrl")
-		    		  ,getJsonString(objectInArray, "TimeCreated")
-		    		  ,getJsonString(objectInArray, "TimeLastModified")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "Name")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "ServerRelativeUrl")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "TimeCreated")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "TimeLastModified")
 		    		  ,""
-		    		  ,getJsonString(objectInArray, "UniqueId")
+		    		  ,SharePointHelper.getJsonString(objectInArray, "UniqueId")
 		    		  ,"SP.Folder"
-		    		  ,getJsonInt(objectInArray, "ItemCount")
+		    		  ,SharePointHelper.getJsonInt(objectInArray, "ItemCount")
 		       );
 		      rowCnt++;
 		    }		    
@@ -390,41 +390,26 @@ public class ListSPFilesNodeModel extends NodeModel {
 						,StringCellFactory.create(LinkingUrl)
 						,StringCellFactory.create(ServerRelativeUrl)
 						
-						,nullableIntCell(MajorVersion)
-						,nullableIntCell(MinorVersion)
+						,SharePointHelper.nullableIntCell(MajorVersion)
+						,SharePointHelper.nullableIntCell(MinorVersion)
 								
 						
 						,StringCellFactory.create(CheckInComment)
-						,nullableIntCell(CheckOutType)
+						,SharePointHelper.nullableIntCell(CheckOutType)
 						,StringCellFactory.create(ContentTag)
 						,StringCellFactory.create(ETag)
-						,nullableBoolCell(Exists)
-						,nullableBoolCell(IrmEnabled)
+						,SharePointHelper.nullableBoolCell(Exists)
+						,SharePointHelper.nullableBoolCell(IrmEnabled)
 						,StringCellFactory.create(Length)
-						,nullableIntCell(Level) 
-						,nullableIntCell(ItemCount)
+						,SharePointHelper.nullableIntCell(Level) 
+						,SharePointHelper.nullableIntCell(ItemCount)
 
 	
 				
 				}));
 	}
 	
-	
-	private DataCell nullableIntCell(Integer i){
-        if (i == null) {
-            return DataType.getMissingCell();
-        }
-        return IntCellFactory.create(i);	
-		
-	}
-	
-	private DataCell nullableBoolCell(Boolean b){
-        if (b == null) {
-            return DataType.getMissingCell();
-        }
-        return BooleanCellFactory.create(b);	
-		
-	}
+
 	
 	private DataTableSpec getSpec()
 	{
@@ -468,158 +453,7 @@ public class ListSPFilesNodeModel extends NodeModel {
 	
 	
 	
-	
-	
-	private String getJsonString (JSONObject json, String key)
-	{
-	
-		
-		Object value = json.get(key);
-        String dataType = value.getClass().getSimpleName();
 
-
-        if (json.has(key))
-		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return String.valueOf((int) value);
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	
-	        	return String.valueOf((long) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	return String.valueOf((float) value);
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	return String.valueOf((double) value);
-	
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return String.valueOf((boolean) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	return (String) value;
-	        }	
-	        else if (dataType.equalsIgnoreCase("Null")) {
-	        	return "";
-	        }
-		}
-		return new String("not defined data " + dataType);
-		
-	}
-
-	
-	
-	private Integer getJsonInt (JSONObject json, String key)
-	{
-	
-		
-		Object value = json.get(key);
-        String dataType = value.getClass().getSimpleName();
-
-
-        if (json.has(key))
-		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return (int) value;
-	        	
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	
-	        	return toIntExact((long) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	return Math.round((float) value);
-	        	
-	        	
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	return (int) Math.round((double) value);
-	
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return (boolean) value ? 1 : 0; 
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	if (NumberUtils.isNumber(((String) value)))
-	        	{
-	        		return NumberUtils.toInt((String) value);
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}
-	        }					
-		}
-		return null;
-		
-	}
-	
-	private Boolean intToBooleanOrNull (int value)
-	{
-		
-		if (value == 1)
-    	{
-    		return true;
-    	}
-    	else if (value == 0)
-    	{
-    		return false;
-    	}
-    	else
-    	{
-    		return null;
-    	}
-	}
-	
-	private Boolean getJsonBoolean (JSONObject json, String key)
-	{
-	
-		
-		Object value = json.get(key);
-        String dataType = value.getClass().getSimpleName();
-
-        if (json.has(key))
-		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return intToBooleanOrNull((int) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	return intToBooleanOrNull(toIntExact((long) value));
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	float f = (float) value;
-	        	
-	        	if(f % 1 == 0)
-	        	{
-	        		return intToBooleanOrNull(Math.round(f));
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}
-
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	
-	        	double f = (double) value;
-	        	
-	        	if(f % 1 == 0)
-	        	{
-	        		return intToBooleanOrNull((int) Math.round(f));
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}	        	
-	        	
-
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return (boolean) value; 
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	
-	        	return BooleanUtils.toBooleanObject((String) value);
-	        		
-	        	
-	        }					
-		}
-		return null;
-	
-	}	
 	
 	
 	

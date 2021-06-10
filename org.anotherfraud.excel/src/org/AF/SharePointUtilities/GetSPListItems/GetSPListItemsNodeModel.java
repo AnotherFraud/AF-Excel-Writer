@@ -3,7 +3,6 @@ package org.AF.SharePointUtilities.GetSPListItems;
 import java.io.File;
 import java.io.IOException;
 
-
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,6 +10,21 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
+import org.knime.core.data.def.IntCell.IntCellFactory;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -27,7 +41,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+
 
 
 /**
@@ -141,7 +155,7 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			 * Here we specify how many data input and output tables the node should have.
 			 * In this case its one input and one output table.
 			 */
-			super(new PortType[] {FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[] {FlowVariablePortObject.TYPE});
+			super(new PortType[] {FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[] { BufferedDataTable.TYPE});
 			
 		}
 
@@ -152,7 +166,7 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		 * {@inheritDoc}
 		 */
 		@Override
-		protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec)
+		protected BufferedDataTable[] execute(final PortObject[] inObjects, final ExecutionContext exec)
 				throws Exception {
 			/*
 			 * The functionality of the node is implemented in the execute method. This
@@ -182,7 +196,6 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
 		    	
 		    
-		    /* Null or fail check */
 		    if (!token.isEmpty())
 		    { 
 		        /* Upload path and file name declaration */
@@ -230,25 +243,281 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		       
 		        
 		        String responseBody = EntityUtils.toString(response.getEntity());
-		        
 
+	     
 		        pushFlowVariableString("ResponseStatus", response.getStatusLine().toString());
 		        pushFlowVariableString("ResponseString", responseBody);
 		        
 		        
-
+		        BufferedDataContainer container;
+			    
 		        
+			     if(response.getStatusLine().getStatusCode()==200)
+			     {
+			    	
+
+
+		        //get column types for table parsing
+		    	 url = "https://"
+			        		+ sharePointSite
+			        		+ "/sites/"
+			        		+ SharePointHelper.formatStringForUrl(sharePointName)
+			        		+ "/_api/web/lists/getbytitle('"
+			        		+ SharePointHelper.formatStringForUrl(listName)
+			        		+ SharePointHelper.formatStringForUrl("')/fields?$select=Title,TypeAsString,TypeDisplayName,InternalName&$filter=Hidden eq false and ReadOnlyField eq false and TypeAsString ne 'Computed'")
+			        		;
+		    	 
+		    	 
+		    	 
+			    	 
+			        get = new HttpGet(url);
+			        SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
+			        
+				    get.setHeader("Authorization", "Bearer " + token);
+				    get.setHeader("accept", "application/json;odata=verbose");
+
+			        /* Executing the post request */
+				    HttpResponse responseColumnInfo = client.execute(get);
+		  
+			        String responseBodyColumnInfo = EntityUtils.toString(responseColumnInfo.getEntity());
+					        
+
+			        
+			        
+				    if(responseColumnInfo.getStatusLine().getStatusCode()==200)
+					     {   
+				    	
+				    	
+				    	 String[][] columnHeaders = parseColumnHeaderInfo(responseBodyColumnInfo);
+				    	 container = exec.createDataContainer(createSpec(columnHeaders));
+				    	 
+				    	 parseJsonResult(responseBody, container, columnHeaders);
+				    	 container.close();
+				
+				    	 return new BufferedDataTable[] { container.getTable() };
+				    	 
+				    	 
+				    }
+				    else
+				    {
+				    	return new BufferedDataTable[] { };
+				    }
+				    
+				    
+				    
+				    
+			     }		        
 		    }
 
-			return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
+		    return new BufferedDataTable[] { };
 			
 		}
+		
+		
+		
+		private String[][] parseColumnHeaderInfo(String tableConfig)
+		{
+			
+			JSONObject jsonObj = new JSONObject(tableConfig);
+			
+		    JSONObject innerObject = jsonObj.getJSONObject("d");	    
+		    JSONArray jsonArray = innerObject.getJSONArray("results");		
+		    
+		    String[][] columnHeader = new String[jsonArray.length()][3];
+		    		    
+
+		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    {
+		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		            
+		      columnHeader[i][0] = SharePointHelper.getJsonString(objectInArray, "Title");
+		      columnHeader[i][1] = SharePointHelper.getJsonString(objectInArray, "TypeAsString");
+		      columnHeader[i][2] = SharePointHelper.getJsonString(objectInArray, "InternalName");
+		    }		
+		    
+			
+			return columnHeader;
+					
+		}
+		
+		
+		private void parseJsonResult(String responseBody, BufferedDataContainer container, String[][] columnHeaders) {
+			JSONObject jsonObj = new JSONObject(responseBody); 
+
+
+			    JSONObject innerObject = jsonObj.getJSONObject("d");	    
+			    JSONArray jsonArray = innerObject.getJSONArray("results");
+			    int rowCnt = 0;
+
+			    
+			    DataCell[] cells = new DataCell[columnHeaders.length];
+			    
+			    
+			    
+			 
+			    
+			    for (int i = 0, size = jsonArray.length(); i < size; i++)
+			    {
+			      JSONObject objectInArray = jsonArray.getJSONObject(i);
+			            
+			      
+
+			    	
+			      
+			      
+			      for(int c = 0, sizeHead = columnHeaders.length; c < sizeHead; c++)
+				    {
+				    
+
+					    if (columnHeaders[c][1].equals("Text") 
+					    		|| columnHeaders[c][1].equals("Attachments") 
+					    		|| columnHeaders[c][1].equals("Note")
+					    		|| columnHeaders[c][1].equals("Choice")
+					    		|| columnHeaders[c][1].equals("UserAA")
+					    		|| columnHeaders[c][1].equals("Thumbnail")
+					    )
+					    {
+					    	cells[c] = StringCellFactory.create(SharePointHelper.getJsonString(objectInArray, columnHeaders[c][2]));
+					    	
+					    }
+					    else if (columnHeaders[c][1].equals("Number") 
+					    		|| columnHeaders[c][1].equals("Currency"))
+					    {
+					    	cells[c] = nullableDoubleCell(SharePointHelper.getJsonDouble(objectInArray, columnHeaders[c][2]));
+					    }
+					    else if (columnHeaders[c][1].equals("Boolean"))
+					    {
+					    	cells[c] = nullableBoolCell(SharePointHelper.getJsonBoolean(objectInArray, columnHeaders[c][2]));
+					    }
+					    else if (columnHeaders[c][1].equals("DateTime"))
+					    {
+					    	cells[c] = StringCellFactory.create(SharePointHelper.getJsonString(objectInArray, columnHeaders[c][2]));
+					    }	
+					    else if (columnHeaders[c][1].equals("URL"))
+					    {
+			
+					    	cells[c] = StringCellFactory.create(SharePointHelper.getStringFromNullableJsonObject(objectInArray, columnHeaders[c][2],"Url"));
+					    	//cells[c] = StringCellFactory.create(SharePointHelper.getJsonString(subOjectInArray, "Url"));
+					    }	
+					    else if (columnHeaders[c][1].equals("User"))
+					    {
+			
+					    	cells[c] = StringCellFactory.create(SharePointHelper.getStringFromNullableJsonObject(objectInArray, columnHeaders[c][2] + "Id","Url"));
+					    	//cells[c] = StringCellFactory.create(SharePointHelper.getJsonString(subOjectInArray, "Url"));
+					    }	
+					    else
+					    {
+					    	cells[c] = StringCellFactory.create(SharePointHelper.getJsonString(objectInArray, columnHeaders[c][2]));
+					    }
+				    }
+
+	
+			      container.addRowToTable(
+							new DefaultRow(new RowKey("Row_"+String.valueOf(rowCnt)), cells));
+			      
+      
+			      
+			      
+			      rowCnt++;
+			    }
+			 		
+				
+		
+		}
+
+
+
+
+
+		private DataCell nullableIntCell(Integer i){
+	        if (i == null) {
+	            return DataType.getMissingCell();
+	        }
+	        return IntCellFactory.create(i);	
+			
+		}
+		
+		private DataCell nullableDoubleCell(Double i){
+	        if (i == null) {
+	            return DataType.getMissingCell();
+	        }
+	        return DoubleCellFactory.create(i);	
+			
+		}
+		
+		private DataCell nullableBoolCell(Boolean b){
+	        if (b == null) {
+	            return DataType.getMissingCell();
+	        }
+	        return BooleanCellFactory.create(b);	
+			
+		}
+		
+		
+
+
+		
+		
+		
+		
+		
+		private DataTableSpec createSpec(String[][] columnHeaders)
+		{
+			
+			
+			DataTableSpecCreator crator = new DataTableSpecCreator();
+
+			
+			
+			
+		    for(int c = 0, sizeHead = columnHeaders.length; c < sizeHead; c++)
+		    {
+		    
+			    if (columnHeaders[c][1].equals("Text") 
+			    		|| columnHeaders[c][1].equals("Attachments") 
+			    		|| columnHeaders[c][1].equals("Note")
+			    		|| columnHeaders[c][1].equals("Choice")
+			    		|| columnHeaders[c][1].equals("URL")
+			    		|| columnHeaders[c][1].equals("Thumbnail")
+			    )
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0], StringCellFactory.TYPE).createSpec());
+			    }
+			    else if (columnHeaders[c][1].equals("Number") 
+			    		|| columnHeaders[c][1].equals("Currency"))
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0], DoubleCellFactory.TYPE).createSpec());
+			    }
+			    else if (columnHeaders[c][1].equals("Boolean"))
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0], BooleanCellFactory.TYPE).createSpec());
+			    }
+			    else if (columnHeaders[c][1].equals("DateTime"))
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0], StringCellFactory.TYPE).createSpec());
+			    }	
+			    else if (columnHeaders[c][1].equals("User"))
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0] + " (ID)", StringCellFactory.TYPE).createSpec());
+			    }
+			    else
+			    {
+			    	crator.addColumns(new DataColumnSpecCreator(columnHeaders[c][0], StringCellFactory.TYPE).createSpec());
+			    }
+ 	  
+		    }
+	 	
+			return crator.createSpec();
+		}
+		
+		
+		
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+		protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 			/*
 			 * Similar to the return type of the execute method, we need to return an array
 			 * of DataTableSpecs with the length of the number of outputs ports of the node
@@ -259,7 +528,12 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			 */
 			//DataTableSpec inputTableSpec = inSpecs[0];
 			//return new DataTableSpec[] { createOutputSpec(inputTableSpec) };
-			return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+			
+			
+			return new DataTableSpec[] {null};
+
+			
+			
 		}
 
 
