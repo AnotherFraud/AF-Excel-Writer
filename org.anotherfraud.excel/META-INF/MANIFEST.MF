@@ -28,7 +28,8 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
  com.sun.jna.platform;bundle-version="4.5.1",
  org.json;bundle-version="20140107.0.0",
  org.apache.commons.lang;bundle-version="2.6.0",
- org.openqa.selenium;bundle-version="3.12.0"
+ org.openqa.selenium;bundle-version="3.12.0",
+ org.knime.ext.seleniumdrivers.multios;bundle-version="4.3.1"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -59,5 +60,7 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.Conn.DownloadFileFromSP,
  org.AF.SharePointUtilities.Conn.MoveSPFile,
  org.AF.SharePointUtilities.Conn.GetSPListItems,
- org.AF.SharePointUtilities.Conn.GetSharePointListColumns
+ org.AF.SharePointUtilities.Conn.GetSharePointListColumns,
+ org.AF.SeleniumFire.CreateFirefoxBrowserInstance,
+ org.AF.SeleniumFire.GetURL
 

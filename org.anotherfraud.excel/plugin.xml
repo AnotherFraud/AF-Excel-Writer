@@ -124,12 +124,21 @@
             category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
             factory-class="org.AF.SharePointUtilities.Conn.GetSPListItems.GetSPListItemsNodeFactory">	 
       </node> 
-      
+
       <node
             category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
             factory-class="org.AF.SharePointUtilities.Conn.GetSharePointListColumns.GetSharePointListColumnsNodeFactory">	 
-      </node>       
-      
+      </node> 
+            
+      <node
+            category-path="/community/AF_Utilities/FirefoxUtil"
+            factory-class="org.AF.SeleniumFire.CreateFirefoxBrowserInstance.CreateFirefoxBrowserInstanceNodeFactory">	 
+      </node>   
+ 
+      <node
+            category-path="/community/AF_Utilities/FirefoxUtil"
+            factory-class="org.AF.SeleniumFire.GetURL.GetUrlNodeFactory">	 
+      </node>        
              
                  
    </extension>
@@ -171,7 +180,16 @@
             name="ExcelUtil"
             path="/community/AF_Utilities">
       </category>     
-      
+ 
+       <category
+            description="AF Firefox Automation"
+            icon="ExcelCategory.png"
+            level-id="FirefoxUtil"
+            locked="true"
+            name="FirefoxUtil"
+            path="/community/AF_Utilities">
+      </category>  
+            
    </extension>
    <extension
          point="org.knime.core.PortType">
@@ -184,6 +202,16 @@
             specClass="org.AF.Connections.ConnectionInformationPortObjectSpec"
             specSerializer="org.AF.Connections.ConnectionInformationPortObjectSpec$Serializer">
       </portType>
+      
+      <portType
+            hidden="false"
+            name="SeleniumFirefoxPort"
+            objectClass="org.AF.Selenium.Port.SeleniumConnectionInformationPortObject"
+            objectSerializer="org.AF.Selenium.Port.SeleniumConnectionInformationPortObject$Serializer"
+            specClass="org.AF.Selenium.Port.SeleniumConnectionInformationPortObjectSpec"
+            specSerializer="org.AF.Selenium.Port.SeleniumConnectionInformationPortObjectSpec$Serializer">
+      </portType>
    </extension>
+   
 </plugin>
 

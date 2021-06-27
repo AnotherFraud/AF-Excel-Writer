@@ -12,13 +12,12 @@ import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.KnimeEncryption;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxBinary;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+
+
 /**
- * Contains the connection Sharepoint information for a connection.
+ * Contains the Selenium firefox driver information.
  *
  *
  * @author Anotherfraud
@@ -30,10 +29,9 @@ public class SeleniumConnectionInformation implements Serializable {
      */
     private static final long serialVersionUID = -618632560017543955L;
 
-    private FirefoxBinary m_firefoxBinary;
-    private WebDriver m_webDriver;
-    private FirefoxOptions m_fireOptions;
+
     
+    private String m_webdriverHandlerKey;
     
     private String m_screenShotPath = null;
     private String m_downloadPath = null;
@@ -41,8 +39,7 @@ public class SeleniumConnectionInformation implements Serializable {
     
     private int m_downloadWaitSeconds = 90;
     private int m_pageWaitSeconds = 90;
-    
-    
+
     private String m_protocol = null;
 
     private String m_host = null;
@@ -53,16 +50,9 @@ public class SeleniumConnectionInformation implements Serializable {
 
     private String m_password = null;
 
-    
-
     private boolean m_useProxy = false;
 
-    private String m_token = null;
-            
-    
-    private String m_sharePointOnlineSiteURL = null;
-    
-    private String m_tennantID = null;
+   
     
 
     
@@ -80,47 +70,61 @@ public class SeleniumConnectionInformation implements Serializable {
      * @since 3.3
      */
     protected SeleniumConnectionInformation(final ModelContentRO model) throws InvalidSettingsException {
-        this.setProtocol(model.getString("protocol"));
-        this.setHost(model.getString("host"));
+      
+
+    	
+    	this.setHost(model.getString("host"));
         this.setPort(model.getInt("port"));
         this.setUser(model.getString("user"));
         this.setUseProxy(model.getBoolean("useProxy"));
-        this.setTennant(model.getString("tennantID"));
-        this.setSharePointOnlineSiteURL(model.getString("sharePointOnlineSiteURL"));
-
+        this.setDownloadPath(model.getString("downloadPath"));
+        this.setScreenShotPath(model.getString("screenShotPath"));
+        this.setDownloadWaitSeconds(model.getInt("downloadWaitSeconds"));
+        this.setPageWaitSeconds(model.getInt("pageWaitSeconds"));
+        this.setWebdriverHandlerKey(model.getString("driverHandle"));
         
         String pass = model.containsKey("xpassword") ?
             model.getPassword("xpassword", "}l?>mn0am8ty1m<+nf") : model.getString("password");
         this.setPassword(pass);
+
+        this.setPageWaitSeconds(model.getInt("timeout", 90)); // new option in 2.10
         
         
-        this.setToken(model.getPassword("xtoken", "}l?>mn0am8ty1m<+nf", "")); // new option in 4.1
-        this.setPageWaitSeconds(model.getInt("timeout", 30000)); // new option in 2.10
-       
+  
        
     }
 
 
-    /**
+
+	/**
      * Save the connection information in a model content object.
      *
      *
      * @param model The model to save in
      */
     public void save(final ModelContentWO model) {
+    	
+
+
+        
+        
         model.addString("protocol", m_protocol);
         model.addString("host", m_host);
         model.addInt("port", m_port);
-        model.addString("user", m_user);
-        
-        model.addBoolean("useProxy", m_useProxy);
-        model.addString("tennantID", m_tennantID);
-        model.addString("sharePointOnlineSiteURL", m_sharePointOnlineSiteURL);
-         
+        model.addString("user", m_user);      
+        model.addBoolean("useProxy", m_useProxy);     
         model.addPassword("xpassword", "}l?>mn0am8ty1m<+nf", m_password);
-        model.addPassword("xtoken", "}l?>mn0am8ty1m<+nf", m_token);
         model.addInt("pageWaitSeconds", m_pageWaitSeconds);
+        model.addString("driverHandle", m_webdriverHandlerKey);
 
+        
+        
+        model.addString("downloadPath", m_downloadPath); 
+        model.addString("screenShotPath", m_screenShotPath); 
+        model.addInt("pageWaitSeconds", m_pageWaitSeconds);
+        model.addInt("downloadWaitSeconds", m_downloadWaitSeconds);
+        
+        
     }
 
     /**
@@ -157,23 +161,6 @@ public class SeleniumConnectionInformation implements Serializable {
         return uri;
     }
 
-    /**
-     * Set the protocol.
-     *
-     *
-     * Will convert the protocol to lower case.
-     *
-     * @param protocol the protocol to set
-     */
-    public void setProtocol(final String protocol) {
-        m_protocol = protocol;
-//        // Change sftp and scp to ssh
-//        if (m_protocol.equals("sftp")) {
-//            m_protocol = m_protocol.replace("sftp", "ssh");
-//        } else if (m_protocol.equals("scp")) {
-//            m_protocol = m_protocol.replace("scp", "ssh");
-//        }
-    }
 
     /**
      * Set the host.
@@ -209,6 +196,15 @@ public class SeleniumConnectionInformation implements Serializable {
         m_user = user;
     }
     
+
+    public void setWebdriverHandlerKey(String key) {
+		m_webdriverHandlerKey = key;
+		
+	}
+    
+
+    
+    
     
     /**
      * Set the useproxy.
@@ -222,32 +218,25 @@ public class SeleniumConnectionInformation implements Serializable {
         m_useProxy = useProxy;
     }
 
-    
-    /**
-     * Set the setTennant.
-     *
-     *
-     * Tennant may be null to disable user authentication.
-     *
-     * @param user the user to set
-     */   
-    public void setTennant(final String tennant) {
-        m_tennantID = tennant;
-    }  
-
 
     
-    /**
-     * Set the SharePointOnlineSiteURL.
-     *
-     *
-     * SharePointOnlineSiteURL may be null to disable user authentication.
-     *
-     * @param user the user to set
-     */   
-    public void setSharePointOnlineSiteURL(final String sharePointOnlineSiteURL) {
-        m_sharePointOnlineSiteURL = sharePointOnlineSiteURL;
+    public void setScreenShotPath (final String screenShotPath) {
+    	m_screenShotPath = screenShotPath;
+    }     
+
+    public void setDownloadPath(final String downloadPath) {
+    	m_downloadPath = downloadPath;
     }  
+    public void setWebDriverWait(final WebDriverWait driverWait) {
+    	m_driverWait = driverWait;
+    }  
+    
+    public void setDownloadWaitSeconds(final int downloadWaitSeconds) {
+    	m_downloadWaitSeconds = downloadWaitSeconds;
+    }  
+   
+
+
    
     
  
@@ -263,17 +252,6 @@ public class SeleniumConnectionInformation implements Serializable {
         m_password = password;
     }
 
-    /**
-     * Set the token. The token must be encrypted by the {@link KnimeEncryption} class.
-     *
-     * Token may be <code>null</code> to disable authentication via token.
-     *
-     * @param token the encrypted token or <code>null</code>
-     * @since 4.1
-     */
-    public void setToken(final String token) {
-        m_token = token;
-    }
 
 
     /**
@@ -306,16 +284,7 @@ public class SeleniumConnectionInformation implements Serializable {
         return m_host;
     }
 
-    
-    /**
-     * Get the tennant.
-     *
-     *
-     * @return the tennant
-     */   
-    public String getTennant() {
-        return m_tennantID;
-    }  
+
     
     /**
      * Get the port.
@@ -346,25 +315,28 @@ public class SeleniumConnectionInformation implements Serializable {
         return m_password;
     }
 
-    /**
-     * Get the encrypted token. Use {@link KnimeEncryption} to decrypt the token.
-     *
-     * @return the token password
-     * @since 4.1
-     */
-    public String getToken() {
-        return m_token;
+
+
+    public String getScreenShotPath () {
+    	return m_screenShotPath;
+    }    
+    
+ 
+    public String getWebdriverHandlerKey() {
+		return m_webdriverHandlerKey;
     }
+    
 
+    public String getDownloadPath() {
+    	return m_downloadPath;
+    }  
+    public WebDriverWait getWebDriverWait() {
+    	return m_driverWait;
+    }  
+    
 
-    /**
-     * Get the SharePointOnlineSiteURL.
-     *
-     *
-     * @return the SharePointOnlineSiteURL
-     */   
-    public String getSharePointOnlineSiteURL() {
-        return m_sharePointOnlineSiteURL;
+    public int getDownloadWaitSeconds() {
+    	return m_downloadWaitSeconds;
     }  
     
     /**
@@ -399,9 +371,6 @@ public class SeleniumConnectionInformation implements Serializable {
         hcb.append(m_user);
         hcb.append(m_password);
         hcb.append(m_useProxy);
-        hcb.append(m_sharePointOnlineSiteURL);
-        hcb.append(m_tennantID);
-        hcb.append(m_token);
         return hcb.hashCode();
     }
 
@@ -422,11 +391,6 @@ public class SeleniumConnectionInformation implements Serializable {
         eqBuilder.append(m_user, ci.m_user);
         eqBuilder.append(m_password, ci.m_password);
         eqBuilder.append(m_useProxy, ci.m_useProxy);
-        eqBuilder.append(m_sharePointOnlineSiteURL, ci.m_sharePointOnlineSiteURL);
-        eqBuilder.append(m_tennantID, ci.m_tennantID);
-        
-        
-        eqBuilder.append(m_token, ci.m_token);
         return eqBuilder.isEquals();
     }
 
