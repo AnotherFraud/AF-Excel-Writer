@@ -1,4 +1,4 @@
-package org.AF.SeleniumFire.FindWebElement;
+package org.AF.SeleniumFire.Click;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
 import org.AF.Selenium.Port.WebdriverHandler;
 import org.AF.SeleniumFire.FireHelper.FireHelper;
+import org.AF.SeleniumFire.SendKeys.SendKeysNodeModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -27,7 +28,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 /**
  * This is an example implementation of the node model of the
- * "FindWebElement" node.
+ * "Click" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -35,24 +36,23 @@ import org.openqa.selenium.firefox.FirefoxDriver;
  *
  * @author Another Fraud
  */
-public class FindWebElementNodeModel extends NodeModel {
- 
+public class ClickNodeModel extends NodeModel {
+    
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(SendKeysNodeModel.class);
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(FindWebElementNodeModel.class);	
     static final String locatorString = "locatorString";
     static final String searchIn = "searchIn";
     static final String findBy = "findBy";
 
-    	
+	
 	static SettingsModelString createlocatorStringSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(locatorString, null);
 		coof.setEnabled(true);
 		return coof;				
 	}	
 	
-	
 	static SettingsModelString createSearchInSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(searchIn, "document");
+		SettingsModelString coof = new SettingsModelString(searchIn, "with locator");
 		coof.setEnabled(true);
 		return coof;				
 	}	
@@ -62,19 +62,15 @@ public class FindWebElementNodeModel extends NodeModel {
 		coof.setEnabled(true);
 		return coof;				
 	}	    
-    
+	
 	private final SettingsModelString m_locatorString = createlocatorStringSettingsModel();
 	private final SettingsModelString m_searchIn = createSearchInSettingsModel();
 	private final SettingsModelString m_findBy = createFindBySettingsModel();
     
-	
-	
-
 	/**
 	 * Constructor for the node model.
 	 */
-    /** Method to create a new settings object containing information about the AWS connection. */
-	protected FindWebElementNodeModel() {
+	protected ClickNodeModel() {
 		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
 	}
 
@@ -96,7 +92,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Start executing FindWebElement");
+		LOGGER.info("Start executing click webElement");
 		
 		
 		SeleniumConnectionInformationPortObject spConn = (SeleniumConnectionInformationPortObject)inObjects[0];
@@ -104,34 +100,24 @@ public class FindWebElementNodeModel extends NodeModel {
 		
 		WebdriverHandler handle = WebdriverHandler.getInstance(connInfo.getWebdriverHandlerKey());
 		
-		
-		
-		
+
 		FirefoxDriver driver = handle.getDriver();
 		
 		String locatorString = m_locatorString.getStringValue();
 		WebElement currentElement = handle.getWebElement();
-		WebElement element;
-
+		
+		
+		
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
-        
-        switch(m_searchIn.getStringValue()){
-        
-        case "document":
-        	element = driver.findElement(by);
-            break;
-        case "current element":
-        	element = currentElement.findElement(by);
-            break;
-        default:
-        	throw new IOException("Unknown findBy"); 
-        	
-        }      
-
-        handle.setDriver(element);
-
+      
+		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);      
+        element.click();
 		return new PortObject[]{spConn};
 	}
+
+
+
+
 
 	/**
 	 * {@inheritDoc}
@@ -170,6 +156,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_locatorString.saveSettingsTo(settings);
 		m_searchIn.saveSettingsTo(settings);
 		m_findBy.saveSettingsTo(settings);
+
 	}
 
 	/**
@@ -188,6 +175,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_locatorString.loadSettingsFrom(settings);
 		m_findBy.loadSettingsFrom(settings);
 		m_searchIn.loadSettingsFrom(settings);
+
 	
 	}
 
@@ -205,6 +193,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_findBy.validateSettings(settings);
 		m_locatorString.validateSettings(settings);
 		m_searchIn.validateSettings(settings);
+
 
 	}
 
@@ -240,3 +229,4 @@ public class FindWebElementNodeModel extends NodeModel {
 		 */
 	}
 }
+

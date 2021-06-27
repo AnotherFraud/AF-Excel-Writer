@@ -1,4 +1,4 @@
-package org.AF.SeleniumFire.FindWebElement;
+package org.AF.SeleniumFire.SendKeys;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 /**
  * This is an example implementation of the node model of the
- * "FindWebElement" node.
+ * "SendKeys" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -35,24 +35,36 @@ import org.openqa.selenium.firefox.FirefoxDriver;
  *
  * @author Another Fraud
  */
-public class FindWebElementNodeModel extends NodeModel {
- 
+public class SendKeysNodeModel extends NodeModel {
+    
+    /**
+	 * The logger is used to print info/warning/error messages to the KNIME console
+	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
+	 * the class of this node model.
+	 */
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(SendKeysNodeModel.class);
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(FindWebElementNodeModel.class);	
+	
+	static final String sendText = "sendText";
     static final String locatorString = "locatorString";
     static final String searchIn = "searchIn";
     static final String findBy = "findBy";
 
-    	
+ 
+	static SettingsModelString createSendTextStringSettingsModel() {
+		SettingsModelString coof = new SettingsModelString(sendText, null);
+		coof.setEnabled(true);
+		return coof;				
+	}	
+	
 	static SettingsModelString createlocatorStringSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(locatorString, null);
 		coof.setEnabled(true);
 		return coof;				
 	}	
 	
-	
 	static SettingsModelString createSearchInSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(searchIn, "document");
+		SettingsModelString coof = new SettingsModelString(searchIn, "with locator");
 		coof.setEnabled(true);
 		return coof;				
 	}	
@@ -62,19 +74,17 @@ public class FindWebElementNodeModel extends NodeModel {
 		coof.setEnabled(true);
 		return coof;				
 	}	    
-    
+	
+	private final SettingsModelString m_sendText = createSendTextStringSettingsModel();
 	private final SettingsModelString m_locatorString = createlocatorStringSettingsModel();
 	private final SettingsModelString m_searchIn = createSearchInSettingsModel();
 	private final SettingsModelString m_findBy = createFindBySettingsModel();
     
 	
-	
-
 	/**
 	 * Constructor for the node model.
 	 */
-    /** Method to create a new settings object containing information about the AWS connection. */
-	protected FindWebElementNodeModel() {
+	protected SendKeysNodeModel() {
 		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
 	}
 
@@ -104,34 +114,25 @@ public class FindWebElementNodeModel extends NodeModel {
 		
 		WebdriverHandler handle = WebdriverHandler.getInstance(connInfo.getWebdriverHandlerKey());
 		
-		
-		
-		
+
 		FirefoxDriver driver = handle.getDriver();
 		
 		String locatorString = m_locatorString.getStringValue();
 		WebElement currentElement = handle.getWebElement();
-		WebElement element;
-
+		
+		
+		
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
-        
-        switch(m_searchIn.getStringValue()){
-        
-        case "document":
-        	element = driver.findElement(by);
-            break;
-        case "current element":
-        	element = currentElement.findElement(by);
-            break;
-        default:
-        	throw new IOException("Unknown findBy"); 
-        	
-        }      
-
-        handle.setDriver(element);
+      
+		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);      
+        element.sendKeys(m_sendText.getStringValue());
 
 		return new PortObject[]{spConn};
 	}
+
+
+
+
 
 	/**
 	 * {@inheritDoc}
@@ -170,6 +171,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_locatorString.saveSettingsTo(settings);
 		m_searchIn.saveSettingsTo(settings);
 		m_findBy.saveSettingsTo(settings);
+		m_sendText.saveSettingsTo(settings);
 	}
 
 	/**
@@ -188,6 +190,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_locatorString.loadSettingsFrom(settings);
 		m_findBy.loadSettingsFrom(settings);
 		m_searchIn.loadSettingsFrom(settings);
+		m_sendText.loadSettingsFrom(settings);
 	
 	}
 
@@ -205,6 +208,7 @@ public class FindWebElementNodeModel extends NodeModel {
 		m_findBy.validateSettings(settings);
 		m_locatorString.validateSettings(settings);
 		m_searchIn.validateSettings(settings);
+		m_sendText.validateSettings(settings);
 
 	}
 
@@ -240,3 +244,4 @@ public class FindWebElementNodeModel extends NodeModel {
 		 */
 	}
 }
+
