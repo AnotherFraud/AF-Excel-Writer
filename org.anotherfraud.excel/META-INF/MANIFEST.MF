@@ -45,3 +45,4 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.ListSPFiles,
  org.AF.SharePointUtilities.MoveSPFile,
  org.AF.SharePointUtilities.UploadFileToSP
+Import-Package: org.w3c.dom.events;version="3.0.0"
