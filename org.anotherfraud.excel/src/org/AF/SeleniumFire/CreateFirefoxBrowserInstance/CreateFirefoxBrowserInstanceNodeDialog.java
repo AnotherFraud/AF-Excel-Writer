@@ -1,16 +1,24 @@
 package org.AF.SeleniumFire.CreateFirefoxBrowserInstance;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 
+import org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeModel;
+import org.AF.SeleniumFire.Utilities.DialogComponentFirefoxPreferences;
+import org.AF.SeleniumFire.Utilities.FirefoxPreferences;
+import org.AF.SeleniumFire.Utilities.SettingsModelFirefoxSettings;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -47,8 +55,11 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         final SettingsModelFileChooser2 downloadPathModel2 = CreateFirefoxBrowserInstanceNodeModel.createDownloadPathSettingsModel();
         final SettingsModelFileChooser2 screenshotPathModel2 = CreateFirefoxBrowserInstanceNodeModel.createScreenshotPathSettingsModel();
         final SettingsModelFileChooser2 firefoxPathModel2 = CreateFirefoxBrowserInstanceNodeModel.createFirefoxPathSettingsModel();
-                              	
-       	
+        final SettingsModelBoolean headlessMode = CreateFirefoxBrowserInstanceNodeModel.createHeadlessModeSettingsModel();  
+        final SettingsModelFirefoxSettings foxModel = CreateFirefoxBrowserInstanceNodeModel.createFirefoxSettingsModel();  
+
+    
+       
        	
        	
         //listener check selection for password usage
@@ -81,18 +92,29 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
                 Type.STRING);
         
         
+        createNewGroup("Firefox Executable File");
         addDialogComponent(new DialogComponentFileChooser2(0, firefoxPathModel2, "Firefox Executable Path", JFileChooser.OPEN_DIALOG,
                 JFileChooser.FILES_ONLY, fvmF));
+        closeCurrentGroup();
         
-        addDialogComponent(new DialogComponentFileChooser2(0, screenshotPathModel2, "default screenshot path", JFileChooser.OPEN_DIALOG,
+        createNewGroup("default screenshot path");
+        addDialogComponent(new DialogComponentFileChooser2(0, screenshotPathModel2, "default screenshot path", JFileChooser.SAVE_DIALOG,
                 JFileChooser.DIRECTORIES_ONLY, fvmS));
-      
-        addDialogComponent(new DialogComponentFileChooser2(0, downloadPathModel2, "default download path", JFileChooser.OPEN_DIALOG,
+        closeCurrentGroup();
+        
+        createNewGroup("default download path");
+        addDialogComponent(new DialogComponentFileChooser2(0, downloadPathModel2, "default download path", JFileChooser.SAVE_DIALOG,
                 JFileChooser.DIRECTORIES_ONLY, fvmD));
+        closeCurrentGroup();
         
+        addDialogComponent(new DialogComponentBoolean(headlessMode, "Start browser headless?"));
+   
+        createNewTab("Firefox Preferences");
+        createNewGroup("Firefox Preferences"); 
+        addDialogComponent(new DialogComponentFirefoxPreferences(foxModel, "Test Fox"));
         
-     
-		
+        closeCurrentGroup();
+        
         createNewTab("Proxy Options");
         createNewGroup("Proxy Options"); 
         

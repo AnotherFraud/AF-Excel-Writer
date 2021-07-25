@@ -51,8 +51,14 @@ public class WebdriverHandler {
     {
     	if (this.getDriver() != null)
     	{
-    	this.getDriver().quit();
-    	}
+	    	try {
+	    		this.getDriver().quit();
+	    	}
+	    	catch (Exception e)
+	    	{
+	    	}
+	    }
+    	
     	WebdriverMap.remove(this.key);
     }    
        

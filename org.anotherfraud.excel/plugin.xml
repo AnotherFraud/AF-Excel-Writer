@@ -115,31 +115,63 @@
             factory-class="org.AF.SharePointUtilities.Conn.DownloadFileFromSP.DownloadFileFromSPNodeFactory">	 
       </node>        
       
-      <node
-            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
-            factory-class="org.AF.SharePointUtilities.Conn.MoveSPFile.MoveSPFileNodeFactory">	 
-      </node>  
+    <node
+          category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+          factory-class="org.AF.SharePointUtilities.Conn.MoveSPFile.MoveSPFileNodeFactory">	 
+    </node>  
       
-      <node
-            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
-            factory-class="org.AF.SharePointUtilities.Conn.GetSPListItems.GetSPListItemsNodeFactory">	 
-      </node> 
+    <node
+          category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+          factory-class="org.AF.SharePointUtilities.Conn.GetSPListItems.GetSPListItemsNodeFactory">	 
+    </node> 
 
-      <node
-            category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
-            factory-class="org.AF.SharePointUtilities.Conn.GetSharePointListColumns.GetSharePointListColumnsNodeFactory">	 
-      </node> 
+    <node
+          category-path="/community/AF_Utilities/SharePointUtil/SharePointConn"
+          factory-class="org.AF.SharePointUtilities.Conn.GetSharePointListColumns.GetSharePointListColumnsNodeFactory">	 
+    </node> 
             
-      <node
-            category-path="/community/AF_Utilities/FirefoxUtil"
-            factory-class="org.AF.SeleniumFire.CreateFirefoxBrowserInstance.CreateFirefoxBrowserInstanceNodeFactory">	 
-      </node>   
+    <node
+          category-path="/community/AF_Utilities/FirefoxUtil"
+          factory-class="org.AF.SeleniumFire.CreateFirefoxBrowserInstance.CreateFirefoxBrowserInstanceNodeFactory">	 
+    </node>   
  
-      <node
-            category-path="/community/AF_Utilities/FirefoxUtil"
-            factory-class="org.AF.SeleniumFire.GetURL.GetUrlNodeFactory">	 
-      </node>        
-             
+    <node
+          category-path="/community/AF_Utilities/FirefoxUtil"
+          factory-class="org.AF.SeleniumFire.GetURL.GetUrlNodeFactory">	 
+    </node>        
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.Clear.ClearNodeFactory">	 
+	</node> 
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.Click.ClickNodeFactory">	 
+	</node> 
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.ExecuteJavaScript.ExecuteJavaScriptNodeFactory">	 
+	</node> 
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.FindWebElement.FindWebElementNodeFactory">	 
+	</node> 
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.Screenshot.ScreenshotNodeFactory">	 
+	</node> 
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.SendKeys.SendKeysNodeFactory">	 
+	</node> 
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.Submit.SubmitNodeFactory">	 
+	</node>             
                  
    </extension>
    <extension
@@ -183,7 +215,7 @@
  
        <category
             description="AF Firefox Automation"
-            icon="ExcelCategory.png"
+            icon="SeleniumFire.png"
             level-id="FirefoxUtil"
             locked="true"
             name="FirefoxUtil"
@@ -202,8 +234,9 @@
             specClass="org.AF.Connections.ConnectionInformationPortObjectSpec"
             specSerializer="org.AF.Connections.ConnectionInformationPortObjectSpec$Serializer">
       </portType>
-      
+
       <portType
+      		color="#fcba03"
             hidden="false"
             name="SeleniumFirefoxPort"
             objectClass="org.AF.Selenium.Port.SeleniumConnectionInformationPortObject"

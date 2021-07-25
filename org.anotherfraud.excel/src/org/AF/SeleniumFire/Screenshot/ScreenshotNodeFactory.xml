@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./screenshot.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Screenshot</name>
+    
+    <shortDescription>Takes a screenshot of the current frame in active session</shortDescription>
+    
+    <fullDescription>
+		<intro>Takes a screenshot of the current frame in active session
+			<br/>and saves it to .png to the defined location
+		</intro>
+  	<option name="save screenshot to path">
+  				Path with file name where the file should be saved (existing files will be overwritten)
+		</option>
+		
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+        <!-- possibly more output ports here-->
+    </ports>
+    
+</knimeNode>

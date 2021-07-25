@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -12,8 +14,12 @@ import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObjectSpec;
 import org.AF.Selenium.Port.WebdriverHandler;
+import org.AF.SeleniumFire.Utilities.FirefoxPreferences;
+import org.AF.SeleniumFire.Utilities.SettingsModelFirefoxSettings;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -26,6 +32,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -70,11 +77,17 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     static final String downloadPath = "downloadPath";
     static final String screenshotPath = "screenshotPath";
     static final String firefoxPath = "firefoxPath";
+    static final String headlessMode = "headlessMode";
+    static final String foxSettings = "foxSettings";
 	private Optional<FSConnection> m_fs = Optional.empty();
 	private int defaulttimeoutInSeconds = 5;
     
 
-    
+	static SettingsModelBoolean createHeadlessModeSettingsModel() {
+		SettingsModelBoolean wlr = new SettingsModelBoolean(headlessMode, false);
+		return wlr;				
+	}	
+	
 	static SettingsModelFileChooser2 createDownloadPathSettingsModel() {
 		SettingsModelFileChooser2 ofp = new SettingsModelFileChooser2(downloadPath);
 		return ofp;
@@ -103,7 +116,6 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	}
 	
 
-	
 	static SettingsModelString createUseProxySettingsModel() {
 		SettingsModelString coof = new SettingsModelString(UseProxy, "no proxy");
 		coof.setEnabled(true);
@@ -123,6 +135,25 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		return coof;				
 	}		
 	
+	static SettingsModelFirefoxSettings createFirefoxSettingsModel() {
+		
+        List<FirefoxPreferences> initialPrefs = new ArrayList<FirefoxPreferences>();
+        
+        initialPrefs.add(new FirefoxPreferences("browser.download.folderList", "2","integer"));
+        initialPrefs.add(new FirefoxPreferences("browser.link.open_newwindow", "3","integer"));
+        initialPrefs.add(new FirefoxPreferences("browser.link.open_newwindow.restriction", "0","integer" ));
+        initialPrefs.add(new FirefoxPreferences("browser.helperApps.neverAsk.saveToDisk", "application/msexcel","string" ));
+        initialPrefs.add(new FirefoxPreferences("security.fileuri.strict_origin_policy", "false","string" ));
+        initialPrefs.add(new FirefoxPreferences("network.proxy.type", "2","integer" ));
+        initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.autostart", "false","boolean" ));
+        initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.autostart.2", "false","boolean" ));
+        initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.warmup.maxTabs","2","integer" ));
+ 
+		SettingsModelFirefoxSettings coof = new SettingsModelFirefoxSettings(foxSettings, initialPrefs);
+
+		return coof;				
+	}	
+	
 	
 	private final SettingsModelAuthentication m_proxy = createProxySettingsModel();
 
@@ -130,12 +161,16 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	private final SettingsModelIntegerBounded m_proxyPort = createProxyPortIndexModel();
 	private final SettingsModelString m_proxyHost = createProxyHostSettingsModel();
 
-	private final SettingsModelString m_driverPath = createDriverPathSettingsModel();	
     private final SettingsModelFileChooser2 m_downloadPath = createDownloadPathSettingsModel();	
     private final SettingsModelFileChooser2 m_screenshotPath = createScreenshotPathSettingsModel();	
     private final SettingsModelFileChooser2 m_firefoxPath = createFirefoxPathSettingsModel();	
+    private final SettingsModelBoolean m_headless = createHeadlessModeSettingsModel();	
+    private final SettingsModelFirefoxSettings m_foxSettings = createFirefoxSettingsModel();
+    
 
-	private String m_connectionKey;
+	private String m_connectionKey = "";
+	private String m_driverPath = "";
+	
     /** Settings containing information about the SP connection. */
 
     /** Method to create a new settings object containing information about the AWS connection. */
@@ -225,10 +260,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_connectionKey = createNewKey();
 		getDriverForOS(m_connectionKey);		
 		
-
-		//System.setProperty("webdriver.gecko.driver", "/transfer/sftp/fraud/data/WorkflowTempFiles/CargoImport/geckodriver26");
-		//System.setProperty("webdriver.gecko.driver", "C:\\Temp\\Selenium\\geckodriver.exe");
-		System.setProperty("webdriver.gecko.driver", m_driverPath.getStringValue());
+		System.setProperty("webdriver.gecko.driver", m_driverPath);
 
 		
 		
@@ -236,23 +268,29 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		FirefoxBinary firefoxBinary = new FirefoxBinary(pathBinary); 
 		
 		FirefoxOptions options = new FirefoxOptions();
+
 		options.setBinary(firefoxBinary);
 		options.addArguments("--sandbox");
+		
+		setOptions(options);
 		options.addPreference("browser.download.dir",downloadPath);
+		
+		/*
 		options.addPreference("browser.download.folderList", 2);
 		options.addPreference("browser.link.open_newwindow", 3);
 		options.addPreference("browser.link.open_newwindow.restriction", 0);
 		options.addPreference("browser.helperApps.neverAsk.saveToDisk", "application/msexcel");
 		options.addPreference("security.fileuri.strict_origin_policy", "false");
-		options.addPreference("network.proxy.autoconfig_url", "http://inetprox.inet.cns.fra.dlh.de/lhpproxy.pac");
 		options.addPreference("network.proxy.type", 2);
 		options.addPreference("browser.tabs.remote.autostart", false);
 		options.addPreference("browser.tabs.remote.autostart.2", false);
 	 	options.addPreference("browser.tabs.remote.warmup.maxTabs",2);
 	 	options.setCapability("acceptInsecureCerts", true);
+	 	*/
 	 	
+    	
 
-		options.setHeadless(false);
+		options.setHeadless(m_headless.getBooleanValue());
 		FirefoxDriver driver = new FirefoxDriver(options); 
 		
 
@@ -268,6 +306,28 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	
 	
 	
+	private void setOptions(FirefoxOptions options) {
+	
+    	for (FirefoxPreferences pref : m_foxSettings.getSettings()) {
+    	
+    	    switch (pref.getColumnAt(2)) {
+    	        case "integer":
+    	        	options.addPreference(pref.getColumnAt(0),NumberUtils.toInt(pref.getColumnAt(1)));
+    	            break;
+    	        case "string":
+    	        	options.addPreference(pref.getColumnAt(0),pref.getColumnAt(1));
+    	            break;
+    	        case "boolean":
+    	        	options.addPreference(pref.getColumnAt(0),BooleanUtils.toBoolean(pref.getColumnAt(1)));
+    	            break;
+    	        default:
+    	        	//ignore wrong types
+    	            break;
+    	    }
+    	}
+    			
+	}
+
 	private String getPathFromModel(SettingsModelFileChooser2 fileChooserModel) throws InvalidSettingsException, IOException {		
 		FileChooserHelper fileHelper = new FileChooserHelper(m_fs, fileChooserModel, defaulttimeoutInSeconds * 1000);
 		Path pathOutput = fileHelper.getPathFromSettings();
@@ -308,18 +368,34 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	private void getDriverForOS(String connectionID) throws IOException{
 
 		
-		File tempDriverPath = new File(m_driverPath.getStringValue());
+		Boolean createNewPath = true;
+		
+		
+		File tempDriverPath = null;
+		
+		if (m_driverPath.length() >0)
+			{
+			tempDriverPath = new File(m_driverPath);
+			if(tempDriverPath.canExecute())
+			{
+				createNewPath = false;
+			}
+			}
+		
+		
 		InputStream driverStream;
 		File tempDriver;
 		
-		if (!tempDriverPath.canExecute() || m_driverPath.getStringValue() != "" )
+		if (createNewPath )
 		{	
 			
-		tempDriver = FileUtil.createTempDir("connectionID"+"webDriver", new File(KNIMEConstants.getKNIMETempDir()), true);
+		tempDriver = FileUtil.createTempFile(getDriverOSName(), NodeContext.getContext().getWorkflowManager().getID().toString(), new File(KNIMEConstants.getKNIMETempDir()), true);
+		//tempDriver = FileUtil.createTempDir("connectionID"+"webDriver", new File(KNIMEConstants.getKNIMETempDir()), true);
 		driverStream = this.getClass().getClassLoader().getResourceAsStream(getDriverOSName());
 		
+		
 		FileUtils.copyInputStreamToFile(driverStream, tempDriver);
-		m_driverPath.setStringValue(tempDriver.getAbsolutePath());
+		m_driverPath = tempDriver.getAbsolutePath();
 		
 		
 		}
@@ -364,6 +440,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		 * See the methods of the NodeSettingsWO.
 		 */
 		
+		settings.addString(DriverPath, m_driverPath);
 		m_proxy.saveSettingsTo(settings);
 		m_downloadPath.saveSettingsTo(settings);
 		m_screenshotPath.saveSettingsTo(settings);
@@ -371,8 +448,8 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_useProxy.saveSettingsTo(settings);
 		m_proxyPort.saveSettingsTo(settings);
 		m_proxyHost.saveSettingsTo(settings);
-		m_driverPath.saveSettingsTo(settings);
-		
+		m_headless.saveSettingsTo(settings);
+		m_foxSettings.saveSettingsTo(settings);
 		
 
 
@@ -398,7 +475,18 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_useProxy.loadSettingsFrom(settings);
 		m_proxyPort.loadSettingsFrom(settings);
 		m_proxyHost.loadSettingsFrom(settings);
-		m_driverPath.loadSettingsFrom(settings);
+
+
+		m_headless.loadSettingsFrom(settings);
+		m_foxSettings.loadSettingsFrom(settings);
+		
+		try
+		{
+		m_driverPath = settings.getString(DriverPath);
+		} catch (InvalidSettingsException c)
+		{
+		}
+		
 
 	}
 
@@ -420,8 +508,9 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_useProxy.validateSettings(settings);
 		m_proxyPort.validateSettings(settings);
 		m_proxyHost.validateSettings(settings);
-		m_driverPath.validateSettings(settings);
-		
+		m_headless.validateSettings(settings);
+		m_foxSettings.validateSettings(settings);
+
 
 	}
 
@@ -448,12 +537,12 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		
-		if (!m_driverPath.getStringValue().contains(nodeInternDir.getAbsolutePath()) && m_driverPath.getStringValue() != "")
+		if (!m_driverPath.contains(nodeInternDir.getAbsolutePath()) && m_driverPath != "")
 		{
-			File tempDriverPath = new File(m_driverPath.getStringValue());
+			File tempDriverPath = new File(m_driverPath);
 			File nodeDirDriverPath = new File(nodeInternDir.getAbsolutePath() + File.separator + getDriverOSName());		
 			FileUtils.moveFile(tempDriverPath, nodeDirDriverPath);
-			m_driverPath.setStringValue(nodeDirDriverPath.getAbsolutePath());
+			m_driverPath = nodeDirDriverPath.getAbsolutePath();
 				
 		}
 		
@@ -470,25 +559,38 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	@Override
 	protected void reset() 
 	{
+	if (m_connectionKey != null || m_connectionKey.length() > 0)
+	{
 	WebdriverHandler.getInstance(m_connectionKey).removeInstance();	
 	
-	File tempDriverPath = new File(m_driverPath.getStringValue());
-		if (tempDriverPath.exists())
+		if (m_driverPath.length() > 0)
 		{
-			tempDriverPath.delete();
-		}	
+		File tempDriverPath = new File(m_driverPath);
+			if (tempDriverPath.exists())
+			{
+				tempDriverPath.delete();
+			}	
+		}
+	}
 	}
 	
 	  
 	  
 	 protected void onDispose() {
+	
+     if (m_connectionKey != null )
+     {
 	 WebdriverHandler.getInstance(m_connectionKey).removeInstance();	
 	 
-	 File tempDriverPath = new File(m_driverPath.getStringValue());
-		if (tempDriverPath.exists())
-		{
-			tempDriverPath.delete();
-		}
+		 if (!m_driverPath.isEmpty())
+		 {
+		 File tempDriverPath = new File(m_driverPath);
+			if (tempDriverPath.exists())
+			{
+				tempDriverPath.delete();
+			}
+		 }
+	 }
 	 }
 	  
 }

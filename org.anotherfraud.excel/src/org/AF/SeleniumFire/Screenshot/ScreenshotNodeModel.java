@@ -1,12 +1,14 @@
-package org.AF.SeleniumFire.GetURL;
+package org.AF.SeleniumFire.Screenshot;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 
 import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
 import org.AF.Selenium.Port.WebdriverHandler;
-import org.AF.SeleniumFire.CreateFirefoxBrowserInstance.CreateFirefoxBrowserInstanceNodeModel;
+import org.apache.commons.io.FileUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -16,16 +18,21 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 
 /**
  * This is an example implementation of the node model of the
- * "GetUrl" node.
+ * "Screenshot" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -33,41 +40,42 @@ import org.openqa.selenium.firefox.FirefoxDriver;
  *
  * @author Another Fraud
  */
-public class GetUrlNodeModel extends NodeModel {
+public class ScreenshotNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateFirefoxBrowserInstanceNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(ScreenshotNodeModel.class);
+
+	static final String screenshotPath = "screenshotPath";
+	private Optional<FSConnection> m_fs = Optional.empty();
+	private int defaulttimeoutInSeconds = 5;
 
 	
+	static SettingsModelFileChooser2 createScreenshotPathSettingsModel() {
+		SettingsModelFileChooser2 ofp = new SettingsModelFileChooser2(screenshotPath);
+		return ofp;
+	}
 
-    static final String GetURL = "GetURL";
-
-
+	private final SettingsModelFileChooser2 m_screenshotPath = createScreenshotPathSettingsModel();	
 	
-	static SettingsModelString createGetURLSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(GetURL, "https://");
-		coof.setEnabled(true);
-		return coof;				
-	}	
-
-	private final SettingsModelString m_getURL = createGetURLSettingsModel();
-
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected GetUrlNodeModel() {
-		
+	protected ScreenshotNodeModel() {
 		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
-		//super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[] {PortTypeRegistry.getInstance().getPortType(ConnectionInformationPortObject.class)});
-
 	}
 
-
+	private String getPathFromModel(SettingsModelFileChooser2 fileChooserModel) throws InvalidSettingsException, IOException {		
+		FileChooserHelper fileHelper = new FileChooserHelper(m_fs, fileChooserModel, defaulttimeoutInSeconds * 1000);
+		Path pathOutput = fileHelper.getPathFromSettings();
+		return pathOutput.toAbsolutePath().toString();
+	}
+	
+	
 	/**
 	 * 
 	 * {@inheritDoc}
@@ -85,7 +93,7 @@ public class GetUrlNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Starting Firefox Instance");
+		LOGGER.info("Starting Take Screenshot");
 
 		
 		
@@ -93,14 +101,18 @@ public class GetUrlNodeModel extends NodeModel {
 		SeleniumConnectionInformation connInfo = spConn.getConnectionInformation();
 		
 		
+		
 		WebdriverHandler handle = WebdriverHandler.getInstance(connInfo.getWebdriverHandlerKey());
 		
-		
-		
+		String screenShotPath = getPathFromModel(m_screenshotPath);
 		
 		FirefoxDriver driver = handle.getDriver();
 		
-		driver.get(m_getURL.getStringValue());
+		File scrFile = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
+		// Now you can do whatever you need to do with it, for example copy somewhere
+		FileUtils.copyFile(scrFile, new File(screenShotPath));
+		
+
 
 		
 		return new PortObject[]{spConn};
@@ -139,7 +151,7 @@ public class GetUrlNodeModel extends NodeModel {
 		 * See the methods of the NodeSettingsWO.
 		 */
 		
-		m_getURL.saveSettingsTo(settings);
+		m_screenshotPath.saveSettingsTo(settings);
 
 	}
 
@@ -156,7 +168,7 @@ public class GetUrlNodeModel extends NodeModel {
 		 * (from the view) can be retrieved from the settings model.
 		 */
 
-		m_getURL.loadSettingsFrom(settings);
+		m_screenshotPath.loadSettingsFrom(settings);
 
 	}
 
@@ -171,7 +183,7 @@ public class GetUrlNodeModel extends NodeModel {
 		 * already handled in the dialog. Do not actually set any values of any member
 		 * variables.
 		 */
-		m_getURL.validateSettings(settings);
+		m_screenshotPath.validateSettings(settings);
 
 	}
 
@@ -207,5 +219,3 @@ public class GetUrlNodeModel extends NodeModel {
 		 */
 	}
 }
-
-

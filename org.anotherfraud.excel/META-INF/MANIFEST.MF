@@ -62,5 +62,12 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SharePointUtilities.Conn.GetSPListItems,
  org.AF.SharePointUtilities.Conn.GetSharePointListColumns,
  org.AF.SeleniumFire.CreateFirefoxBrowserInstance,
- org.AF.SeleniumFire.GetURL
+ org.AF.SeleniumFire.GetURL,
+ org.AF.SeleniumFire.Clear,
+ org.AF.SeleniumFire.Click,
+ org.AF.SeleniumFire.ExecuteJavaScript,
+ org.AF.SeleniumFire.FindWebElement,
+ org.AF.SeleniumFire.Screenshot,
+ org.AF.SeleniumFire.SendKeys,
+ org.AF.SeleniumFire.Submit
 

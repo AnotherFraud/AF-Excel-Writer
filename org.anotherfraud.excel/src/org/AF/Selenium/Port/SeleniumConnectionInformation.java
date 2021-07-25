@@ -34,6 +34,7 @@ public class SeleniumConnectionInformation implements Serializable {
     private String m_webdriverHandlerKey;
     
     private String m_screenShotPath = null;
+    private int m_screenShotCounter = 0;
     private String m_downloadPath = null;
     private WebDriverWait m_driverWait = null;
     
@@ -75,10 +76,14 @@ public class SeleniumConnectionInformation implements Serializable {
     	
     	this.setHost(model.getString("host"));
         this.setPort(model.getInt("port"));
+        
+        
+        
         this.setUser(model.getString("user"));
         this.setUseProxy(model.getBoolean("useProxy"));
         this.setDownloadPath(model.getString("downloadPath"));
         this.setScreenShotPath(model.getString("screenShotPath"));
+        this.setPort(model.getInt("sCounter"));
         this.setDownloadWaitSeconds(model.getInt("downloadWaitSeconds"));
         this.setPageWaitSeconds(model.getInt("pageWaitSeconds"));
         this.setWebdriverHandlerKey(model.getString("driverHandle"));
@@ -121,9 +126,11 @@ public class SeleniumConnectionInformation implements Serializable {
         
         model.addString("downloadPath", m_downloadPath); 
         model.addString("screenShotPath", m_screenShotPath); 
+        model.addInt("sCounter", m_screenShotCounter); 
         model.addInt("pageWaitSeconds", m_pageWaitSeconds);
         model.addInt("downloadWaitSeconds", m_downloadWaitSeconds);
         
+
         
     }
 
@@ -223,7 +230,15 @@ public class SeleniumConnectionInformation implements Serializable {
     public void setScreenShotPath (final String screenShotPath) {
     	m_screenShotPath = screenShotPath;
     }     
-
+    
+    public void setScreenShotCounter (final int newCounter) {
+    	m_screenShotCounter = newCounter;
+    }       
+    
+    public void increaseScreenShotCounter () {
+    	m_screenShotCounter++;
+    }   
+    
     public void setDownloadPath(final String downloadPath) {
     	m_downloadPath = downloadPath;
     }  
@@ -321,7 +336,15 @@ public class SeleniumConnectionInformation implements Serializable {
     	return m_screenShotPath;
     }    
     
- 
+    public int getScreenShotCounter () {
+    	return m_screenShotCounter;
+    }  
+    
+    public int getScreenShotCounterWithIncrease () {
+    	m_screenShotCounter++;
+    	return m_screenShotCounter;
+    }  
+    
     public String getWebdriverHandlerKey() {
 		return m_webdriverHandlerKey;
     }
@@ -365,6 +388,7 @@ public class SeleniumConnectionInformation implements Serializable {
     @Override
     public int hashCode() {
         final HashCodeBuilder hcb = new HashCodeBuilder();
+        hcb.append(m_webdriverHandlerKey);
         hcb.append(m_protocol);
         hcb.append(m_host);
         hcb.append(m_port);
@@ -385,6 +409,7 @@ public class SeleniumConnectionInformation implements Serializable {
         }
         final SeleniumConnectionInformation ci = (SeleniumConnectionInformation)obj;
         final EqualsBuilder eqBuilder = new EqualsBuilder();
+        eqBuilder.append(m_webdriverHandlerKey, ci.m_webdriverHandlerKey);
         eqBuilder.append(m_protocol, ci.m_protocol);
         eqBuilder.append(m_host, ci.m_host);
         eqBuilder.append(m_port, ci.m_port);
