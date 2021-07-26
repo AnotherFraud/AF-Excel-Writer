@@ -1,14 +1,11 @@
-package org.AF.SeleniumFire.Screenshot;
+package org.AF.SeleniumFire.CloseInstance;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
 
 import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
 import org.AF.Selenium.Port.WebdriverHandler;
-import org.apache.commons.io.FileUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -21,17 +18,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+
 
 
 /**
  * This is an example implementation of the node model of the
- * "Screenshot" node.
+ * "CloseInstance" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -39,42 +32,25 @@ import org.openqa.selenium.firefox.FirefoxDriver;
  *
  * @author Another Fraud
  */
-public class ScreenshotNodeModel extends NodeModel {
+public class CloseInstanceNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(ScreenshotNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CloseInstanceNodeModel.class);
 
-	static final String screenshotPath = "screenshotPath";
-	private Optional<FSConnection> m_fs = Optional.empty();
-	private int defaulttimeoutInSeconds = 5;
 
-	
-	static SettingsModelFileChooser2 createScreenshotPathSettingsModel() {
-		SettingsModelFileChooser2 ofp = new SettingsModelFileChooser2(screenshotPath);
-		return ofp;
-	}
 
-	private final SettingsModelFileChooser2 m_screenshotPath = createScreenshotPathSettingsModel();	
-	
-
+    
 	/**
 	 * Constructor for the node model.
 	 */
-	protected ScreenshotNodeModel() {
-		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
+	protected CloseInstanceNodeModel() {
+		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL});
 	}
 
-	private String getPathFromModel(SettingsModelFileChooser2 fileChooserModel) throws InvalidSettingsException, IOException {		
-		FileChooserHelper fileHelper = new FileChooserHelper(m_fs, fileChooserModel, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = fileHelper.getPathFromSettings();
-		return pathOutput.toAbsolutePath().toString();
-	}
-	
-	
 	/**
 	 * 
 	 * {@inheritDoc}
@@ -92,30 +68,20 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Starting Take Screenshot");
-
-		
+		LOGGER.info("Start close firefox instance");
 		
 		SeleniumConnectionInformationPortObject spConn = (SeleniumConnectionInformationPortObject)inObjects[0];
 		SeleniumConnectionInformation connInfo = spConn.getConnectionInformation();
 		
-		
-		
 		WebdriverHandler handle = WebdriverHandler.getInstance(connInfo.getWebdriverHandlerKey());
+		handle.removeInstance();
 		
-		String screenShotPath = getPathFromModel(m_screenshotPath);
-		
-		FirefoxDriver driver = handle.getDriver();
-		
-		File scrFile = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-		// Now you can do whatever you need to do with it, for example copy somewhere
-		FileUtils.copyFile(scrFile, new File(screenShotPath));
-		
-
-
-		
-		return new PortObject[]{spConn};
+		return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
 	}
+
+
+
+
 
 	/**
 	 * {@inheritDoc}
@@ -150,7 +116,6 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * See the methods of the NodeSettingsWO.
 		 */
 		
-		m_screenshotPath.saveSettingsTo(settings);
 
 	}
 
@@ -167,8 +132,7 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * (from the view) can be retrieved from the settings model.
 		 */
 
-		m_screenshotPath.loadSettingsFrom(settings);
-
+	
 	}
 
 	/**
@@ -182,7 +146,6 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * already handled in the dialog. Do not actually set any values of any member
 		 * variables.
 		 */
-		m_screenshotPath.validateSettings(settings);
 
 	}
 
@@ -218,3 +181,4 @@ public class ScreenshotNodeModel extends NodeModel {
 		 */
 	}
 }
+

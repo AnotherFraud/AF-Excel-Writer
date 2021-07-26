@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./pickerIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Option Picker</name>
+    
+    <shortDescription>Selects option in dropdown / selection</shortDescription>
+    
+    <fullDescription>
+		<intro>This node picks an option in a dropdown or selection web element in an active selenium session.
+			<br/>The element to send to can be found using different selectors e.g. byID, byXpath, byClass,...
+		</intro>
+		
+  		<option name="Option to Select">
+  				Define which option to pick
+		</option>	
+  		<option name="select or unselect">
+  				Define if option should be selected or unselected
+		</option>		
+  		<option name="searchIn">
+  				Define if you want to search in the whole document (with locator) 
+  				or in the last saved web element
+				Can be: "with locator","current element" or "with locator in current element"
+		</option>
+		<option name="Locator String">
+			The locator string to search for. 
+			e.g. an xPath or the ID of the webElement
+		</option>		
+		<option name="FindBy">
+			Specify how the node should search for the element.
+				Can be: "ById","ByName","ByClassName","ByXPath","ByCssSelector","ByLinkText","ByPartialLinkText","ByTagName"
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+        <!-- possibly more output ports here-->
+    </ports>   
+</knimeNode>

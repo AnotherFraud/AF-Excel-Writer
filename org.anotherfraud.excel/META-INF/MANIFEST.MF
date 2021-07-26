@@ -69,5 +69,11 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.FindWebElement,
  org.AF.SeleniumFire.Screenshot,
  org.AF.SeleniumFire.SendKeys,
- org.AF.SeleniumFire.Submit
+ org.AF.SeleniumFire.Submit,
+ org.AF.SeleniumFire.CloseInstance,
+ org.AF.SeleniumFire.GetWebElementData,
+ org.AF.SeleniumFire.GetSessionData,
+ org.AF.SeleniumFire.SwitchTab,
+ org.AF.SeleniumFire.SwitchFrame,
+ org.AF.SeleniumFire.OptionPicker
 

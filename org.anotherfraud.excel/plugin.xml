@@ -171,8 +171,40 @@
 	<node
 	      category-path="/community/AF_Utilities/FirefoxUtil"
 	      factory-class="org.AF.SeleniumFire.Submit.SubmitNodeFactory">	 
-	</node>             
-                 
+	</node>  
+	           
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.CloseInstance.CloseInstanceNodeFactory">	 
+	</node>   
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.GetWebElementData.GetWebElementDataNodeFactory">	 
+	</node>   	
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.GetSessionData.GetSessionDataNodeFactory">	 
+	</node>  
+
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.SwitchTab.SwitchTabNodeFactory">	 
+	</node>  
+
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.SwitchFrame.SwitchFrameNodeFactory">	 
+	</node>  
+
+
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.OptionPicker.OptionPickerNodeFactory">	 
+	</node>
+
+
+	                 
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">

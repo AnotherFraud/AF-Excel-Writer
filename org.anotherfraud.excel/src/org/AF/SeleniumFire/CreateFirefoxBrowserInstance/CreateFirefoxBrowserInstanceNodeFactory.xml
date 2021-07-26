@@ -7,6 +7,8 @@
     <fullDescription>
 		<intro>This opens a new firefox session using selenium
 			<br/>Note: all following nodes only work, while the session is still running
+			<br/>This is a very basic implementation of the Selenium framework!
+			<br/>->for a more professional supported version checkout: https://seleniumnodes.com/
 		</intro>
 		
   		<option name="Firefox Executable File">

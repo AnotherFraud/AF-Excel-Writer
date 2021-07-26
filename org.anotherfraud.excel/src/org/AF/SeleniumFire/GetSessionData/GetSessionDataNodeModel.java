@@ -1,15 +1,26 @@
-package org.AF.SeleniumFire.Screenshot;
+package org.AF.SeleniumFire.GetSessionData;
+
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
 import org.AF.Selenium.Port.WebdriverHandler;
-import org.apache.commons.io.FileUtils;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.collection.ListCell;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -21,66 +32,44 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.Cookie;
 import org.openqa.selenium.firefox.FirefoxDriver;
+
 
 
 /**
  * This is an example implementation of the node model of the
- * "Screenshot" node.
+ * "GetSessionData" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
  * on all double columns of its input table.
  *
- * @author Another Fraud
+ * @author 
  */
-public class ScreenshotNodeModel extends NodeModel {
+public class GetSessionDataNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(ScreenshotNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(GetSessionDataNodeModel.class);
 
-	static final String screenshotPath = "screenshotPath";
-	private Optional<FSConnection> m_fs = Optional.empty();
-	private int defaulttimeoutInSeconds = 5;
-
-	
-	static SettingsModelFileChooser2 createScreenshotPathSettingsModel() {
-		SettingsModelFileChooser2 ofp = new SettingsModelFileChooser2(screenshotPath);
-		return ofp;
-	}
-
-	private final SettingsModelFileChooser2 m_screenshotPath = createScreenshotPathSettingsModel();	
-	
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected ScreenshotNodeModel() {
-		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
+	protected GetSessionDataNodeModel() {
+		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{BufferedDataTable.TYPE});
 	}
 
-	private String getPathFromModel(SettingsModelFileChooser2 fileChooserModel) throws InvalidSettingsException, IOException {		
-		FileChooserHelper fileHelper = new FileChooserHelper(m_fs, fileChooserModel, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = fileHelper.getPathFromSettings();
-		return pathOutput.toAbsolutePath().toString();
-	}
-	
-	
 	/**
 	 * 
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec)
+	protected BufferedDataTable[] execute(final PortObject[] inObjects, final ExecutionContext exec)
 			throws Exception {
 		/*
 		 * The functionality of the node is implemented in the execute method. This
@@ -92,36 +81,111 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Starting Take Screenshot");
-
+		LOGGER.info("Start executing GetSession Infos");
 		
 		
 		SeleniumConnectionInformationPortObject spConn = (SeleniumConnectionInformationPortObject)inObjects[0];
 		SeleniumConnectionInformation connInfo = spConn.getConnectionInformation();
-		
-		
-		
+		BufferedDataContainer container = exec.createDataContainer(getSpec());
 		WebdriverHandler handle = WebdriverHandler.getInstance(connInfo.getWebdriverHandlerKey());
-		
-		String screenShotPath = getPathFromModel(m_screenshotPath);
 		
 		FirefoxDriver driver = handle.getDriver();
 		
-		File scrFile = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-		// Now you can do whatever you need to do with it, for example copy somewhere
-		FileUtils.copyFile(scrFile, new File(screenShotPath));
 		
-
-
 		
-		return new PortObject[]{spConn};
+		Set<Cookie> allcookies = driver.manage().getCookies();
+		List<DataCell> stringArrayCells = new ArrayList<DataCell>();
+		
+	     for (Cookie coockie : allcookies) {
+	    	 
+	    	 String cookieText =
+	    			"Domain:"
+	    			+ coockie.getDomain()
+	    	 		+ ";Name:"
+	    	 		+ coockie.getName()
+	    	 		+ ";Value:"
+	    	 		+ coockie.getValue()
+	    	 		+ ";Path:"
+	    	 		+ coockie.getPath()
+	    	 		+ ";Domain:"
+	    	 		+ coockie.getDomain()
+	    	 		+ ";isHttpOnly:"
+	    	 		+ coockie.isHttpOnly()
+	    	 		+ ";isSecure:"
+	    	 		+ coockie.isSecure()
+	    	 ;
+	    	 
+	    	 stringArrayCells.add(StringCellFactory.create(cookieText));	 
+	      }
+	     
+	     
+	      addRow(
+	    		  container
+	    		  ,"Row_"+String.valueOf(0)
+	    		  ,driver.getPageSource()
+	    		  ,driver.getCurrentUrl()
+	    		  ,driver.getTitle()
+	    		  ,driver.getWindowHandle()
+	    		  ,driver.getSessionId().toString()
+	    		  ,stringArrayCells
+	       );	
+	      
+
+   	 	container.close();
+		
+   	 
+   	 
+   	 return new BufferedDataTable[] { container.getTable() };
+
 	}
+	
+	
+	private DataTableSpec getSpec()
+	{
+		
+		
+		DataTableSpecCreator crator = new DataTableSpecCreator();
+
+		crator.addColumns(new DataColumnSpecCreator("PageSource", StringCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("CurrentUrl", StringCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("Title", StringCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("WindowHandle", StringCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("SessionId", StringCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("Cookies", ListCell.getCollectionType(StringCellFactory.TYPE)).createSpec());
+		return crator.createSpec();
+		
+		
+	}
+	
+	
+	private void addRow(
+			BufferedDataContainer container
+			,String key
+			,String PageSource
+			,String CurrentUrl
+			,String Title
+			,String WindowHandle
+			,String sessionId
+			,List<DataCell> cookies
+			)
+	{
+		container.addRowToTable(
+				new DefaultRow(new RowKey(key), new DataCell[] { 
+						StringCellFactory.create(PageSource)
+						,StringCellFactory.create(CurrentUrl)
+						,StringCellFactory.create(Title)
+						,StringCellFactory.create(WindowHandle)
+						,StringCellFactory.create(sessionId)
+						,CollectionCellFactory.createListCell(cookies)		
+				}));
+	}
+	
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+	protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		/*
 		 * Similar to the return type of the execute method, we need to return an array
 		 * of DataTableSpecs with the length of the number of outputs ports of the node
@@ -149,8 +213,6 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * all common data types. Hence, you can easily write your settings manually.
 		 * See the methods of the NodeSettingsWO.
 		 */
-		
-		m_screenshotPath.saveSettingsTo(settings);
 
 	}
 
@@ -166,9 +228,7 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * The SettingsModel will handle the loading. After this call, the current value
 		 * (from the view) can be retrieved from the settings model.
 		 */
-
-		m_screenshotPath.loadSettingsFrom(settings);
-
+	
 	}
 
 	/**
@@ -182,7 +242,7 @@ public class ScreenshotNodeModel extends NodeModel {
 		 * already handled in the dialog. Do not actually set any values of any member
 		 * variables.
 		 */
-		m_screenshotPath.validateSettings(settings);
+
 
 	}
 
@@ -218,3 +278,4 @@ public class ScreenshotNodeModel extends NodeModel {
 		 */
 	}
 }
+
