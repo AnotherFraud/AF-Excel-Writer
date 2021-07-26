@@ -79,3 +79,4 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.SwitchFrame,
  org.AF.SeleniumFire.OptionPicker,
  org.AF.SeleniumFire.WaitForWebElement
+Import-Package: org.w3c.dom.events;version="3.0.0"
