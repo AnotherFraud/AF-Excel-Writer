@@ -6,7 +6,9 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: excelpasswordmanager.jar,
  lib/core-1.54.0.0.jar,
  lib/openkeepass-0.6.0.jar,
- lib/simple-xml-2.7.1.jar
+ lib/simple-xml-2.7.1.jar,
+ lib/bcpg-jdk15on-1.69.jar,
+ lib/bcprov-jdk15on-1.69.jar
 Bundle-Activator: org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodePlugin
 Bundle-Vendor: AnotherFraudExcel
 Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
@@ -16,8 +18,6 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
  org.apache.servicemix.bundles.poi;bundle-version="3.17.1",
  org.knime.filehandling.core;bundle-version="4.2.3",
  org.knime.core.util;bundle-version="5.1.4",
- org.bouncycastle.bcpg;bundle-version="1.64.0",
- org.bouncycastle.bcprov;bundle-version="1.64.0",
  org.apache.httpcomponents.httpclient;bundle-version="4.5.10",
  org.apache.httpcomponents.httpcore;bundle-version="4.4.9",
  org.apache.httpcomponents.fluent-hc;bundle-version="4.5.3",
@@ -30,6 +30,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,4.0.0)",
  org.apache.commons.lang;bundle-version="2.6.0",
  org.openqa.selenium;bundle-version="3.12.0",
  org.knime.ext.seleniumdrivers.multios;bundle-version="4.3.1"
+ org.json;bundle-version="20140107.0.0"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -77,4 +78,3 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.SwitchFrame,
  org.AF.SeleniumFire.OptionPicker,
  org.AF.SeleniumFire.WaitForWebElement
-
