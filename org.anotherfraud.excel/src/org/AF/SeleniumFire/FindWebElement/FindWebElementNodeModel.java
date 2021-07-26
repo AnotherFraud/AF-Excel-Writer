@@ -23,6 +23,8 @@ import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 /**
@@ -115,6 +117,9 @@ public class FindWebElementNodeModel extends NodeModel {
 
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
         
+		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
+		wait.until(ExpectedConditions.presenceOfElementLocated(by));
+		
         switch(m_searchIn.getStringValue()){
         
         case "document":

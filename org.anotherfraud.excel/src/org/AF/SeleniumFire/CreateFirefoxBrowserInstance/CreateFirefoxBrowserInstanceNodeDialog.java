@@ -53,8 +53,8 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         final SettingsModelFileChooser2 firefoxPathModel2 = CreateFirefoxBrowserInstanceNodeModel.createFirefoxPathSettingsModel();
         final SettingsModelBoolean headlessMode = CreateFirefoxBrowserInstanceNodeModel.createHeadlessModeSettingsModel();  
         final SettingsModelFirefoxSettings foxModel = CreateFirefoxBrowserInstanceNodeModel.createFirefoxSettingsModel();  
-
-    
+        final SettingsModelIntegerBounded defaultWait = CreateFirefoxBrowserInstanceNodeModel.createDefaultWaitSettingsModel();
+        
        
        	
        	
@@ -104,7 +104,10 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         closeCurrentGroup();
         
         addDialogComponent(new DialogComponentBoolean(headlessMode, "Start browser headless?"));
-   
+        addDialogComponent(new DialogComponentNumber(defaultWait, "Default wait for webelements to appear", 15));
+        
+        
+        
         createNewTab("Firefox Preferences");
         createNewGroup("Firefox Preferences"); 
         addDialogComponent(new DialogComponentFirefoxPreferences(foxModel, "Test Fox"));
