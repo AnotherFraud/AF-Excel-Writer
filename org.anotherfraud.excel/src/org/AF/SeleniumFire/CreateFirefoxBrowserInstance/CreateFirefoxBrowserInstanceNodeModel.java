@@ -79,10 +79,20 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     static final String firefoxPath = "firefoxPath";
     static final String headlessMode = "headlessMode";
     static final String foxSettings = "foxSettings";
+    static final String defaultWait = "defaultWait";
+    
+    
 	private Optional<FSConnection> m_fs = Optional.empty();
 	private int defaulttimeoutInSeconds = 5;
     
-
+	
+	
+	static SettingsModelIntegerBounded createDefaultWaitSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(defaultWait, 15, 0, 1048575);
+		return roff;				
+	}	
+	
+	
 	static SettingsModelBoolean createHeadlessModeSettingsModel() {
 		SettingsModelBoolean wlr = new SettingsModelBoolean(headlessMode, false);
 		return wlr;				
@@ -166,7 +176,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     private final SettingsModelFileChooser2 m_firefoxPath = createFirefoxPathSettingsModel();	
     private final SettingsModelBoolean m_headless = createHeadlessModeSettingsModel();	
     private final SettingsModelFirefoxSettings m_foxSettings = createFirefoxSettingsModel();
-    
+    private final SettingsModelIntegerBounded m_defaultWait = createDefaultWaitSettingsModel();
 
 	private String m_connectionKey = "";
 	private String m_driverPath = "";
@@ -205,7 +215,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     	connInfo.setDownloadPath(downloadPath);  	
     	connInfo.setScreenShotPath(screenshotpath);
     	connInfo.setDownloadWaitSeconds(1);
-    	connInfo.setPageWaitSeconds(1);
+    	connInfo.setPageWaitSeconds(m_defaultWait.getIntValue());
     	connInfo.setUser(m_proxy.getUserName(getCredentialsProvider()));
     	connInfo.setPassword(m_proxy.getPassword(getCredentialsProvider())); 
 
@@ -450,7 +460,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_proxyHost.saveSettingsTo(settings);
 		m_headless.saveSettingsTo(settings);
 		m_foxSettings.saveSettingsTo(settings);
-		
+		m_defaultWait.saveSettingsTo(settings);
 
 
 	}
@@ -479,7 +489,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 
 		m_headless.loadSettingsFrom(settings);
 		m_foxSettings.loadSettingsFrom(settings);
-		
+		m_defaultWait.loadSettingsFrom(settings);
 		try
 		{
 		m_driverPath = settings.getString(DriverPath);
@@ -510,6 +520,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_proxyHost.validateSettings(settings);
 		m_headless.validateSettings(settings);
 		m_foxSettings.validateSettings(settings);
+		m_defaultWait.validateSettings(settings);
 
 
 	}

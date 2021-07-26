@@ -77,5 +77,5 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.GetSessionData,
  org.AF.SeleniumFire.SwitchTab,
  org.AF.SeleniumFire.SwitchFrame,
- org.AF.SeleniumFire.OptionPicker
-Import-Package: org.w3c.dom.events;version="3.0.0"
+ org.AF.SeleniumFire.OptionPicker,
+ org.AF.SeleniumFire.WaitForWebElement
