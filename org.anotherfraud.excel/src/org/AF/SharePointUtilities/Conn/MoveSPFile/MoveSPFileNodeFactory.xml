@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./movefile.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Move SharePoint File (with conn)</name>
+    
+    <shortDescription>Moves a file in your SharePoint to a new location</shortDescription>
+    
+    <fullDescription>
+		<intro>This nodes moves a file in a Sharepoint to a new location using the Sharepoint rest v1 API
+			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+		</intro>
+		<option name="SharePoint Site Name">
+			The name of your Sharepoint
+			e.g. MySharePoint in https://mySharePoint.sharepoint.com/sites/<b>MySharePoint</b>/Shared%20Documents
+		</option>
+		<option name="File From:  (complete path)">
+			Complete Sharepoint path to the file you want to move.
+			e.g. NewFolder in your shared document would be:
+				Shared Documents/NewFolder
+		</option>
+		<option name="File To:  (complete path)">
+			Complete Sharepoint path to where you want to move the file.
+			e.g. NewFolder in your shared document would be:
+				Shared Documents/NewFolder
+			If the file name changes - then the file will be renamed according to your file to path
+		</option>
+		<option name="copy file instead of move?">
+			By default the file will be copied to the new location.
+			In case you want to remove the file from the file from path - then disable this option.
+		</option>		
+					
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="SharePoint Rest Connection">Required SharePoint Rest Connection</inPort>
+        <outPort index="0" name="Flow variable">SharePoint response</outPort>
+        <!-- possibly more input ports here-->
+    </ports>   
+</knimeNode>
+    

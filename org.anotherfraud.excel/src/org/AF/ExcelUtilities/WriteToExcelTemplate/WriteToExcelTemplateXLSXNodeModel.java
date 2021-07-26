@@ -347,6 +347,10 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		Sheet sheet;
 		
+		DataFormat df = workbook.createDataFormat();
+		CellStyle textStyle = workbook.createCellStyle();
+		textStyle.setDataFormat(df.getFormat("text"));	
+		
 		int xlsxRowOffset;
 		int xlsxColOffset =  m_colOffset.getIntValue() - 1;
 		int currentRowCounter = 0;
@@ -385,7 +389,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		{
 		int colHeaderIndex = 0;
 			for (String headerName: inputTable.getSpec().getColumnNames()) {           
-				writeXlsSSCell(workbook,sheet,currentRowCounter + xlsxRowOffset, colHeaderIndex + xlsxColOffset, new StringCell(headerName));
+				writeXlsSSCell(workbook,sheet,textStyle,currentRowCounter + xlsxRowOffset, colHeaderIndex + xlsxColOffset, new StringCell(headerName));
 				colHeaderIndex++;
 				
 			}
@@ -408,7 +412,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 
 				
 				for (int i = 0; i < numberOfCells; i++) {
-					writeXlsSSCell(workbook, sheet,currentRowCounter + xlsxRowOffset, i + xlsxColOffset, currentRow.getCell(i));
+					writeXlsSSCell(workbook, sheet,textStyle, currentRowCounter + xlsxRowOffset, i + xlsxColOffset, currentRow.getCell(i));
 					}
 					
 				
@@ -580,15 +584,14 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 
 /**
 	 * writes cell to excel and set current format if row/column have to be created
+ * @param textStyle 
 	 */		
-	private void writeXlsSSCell(Workbook workbook, Sheet sheet, int rowIndex, int colIndex,  DataCell cell)	
+	private void writeXlsSSCell(Workbook workbook, Sheet sheet, CellStyle textStyle, int rowIndex, int colIndex,  DataCell cell)	
 	{
 		CreationHelper createHelper = workbook.getCreationHelper();
 		FormulaEvaluator evaluator = createHelper.createFormulaEvaluator();
-		DataFormat df = workbook.createDataFormat();
-		CellStyle textStyle = workbook.createCellStyle();
-		textStyle.setDataFormat(df.getFormat("text"));
 		
+	
 		Row row = sheet.getRow(rowIndex);
 		
 

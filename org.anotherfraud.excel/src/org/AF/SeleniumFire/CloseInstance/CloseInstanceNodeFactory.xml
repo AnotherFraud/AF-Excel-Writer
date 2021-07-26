@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./closeIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Close Instance</name>
+    
+    <shortDescription>Close Firefox browser instance</shortDescription>
+    
+    <fullDescription>
+		<intro>This node closes an active Selenium session.
+		</intro>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession to close</inPort>
+        <!-- possibly more input ports here-->
+		<outPort index="0" name="Flow variable">Optional flow variable input</outPort>
+    </ports>
+</knimeNode>

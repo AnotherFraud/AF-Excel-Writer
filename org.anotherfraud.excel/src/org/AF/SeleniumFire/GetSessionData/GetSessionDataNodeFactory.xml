@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./sessionDataIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Get Session Data</name>
+    
+   <shortDescription>Get informations about the current active session</shortDescription>
+    
+    <fullDescription>
+		<intro>This node returns data details from the active session
+			<br/>The following is returned: PageSource, CurrentUrl, Title, WindowHandle, SessionId, list of cookies
+			<br/>The element can be found using different selectors e.g. byID, byXpath, byClass,...
+		</intro>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">data details of session</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+</knimeNode>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./switchTabIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Switch Tab</name>
+    
+    <shortDescription>Switch tab in active session</shortDescription>
+    
+    <fullDescription>
+		<intro>This node switches the tab in the active session by tab number
+		</intro>
+  	<option name="tabNumber">
+  				Define to which tab you want to switch to
+		</option>			
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+        <!-- possibly more output ports here-->
+    </ports> 
+</knimeNode>

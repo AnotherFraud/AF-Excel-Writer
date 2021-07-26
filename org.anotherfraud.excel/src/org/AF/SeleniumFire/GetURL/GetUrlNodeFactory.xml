@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./getUrl.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Get Url</name>
+    
+    <shortDescription>Opens a defined url in the session</shortDescription>
+    
+    <fullDescription>
+		<intro>Opens a defined url in the session 
+		</intro>
+  	<option name="URL to move to">
+  				URL to get (should start with https:// or http://www.google.com)
+  				e.g. https://www.knime.com
+		</option>			
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+        <!-- possibly more output ports here-->
+    </ports>
+</knimeNode>
