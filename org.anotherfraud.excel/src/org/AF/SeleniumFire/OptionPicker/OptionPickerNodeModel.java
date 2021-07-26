@@ -23,7 +23,9 @@ import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 /**
@@ -132,8 +134,11 @@ public class OptionPickerNodeModel extends NodeModel {
 		
 		
 		
-		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
-      
+		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue()); 
+		
+		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
+		wait.until(ExpectedConditions.presenceOfElementLocated(by));     
+		
 		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);   
 		
 		Select dropDown = new Select(element);

@@ -24,6 +24,8 @@ import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 /**
@@ -110,7 +112,13 @@ public class ClickNodeModel extends NodeModel {
 		
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
       
-		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);      
+		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);
+		
+		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
+		wait.until(ExpectedConditions.elementToBeClickable(by));
+		
+		
+		
         element.click();
 		return new PortObject[]{spConn};
 	}
