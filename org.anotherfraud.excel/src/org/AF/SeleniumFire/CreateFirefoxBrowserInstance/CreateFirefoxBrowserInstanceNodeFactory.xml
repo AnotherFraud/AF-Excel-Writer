@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./CreateFireInstance.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Create Firefox Browser Instance</name>
+    
+    <shortDescription>Opens a new Firefox browser instance</shortDescription>
+    
+    <fullDescription>
+		<intro>This opens a new firefox session using selenium
+			<br/>Note: all following nodes only work, while the session is still running
+			<br/>This is a very basic implementation of the Selenium framework!
+			<br/>->for a more professional supported version checkout: https://seleniumnodes.com/
+		</intro>
+		
+  		<option name="Firefox Executable File">
+  				Define the path to the Firefox executable you want to use.
+		</option>
+		
+  		<option name="default screenshot path">
+  				Define the path where screenshots should be saved by default
+		</option>		
+		
+  		<option name="default download path">
+  				Define the path where downloads should be saved by default
+		</option>		
+				
+  		<option name="headless mode">
+  				Define if the firefox session should be startet without an interface (e.g. for running on systems without display)
+		</option>	
+		
+  		<option name="Firefox Preferences">
+  				Define all firefox preferences the session should use
+		</option>	
+		
+		<option name="Proxy Options">
+			In case you are behind an internet proxy.
+			Here you can set the internet host and credentials
+		</option>		
+			
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Flow variable">Optional flow variable input</inPort>
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+    </ports>  
+</knimeNode>

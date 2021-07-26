@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./checkin.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Checkin SharePoint File (with conn)</name>
+ 
+    <shortDescription>Perform checkin function on a Sharepoint file</shortDescription>
+    
+    <fullDescription>
+		<intro>This nodes checks in a Sharepoint file using the Sharepoint rest v1 API
+			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
+			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
+		</intro>
+		<option name="SharePoint Site Name">
+			The name of your Sharepoint
+			e.g. MySharePoint in https://mySharePoint.sharepoint.com/sites/<b>MySharePoint</b>/Shared Documents
+		</option>
+		<option name="Checkin File:  (complete path)">
+			Complete Sharepoint path to the file you want to checkin.
+			e.g. Test1.xlsx in your shared document would be:
+				Shared Documents/Test1.xlsx
+		</option>
+		<option name="Checkin Comment">
+			Comment for the checkin
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="SharePoint Rest Connection">Required SharePoint Rest Connection</inPort>
+        <outPort index="0" name="Flow variable">SharePoint response</outPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+</knimeNode>
