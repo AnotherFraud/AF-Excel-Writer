@@ -1,4 +1,4 @@
-package org.AF.SeleniumFire.SendKeys;
+package org.AF.SeleniumFire.WaitForWebElement;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +16,12 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -29,7 +29,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  * This is an example implementation of the node model of the
- * "SendKeys" node.
+ * "WaitForWebElement" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -37,24 +37,30 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  *
  * @author Another Fraud
  */
-public class SendKeysNodeModel extends NodeModel {
+public class WaitForWebElementNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(SendKeysNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(WaitForWebElementNodeModel.class);
+
 
 	
-	static final String sendText = "sendText";
+	static final String waitCond = "waitCond";
     static final String locatorString = "locatorString";
     static final String searchIn = "searchIn";
     static final String findBy = "findBy";
+    static final String defaultWait = "defaultWait";
 
- 
-	static SettingsModelString createSendTextStringSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(sendText, null);
+    static SettingsModelIntegerBounded createDefaultWaitSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(defaultWait, 15, 0, 1048575);
+		return roff;				
+	}	
+    
+	static SettingsModelString createWaitConditionSettingsModel() {
+		SettingsModelString coof = new SettingsModelString(waitCond, "isClickable");
 		coof.setEnabled(true);
 		return coof;				
 	}	
@@ -77,19 +83,19 @@ public class SendKeysNodeModel extends NodeModel {
 		return coof;				
 	}	    
 	
-	private final SettingsModelString m_sendText = createSendTextStringSettingsModel();
+
+	private final SettingsModelIntegerBounded m_wait = createDefaultWaitSettingsModel();
+	private final SettingsModelString m_cond = createWaitConditionSettingsModel();
 	private final SettingsModelString m_locatorString = createlocatorStringSettingsModel();
 	private final SettingsModelString m_searchIn = createSearchInSettingsModel();
 	private final SettingsModelString m_findBy = createFindBySettingsModel();
     
-	
 	/**
 	 * Constructor for the node model.
 	 */
-	protected SendKeysNodeModel() {
+	protected WaitForWebElementNodeModel() {
 		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
 	}
-
 
 	/**
 	 * 
@@ -108,7 +114,7 @@ public class SendKeysNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Start executing FindWebElement");
+		LOGGER.info("Start executing wait for webelement");
 		
 		
 		SeleniumConnectionInformationPortObject spConn = (SeleniumConnectionInformationPortObject)inObjects[0];
@@ -119,18 +125,34 @@ public class SendKeysNodeModel extends NodeModel {
 
 		FirefoxDriver driver = handle.getDriver();
 		
-		String locatorString = m_locatorString.getStringValue();
-		WebElement currentElement = handle.getWebElement();
-		
-		
+		String locatorString = m_locatorString.getStringValue();	
 		
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue()); 
 		
-		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
-		wait.until(ExpectedConditions.presenceOfElementLocated(by));    
+		WebDriverWait wait = new WebDriverWait(driver,m_wait.getIntValue());
+
 		
-		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);      
-        element.sendKeys(m_sendText.getStringValue());
+        switch(m_cond.getStringValue()){
+        case "isPresent":
+        	wait.until(ExpectedConditions.presenceOfElementLocated(by)); 
+            break;
+        case "isClickable":
+        	wait.until(ExpectedConditions.elementToBeClickable(by)); 
+            break;
+        case "isVisible":
+        	wait.until(ExpectedConditions.visibilityOfElementLocated(by)); 
+            break;
+        case "isInvisivle":
+        	wait.until(ExpectedConditions.invisibilityOfElementLocated(by)); 
+            break;
+        case "isSelected":
+        	wait.until(ExpectedConditions.elementToBeSelected(by)); 
+            break;
+        default:
+        	throw new IOException("Unknown waitfor type"); 
+        }
+		
+        
 
 		return new PortObject[]{spConn};
 	}
@@ -176,7 +198,8 @@ public class SendKeysNodeModel extends NodeModel {
 		m_locatorString.saveSettingsTo(settings);
 		m_searchIn.saveSettingsTo(settings);
 		m_findBy.saveSettingsTo(settings);
-		m_sendText.saveSettingsTo(settings);
+		m_wait.saveSettingsTo(settings);
+		m_cond.saveSettingsTo(settings);
 	}
 
 	/**
@@ -195,7 +218,8 @@ public class SendKeysNodeModel extends NodeModel {
 		m_locatorString.loadSettingsFrom(settings);
 		m_findBy.loadSettingsFrom(settings);
 		m_searchIn.loadSettingsFrom(settings);
-		m_sendText.loadSettingsFrom(settings);
+		m_wait.loadSettingsFrom(settings);
+		m_cond.loadSettingsFrom(settings);
 	
 	}
 
@@ -213,7 +237,8 @@ public class SendKeysNodeModel extends NodeModel {
 		m_findBy.validateSettings(settings);
 		m_locatorString.validateSettings(settings);
 		m_searchIn.validateSettings(settings);
-		m_sendText.validateSettings(settings);
+		m_wait.validateSettings(settings);
+		m_cond.validateSettings(settings);
 
 	}
 

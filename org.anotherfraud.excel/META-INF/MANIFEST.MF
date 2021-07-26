@@ -75,5 +75,6 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.GetSessionData,
  org.AF.SeleniumFire.SwitchTab,
  org.AF.SeleniumFire.SwitchFrame,
- org.AF.SeleniumFire.OptionPicker
+ org.AF.SeleniumFire.OptionPicker,
+ org.AF.SeleniumFire.WaitForWebElement
 

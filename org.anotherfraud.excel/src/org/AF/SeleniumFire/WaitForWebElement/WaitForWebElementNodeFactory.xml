@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./waitIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Wait For WebElement</name>
+    
+    <shortDescription>Waits for an web element</shortDescription>
+    
+    <fullDescription>
+		<intro>This node waits for a web element in an active selenium session to be in a specific state
+			<br/>The element to send to can be found using different selectors e.g. byID, byXpath, byClass,...
+		</intro>
+		
+  		<option name="Wait Condition">
+  				Define what the state of the webelement should be for the wait to stop
+  				Wait conditions are: isPresent, isClickable, isVisible, isInvisivle, isSelected
+		</option>		
+		  		<option name="Wait for webelements to appear (Seconds)">
+  				Define how long the node should wait for the element to be in the given state
+  				(will fail if condition is not fulfilled after the wait)
+		</option>		
+  		<option name="searchIn">
+  				Define if you want to search in the whole document (with locator) 
+  				or in the last saved web element
+				Can be: "with locator","current element" or "with locator in current element"
+		</option>
+		<option name="Locator String">
+			The locator string to search for. 
+			e.g. an xPath or the ID of the webElement
+		</option>		
+		<option name="FindBy">
+			Specify how the node should search for the element.
+				Can be: "ById","ByName","ByClassName","ByXPath","ByCssSelector","ByLinkText","ByPartialLinkText","ByTagName"
+		</option>				
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FirefoxBrowserSession">Running FirefoxBrowserSession (created with CreateFirefoxBrowserInstance).</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="FirefoxBrowserSession">FirefoxBrowserSession</outPort>
+        <!-- possibly more output ports here-->
+    </ports> 
+</knimeNode>
