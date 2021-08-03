@@ -2,17 +2,14 @@ package org.AF.SharePointUtilities.Conn.GetSharePointRestConnection;
 
 import java.util.Arrays;
 
-import org.AF.SharePointUtilities.GetRestAccessToken.GetRestAccessTokenNodeModel;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
