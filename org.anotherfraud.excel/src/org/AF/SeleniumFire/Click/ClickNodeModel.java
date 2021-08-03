@@ -117,8 +117,9 @@ public class ClickNodeModel extends NodeModel {
 		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);
 		
 		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
+
 		wait.until((Function<WebDriver, WebElement>)ExpectedConditions.elementToBeClickable(by));
-		
+
 		
 		
         element.click();

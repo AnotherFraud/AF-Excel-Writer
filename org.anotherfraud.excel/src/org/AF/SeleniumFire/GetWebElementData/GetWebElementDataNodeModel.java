@@ -129,6 +129,7 @@ public class GetWebElementDataNodeModel extends NodeModel {
 		
 		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
 		wait.until((Function<WebDriver, WebElement>)ExpectedConditions.presenceOfElementLocated(by));      
+
 		
         switch(m_searchIn.getStringValue()){
         

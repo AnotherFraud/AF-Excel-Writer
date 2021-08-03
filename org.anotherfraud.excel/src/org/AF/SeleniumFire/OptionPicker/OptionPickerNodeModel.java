@@ -139,7 +139,9 @@ public class OptionPickerNodeModel extends NodeModel {
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue()); 
 		
 		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
+
 		wait.until((Function<WebDriver, WebElement>)ExpectedConditions.presenceOfElementLocated(by));     
+
 		
 		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);   
 		
