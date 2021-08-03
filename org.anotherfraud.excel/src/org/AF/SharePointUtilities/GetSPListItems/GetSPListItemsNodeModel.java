@@ -21,7 +21,6 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
-import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -428,14 +427,6 @@ public class GetSPListItemsNodeModel extends NodeModel {
 
 
 
-
-		private DataCell nullableIntCell(Integer i){
-	        if (i == null) {
-	            return DataType.getMissingCell();
-	        }
-	        return IntCellFactory.create(i);	
-			
-		}
 		
 		private DataCell nullableDoubleCell(Double i){
 	        if (i == null) {

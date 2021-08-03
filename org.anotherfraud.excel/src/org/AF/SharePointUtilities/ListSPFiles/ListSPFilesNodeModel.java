@@ -1,13 +1,9 @@
 package org.AF.SharePointUtilities.ListSPFiles;
 
-import static java.lang.Math.toIntExact;
-
 import java.io.File;
 import java.io.IOException;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -20,7 +16,6 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;

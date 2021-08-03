@@ -206,12 +206,12 @@ public class PGPEncryptorNodeModel extends NodeModel {
         // world you would probably want to be a bit smarter about this.
         //
 
-        Iterator keyRingIter = pgpPub.getKeyRings();
+        Iterator<?> keyRingIter = pgpPub.getKeyRings();
         while (keyRingIter.hasNext())
         {
             PGPPublicKeyRing keyRing = (PGPPublicKeyRing)keyRingIter.next();
 
-            Iterator keyIter = keyRing.getPublicKeys();
+            Iterator<?> keyIter = keyRing.getPublicKeys();
             while (keyIter.hasNext())
             {
                 PGPPublicKey key = (PGPPublicKey)keyIter.next();
