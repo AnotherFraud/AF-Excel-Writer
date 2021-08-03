@@ -2,6 +2,7 @@ package org.AF.SeleniumFire.WaitForWebElement;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
@@ -22,6 +23,8 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -134,19 +137,19 @@ public class WaitForWebElementNodeModel extends NodeModel {
 		
         switch(m_cond.getStringValue()){
         case "isPresent":
-        	wait.until(ExpectedConditions.presenceOfElementLocated(by)); 
+        	wait.until((Function<WebDriver, WebElement>)ExpectedConditions.presenceOfElementLocated(by)); 
             break;
         case "isClickable":
-        	wait.until(ExpectedConditions.elementToBeClickable(by)); 
+        	wait.until((Function<WebDriver, WebElement>)ExpectedConditions.elementToBeClickable(by)); 
             break;
         case "isVisible":
-        	wait.until(ExpectedConditions.visibilityOfElementLocated(by)); 
+        	wait.until((Function<WebDriver, WebElement>)ExpectedConditions.visibilityOfElementLocated(by)); 
             break;
         case "isInvisivle":
-        	wait.until(ExpectedConditions.invisibilityOfElementLocated(by)); 
+        	wait.until((Function<WebDriver, Boolean>)ExpectedConditions.invisibilityOfElementLocated(by)); 
             break;
         case "isSelected":
-        	wait.until(ExpectedConditions.elementToBeSelected(by)); 
+        	wait.until((Function<WebDriver, Boolean>)ExpectedConditions.elementToBeSelected(by)); 
             break;
         default:
         	throw new IOException("Unknown waitfor type"); 

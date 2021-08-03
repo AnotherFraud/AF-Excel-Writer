@@ -188,7 +188,7 @@ public final class DialogComponentFirefoxPreferences extends DialogComponent {
               TableColumn comboColumn) {
 		  
 			//Set up the editor for the cells.
-			JComboBox comboBox = new JComboBox();
+			JComboBox<String> comboBox = new JComboBox<String>();
 			comboBox.addItem("integer");
 			comboBox.addItem("string");
 			comboBox.addItem("boolean");
@@ -304,7 +304,7 @@ public final class DialogComponentFirefoxPreferences extends DialogComponent {
 	         * then the last column would contain text ("true"/"false"),
 	         * rather than a check box.
 	         */
-	        public Class getColumnClass(int c) {
+			public Class<? extends Object> getColumnClass(int c) {
 	            return getValueAt(0, c).getClass();
 	        }
 

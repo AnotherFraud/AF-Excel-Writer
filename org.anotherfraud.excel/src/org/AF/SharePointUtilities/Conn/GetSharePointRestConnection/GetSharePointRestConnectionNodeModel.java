@@ -133,8 +133,6 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 	private final SettingsModelString m_sharePointUrl = createSharePointUrlSettingsModel();
 
 	
-    /** Settings containing information about the SP connection. */
-    private final ConnectionInformationPortObject m_ConnectionModel = createSPConnectionModel();
 
     /** Method to create a new settings object containing information about the AWS connection. */
     static final ConnectionInformationPortObject createSPConnectionModel() {
