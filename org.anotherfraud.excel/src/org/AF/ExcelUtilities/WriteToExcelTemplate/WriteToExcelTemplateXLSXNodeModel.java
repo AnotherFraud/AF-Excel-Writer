@@ -714,7 +714,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 
 			
 			int my_picture_id = workbook.addPicture(bytes, Workbook.PICTURE_TYPE_PNG);
-			Drawing drawing = (Drawing) sheet.createDrawingPatriarch();
+			Drawing<?> drawing = (Drawing<?>) sheet.createDrawingPatriarch();
 			
 			ClientAnchor my_anchor = createHelper.createClientAnchor();
 			

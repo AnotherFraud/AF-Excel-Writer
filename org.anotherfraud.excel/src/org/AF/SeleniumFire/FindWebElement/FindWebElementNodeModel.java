@@ -2,6 +2,7 @@ package org.AF.SeleniumFire.FindWebElement;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.AF.Selenium.Port.SeleniumConnectionInformation;
 import org.AF.Selenium.Port.SeleniumConnectionInformationPortObject;
@@ -21,6 +22,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -118,8 +120,8 @@ public class FindWebElementNodeModel extends NodeModel {
 		By by = FireHelper.locatorSwitch(locatorString,m_findBy.getStringValue());  
         
 		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
-		wait.until(ExpectedConditions.presenceOfElementLocated(by));
-		
+		wait.until((Function<WebDriver, WebElement>)ExpectedConditions.presenceOfElementLocated(by));
+
         switch(m_searchIn.getStringValue()){
         
         case "document":

@@ -228,7 +228,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 		            //
 		            // find the secret key
 		            //
-		            Iterator                    it = enc.getEncryptedDataObjects();
+		            Iterator<?>                    it = enc.getEncryptedDataObjects();
 		            PGPPrivateKey               sKey = null;
 		            PGPPublicKeyEncryptedData   pbe = null;
 		            PGPSecretKeyRingCollection  pgpSec = new PGPSecretKeyRingCollection(
