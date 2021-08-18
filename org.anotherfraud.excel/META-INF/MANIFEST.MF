@@ -77,4 +77,5 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.SwitchTab,
  org.AF.SeleniumFire.SwitchFrame,
  org.AF.SeleniumFire.OptionPicker,
- org.AF.SeleniumFire.WaitForWebElement
+ org.AF.SeleniumFire.WaitForWebElement,
+ org.AF.TableUtil.GroupAll
