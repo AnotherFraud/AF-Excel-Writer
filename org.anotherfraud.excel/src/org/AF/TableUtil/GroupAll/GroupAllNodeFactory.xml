@@ -7,7 +7,17 @@
 		</intro>
 		<option name="counter column">
 				Counter column you want to aggregate in the groupBy (has to be int)
+		</option>	
+		
+		<option name="Group Mode">
+				Select if you want to group all, all number or only all string columns
+		</option>	
+		<option name="min total">
+				Filter result for a minimum appearance of group
 		</option>		
+		<option name="min counter">
+				Filter result for a minimum appearance of the counter in group
+		</option>	
 	</fullDescription>
     
     <ports>

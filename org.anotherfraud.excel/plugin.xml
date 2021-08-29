@@ -211,6 +211,11 @@
             category-path="/community/AF_Utilities/MiscUtil"
             factory-class="org.AF.TableUtil.GroupAll.GroupAllNodeFactory">	 
     </node>
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RegexToList.RegexToListNodeFactory">	 
+    </node>
+
 
 	                 
    </extension>
