@@ -38,7 +38,8 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
 
 
    	
-    protected CreateFirefoxBrowserInstanceNodeDialog() {
+    @SuppressWarnings("deprecation")
+	protected CreateFirefoxBrowserInstanceNodeDialog() {
         super();
         
        final SettingsModelAuthentication proxyAuth = CreateFirefoxBrowserInstanceNodeModel.createProxySettingsModel();
@@ -54,7 +55,7 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         final SettingsModelBoolean headlessMode = CreateFirefoxBrowserInstanceNodeModel.createHeadlessModeSettingsModel();  
         final SettingsModelFirefoxSettings foxModel = CreateFirefoxBrowserInstanceNodeModel.createFirefoxSettingsModel();  
         final SettingsModelIntegerBounded defaultWait = CreateFirefoxBrowserInstanceNodeModel.createDefaultWaitSettingsModel();
-        
+
        
        	
        	
@@ -74,6 +75,8 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         });  
        	
        	
+
+       	
        	
         final FlowVariableModel fvmD = createFlowVariableModel(
                 new String[]{downloadPathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
@@ -89,6 +92,7 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         
         
         createNewGroup("Firefox Executable File");
+
         addDialogComponent(new DialogComponentFileChooser2(0, firefoxPathModel2, "Firefox Executable Path", JFileChooser.OPEN_DIALOG,
                 JFileChooser.FILES_ONLY, fvmF));
         closeCurrentGroup();

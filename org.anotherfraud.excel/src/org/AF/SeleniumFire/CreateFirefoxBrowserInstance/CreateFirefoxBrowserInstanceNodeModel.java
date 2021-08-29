@@ -87,6 +87,9 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     
 	
 	
+	
+
+	
 	static SettingsModelIntegerBounded createDefaultWaitSettingsModel() {
 		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(defaultWait, 15, 0, 1048575);
 		return roff;				
@@ -174,10 +177,14 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     private final SettingsModelFileChooser2 m_downloadPath = createDownloadPathSettingsModel();	
     private final SettingsModelFileChooser2 m_screenshotPath = createScreenshotPathSettingsModel();	
     private final SettingsModelFileChooser2 m_firefoxPath = createFirefoxPathSettingsModel();	
+    
     private final SettingsModelBoolean m_headless = createHeadlessModeSettingsModel();	
     private final SettingsModelFirefoxSettings m_foxSettings = createFirefoxSettingsModel();
     private final SettingsModelIntegerBounded m_defaultWait = createDefaultWaitSettingsModel();
 
+    
+    
+    
 	private String m_connectionKey = "";
 	private String m_driverPath = "";
 	
@@ -463,6 +470,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_defaultWait.saveSettingsTo(settings);
 
 
+
 	}
 
 	/**
@@ -485,7 +493,6 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		m_useProxy.loadSettingsFrom(settings);
 		m_proxyPort.loadSettingsFrom(settings);
 		m_proxyHost.loadSettingsFrom(settings);
-
 
 		m_headless.loadSettingsFrom(settings);
 		m_foxSettings.loadSettingsFrom(settings);

@@ -78,4 +78,5 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.SeleniumFire.SwitchFrame,
  org.AF.SeleniumFire.OptionPicker,
  org.AF.SeleniumFire.WaitForWebElement,
- org.AF.TableUtil.GroupAll
+ org.AF.TableUtil.GroupAll,
+ org.AF.TableUtil.RegexToList

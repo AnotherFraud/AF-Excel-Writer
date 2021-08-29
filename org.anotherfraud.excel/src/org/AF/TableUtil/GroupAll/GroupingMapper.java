@@ -5,13 +5,13 @@ import java.util.List;
 
 
 public class GroupingMapper {
-	private HashMap<List<String>, int[]> groupingCounter;
+	private HashMap<List<Object>, int[]> groupingCounter;
 	
     public GroupingMapper() {
         this.groupingCounter = new HashMap<>();
     }	
 
-    public void add(List<String> groupKey, int addVal) {
+    public void add(List<Object> groupKey, int addVal) {
         // an empty list has to be added for a new user if one has not already been added
     	
         this.groupingCounter.putIfAbsent(groupKey, new int[]{0, 0});
@@ -24,10 +24,12 @@ public class GroupingMapper {
     }
     
     
-    public HashMap<List<String>, int[]> getData()
+    public HashMap<List<Object>, int[]> getData()
     {
     	return this.groupingCounter;
     }
 }
+
+
 
 

@@ -14,8 +14,11 @@ import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.IntCell.IntCellFactory;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -27,6 +30,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 
@@ -51,6 +55,9 @@ public class GroupAllNodeModel extends NodeModel {
 
 
 	static final String valColName = "valColName";
+	static final String groupMode = "groupMode";
+	static final String minTotalPerGroup = "minTotalPerGroup";
+	static final String minCounterPerGroup = "minCounterPerGroup";
 
 	static SettingsModelString createValColNameStringSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(valColName,null);
@@ -58,9 +65,28 @@ public class GroupAllNodeModel extends NodeModel {
 		return coof;				
 	}	
 	
-	private final SettingsModelString m_valColName = createValColNameStringSettingsModel();
-
 	
+	static SettingsModelString createGroupModeSettingsModel() {
+		SettingsModelString coof = new SettingsModelString(groupMode, "all columns");
+		coof.setEnabled(true);
+		return coof;				
+	}	
+    
+	static SettingsModelIntegerBounded createMinTotalSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(minTotalPerGroup, 0, 0, 1048575);
+		return roff;				
+	}	
+	
+	static SettingsModelIntegerBounded createMinCounterSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(minCounterPerGroup, 0, 0, 1048575);
+		return roff;				
+	}	
+	
+	private final SettingsModelString m_valColName = createValColNameStringSettingsModel();
+	private final SettingsModelString m_groupMode = createGroupModeSettingsModel();
+	private final SettingsModelIntegerBounded m_minTotal = createMinTotalSettingsModel();
+	private final SettingsModelIntegerBounded m_minCounter = createMinCounterSettingsModel();
+
 	/**
 	 * Constructor for the node model.
 	 */
@@ -111,10 +137,14 @@ public class GroupAllNodeModel extends NodeModel {
 		 * framework. Have a look at the methods of the "exec". There is a lot of
 		 * functionality to create and change data tables.
 		 */
-		BufferedDataContainer container = exec.createDataContainer(getSpec());
+		
+		
+		String groupMode = m_groupMode.getStringValue();
+		BufferedDataContainer container = exec.createDataContainer(getSpec(groupMode));
 		
 		String[] colNames = inData[0].getDataTableSpec().getColumnNames();
 		int valColIndex = inData[0].getDataTableSpec().findColumnIndex(m_valColName.getStringValue());
+
 		
 		/*
 		 * Get the row iterator over the input table which returns each row one-by-one
@@ -122,6 +152,8 @@ public class GroupAllNodeModel extends NodeModel {
 		 */
 		
 		CloseableRowIterator rowIterator = inputTable.iterator();
+
+		
 
 		
 		/*
@@ -143,9 +175,23 @@ public class GroupAllNodeModel extends NodeModel {
 			for (int i = 0; i < numberOfCells; i++) {
 				DataCell cell = currentRow.getCell(i);
 					
+		
+				
 				if (i != valColIndex) {
+					
+					if(groupMode.equals("all columns"))
+					{
 					//mapper.add(colNames[i] + "col:|" + cell.toString(), counterVal);
 					mapper.add(Arrays.asList(colNames[i], cell.toString(), cell.getType().toPrettyString()), counterVal);
+					}
+					else if (groupMode.equals("only numbers") && cell.getType().getCellClass().equals((DoubleCell.class)))
+					{
+					mapper.add(Arrays.asList(colNames[i], ((DoubleCell) cell).getDoubleValue()), counterVal);	
+					}
+					else if (groupMode.equals("only string") && cell.getType().getCellClass().equals((StringCell.class)))
+					{
+					mapper.add(Arrays.asList(colNames[i], cell.toString()), counterVal);	
+					}						
 					
 				}
 				/*
@@ -188,22 +234,59 @@ public class GroupAllNodeModel extends NodeModel {
 
 		exec.setProgress(currentRowCounter / (double) inputTable.size(), "prepare result table");
 		
-		for (Entry<List<String>, int[]> entry : mapper.getData().entrySet()) {
+		
+		
+
+		
+		
+		
+		
+		for (Entry<List<Object>, int[]> entry : mapper.getData().entrySet()) {
 			
-			addRow
-			(
-				container
-				,"Row_" + rowNum		
-				,entry.getKey().get(0)
-				,entry.getKey().get(1)
-				,entry.getKey().get(2)
-				,entry.getValue()[0]
-				,entry.getValue()[1]		
-			);
-			
-			
-			
-			rowNum++;
+			if (entry.getValue()[0] >= m_minTotal.getIntValue()  && entry.getValue()[1] >= m_minCounter.getIntValue())
+			{
+				if(groupMode.equals("all columns"))
+				{
+					addRow
+					(
+						container
+						,"Row_" + rowNum		
+						,(String) entry.getKey().get(0)
+						,(String) entry.getKey().get(1)
+						,(String) entry.getKey().get(2)
+						,entry.getValue()[0]
+						,entry.getValue()[1]		
+					);
+					
+				}
+				else if (groupMode.equals("only numbers"))
+				{
+					addRow
+					(
+						container
+						,"Row_" + rowNum		
+						,(String) entry.getKey().get(0)
+						,(Double) entry.getKey().get(1)
+						,entry.getValue()[0]
+						,entry.getValue()[1]		
+					);
+				}
+				else if (groupMode.equals("only string"))
+				{
+					addRow
+					(
+						container
+						,"Row_" + rowNum		
+						,(String) entry.getKey().get(0)
+						,(String) entry.getKey().get(1)
+						,entry.getValue()[0]
+						,entry.getValue()[1]		
+					);
+				}	
+				
+				
+				rowNum++;
+			}
 
 		}
 		
@@ -237,15 +320,62 @@ public class GroupAllNodeModel extends NodeModel {
 				}));
 	}
 	
+	private void addRow(
+			BufferedDataContainer container
+			,String rowKey
+			,String colName
+			,Double key
+			,int total
+			,int counter
+			)
+	{
+		container.addRowToTable(
+				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
+						StringCellFactory.create(colName)
+						,DoubleCellFactory.create(key)
+						,IntCellFactory.create(total)
+						,IntCellFactory.create(counter)
+				}));
+	}
+	private void addRow(
+			BufferedDataContainer container
+			,String rowKey
+			,String colName
+			,String key
+			,int total
+			,int counter
+			)
+	{
+		container.addRowToTable(
+				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
+						StringCellFactory.create(colName)
+						,StringCellFactory.create(key)
+						,IntCellFactory.create(total)
+						,IntCellFactory.create(counter)
+				}));
+	}	
 	
-	private DataTableSpec getSpec()
+	private DataTableSpec getSpec(String groupMode)
 	{
 		
 		
 		DataTableSpecCreator crator = new DataTableSpecCreator();
 		crator.addColumns(new DataColumnSpecCreator("ColName", StringCellFactory.TYPE).createSpec());
+		
+		if(groupMode.equals("only numbers"))
+		{
+		crator.addColumns(new DataColumnSpecCreator("Key", DoubleCellFactory.TYPE).createSpec());
+		}
+		else
+		{
 		crator.addColumns(new DataColumnSpecCreator("Key", StringCellFactory.TYPE).createSpec());
+		}
+		
+		
+		if(groupMode.equals("all columns"))
+		{
 		crator.addColumns(new DataColumnSpecCreator("type", StringCellFactory.TYPE).createSpec());
+		}
 		crator.addColumns(new DataColumnSpecCreator("total", IntCellFactory.TYPE).createSpec());
 		crator.addColumns(new DataColumnSpecCreator("counter", IntCellFactory.TYPE).createSpec());
 		return crator.createSpec();
@@ -257,7 +387,8 @@ public class GroupAllNodeModel extends NodeModel {
 	 */
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-		return new DataTableSpec[] { getSpec() };
+		//return new DataTableSpec[] { getSpec() };
+		return new DataTableSpec[] {null};
 	}
 
 
@@ -275,6 +406,9 @@ public class GroupAllNodeModel extends NodeModel {
 		 * See the methods of the NodeSettingsWO.
 		 */
 		m_valColName.saveSettingsTo(settings);
+		m_groupMode.saveSettingsTo(settings);
+		m_minTotal.saveSettingsTo(settings);
+		m_minCounter.saveSettingsTo(settings);
 	}
 
 	/**
@@ -290,6 +424,9 @@ public class GroupAllNodeModel extends NodeModel {
 		 * (from the view) can be retrieved from the settings model.
 		 */
 		m_valColName.loadSettingsFrom(settings);
+		m_groupMode.loadSettingsFrom(settings);
+		m_minTotal.loadSettingsFrom(settings);
+		m_minCounter.loadSettingsFrom(settings);
 	}
 
 	/**
@@ -304,6 +441,9 @@ public class GroupAllNodeModel extends NodeModel {
 		 * variables.
 		 */
 		m_valColName.validateSettings(settings);
+		m_groupMode.validateSettings(settings);
+		m_minTotal.validateSettings(settings);
+		m_minCounter.validateSettings(settings);
 	}
 
 	@Override

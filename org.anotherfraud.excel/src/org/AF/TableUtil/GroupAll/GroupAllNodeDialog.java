@@ -1,8 +1,15 @@
 package org.AF.TableUtil.GroupAll;
 
+import java.util.Arrays;
+
+
 import org.knime.core.data.IntValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * This is an example implementation of the node dialog of the
@@ -26,46 +33,35 @@ public class GroupAllNodeDialog extends DefaultNodeSettingsPane {
 	protected GroupAllNodeDialog() {
         super();
         
-        /*
-		 * The DefaultNodeSettingsPane provides methods to add simple standard
-		 * components to the dialog pane via the addDialogComponent(...) method. This
-		 * method expects a new DialogComponet object that should be added to the dialog
-		 * pane. There are many already predefined components for the most commonly used
-		 * configuration needs like a text box (DialogComponentString) to enter some
-		 * String or a number spinner (DialogComponentNumber) to enter some number in a
-		 * specific range and step size.
-		 * 
-		 * The dialog components are connected to the node model via settings model
-		 * objects that can easily load and save their settings to the node settings.
-		 * Depending on the type of input the dialog component should receive, the
-		 * constructor of the component requires a suitable settings model object. E.g.
-		 * the DialogComponentString requires a SettingsModelString. Additionally,
-		 * dialog components sometimes allow to further configure the behavior of the
-		 * component in the constructor. E.g. to disallow empty inputs (like below).
-		 * Here, the loading/saving in the dialog is already taken care of by the
-		 * DefaultNodeSettingsPane. It is important to use the same key for the settings
-		 * model here as used in the node model implementation (it does not need to be
-		 * the same object). One best practice is to use package private static methods
-		 * to create the settings model as we did in the node model implementation (see
-		 * createNumberFormatSettingsModel() in the NodeModel class).
-		 * 
-		 * Here we create a simple String DialogComponent that will display a label
-		 * String besides a text box in which the use can enter a value. The
-		 * DialogComponentString has additional options to disallow empty inputs, hence
-		 * we do not need to worry about that in the model implementation anymore.
-		 * 
-		 */
-		// First, create a new settings model using the create method from the node model.
+    	final SettingsModelString valColName = GroupAllNodeModel.createValColNameStringSettingsModel();
+    	final SettingsModelString groupMode = GroupAllNodeModel.createGroupModeSettingsModel();
+    	final SettingsModelIntegerBounded minTotal = GroupAllNodeModel.createMinTotalSettingsModel();
+    	final SettingsModelIntegerBounded minCounter = GroupAllNodeModel.createMinCounterSettingsModel();
 
+    	
 		addDialogComponent(
                 new DialogComponentColumnNameSelection(
-                		GroupAllNodeModel.createValColNameStringSettingsModel()
+                		valColName
                 		,"Select counter column:"
                 		,0
                 		,true
                 		,IntValue.class
                 ));
 		
+		
+		createNewGroup("Grouping filter"); 
+		addDialogComponent(new DialogComponentNumber(minTotal, "filter out groups with less total cases than", 0));
+		addDialogComponent(new DialogComponentNumber(minCounter, "filter out groups with less counter cases than", 0));
+		closeCurrentGroup();
+		
+		 createNewTab("Advanced Options");
+	     createNewGroup("Grouping Mode"); 
+	     
+	     addDialogComponent(
+			        new DialogComponentStringSelection(groupMode, "Select Grouping Mode",
+			        		Arrays.asList( "all columns", "only string","only numbers"),false));
+		
+	     closeCurrentGroup();
 		
 	   }
 }
