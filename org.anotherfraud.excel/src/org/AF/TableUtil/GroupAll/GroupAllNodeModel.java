@@ -184,13 +184,17 @@ public class GroupAllNodeModel extends NodeModel {
 					//mapper.add(colNames[i] + "col:|" + cell.toString(), counterVal);
 					mapper.add(Arrays.asList(colNames[i], cell.toString(), cell.getType().toPrettyString()), counterVal);
 					}
-					else if (groupMode.equals("only numbers") && cell.getType().getCellClass().equals((DoubleCell.class)))
+					else if (
+							groupMode.equals("only numbers") && cell.getType().getCellClass().equals((DoubleCell.class))
+							|| groupMode.equals("only numbers") && cell.getType().getCellClass().equals((IntCell.class))
+							
+							)
 					{
-					mapper.add(Arrays.asList(colNames[i], ((DoubleCell) cell).getDoubleValue()), counterVal);	
+					mapper.add(Arrays.asList(colNames[i], cell), counterVal);	
 					}
 					else if (groupMode.equals("only string") && cell.getType().getCellClass().equals((StringCell.class)))
 					{
-					mapper.add(Arrays.asList(colNames[i], cell.toString()), counterVal);	
+					mapper.add(Arrays.asList(colNames[i], cell), counterVal);	
 					}						
 					
 				}
@@ -266,7 +270,7 @@ public class GroupAllNodeModel extends NodeModel {
 						container
 						,"Row_" + rowNum		
 						,(String) entry.getKey().get(0)
-						,(Double) entry.getKey().get(1)
+						,(DataCell) entry.getKey().get(1)
 						,entry.getValue()[0]
 						,entry.getValue()[1]		
 					);
@@ -278,7 +282,7 @@ public class GroupAllNodeModel extends NodeModel {
 						container
 						,"Row_" + rowNum		
 						,(String) entry.getKey().get(0)
-						,(String) entry.getKey().get(1)
+						,(DataCell) entry.getKey().get(1)
 						,entry.getValue()[0]
 						,entry.getValue()[1]		
 					);
@@ -324,7 +328,7 @@ public class GroupAllNodeModel extends NodeModel {
 			BufferedDataContainer container
 			,String rowKey
 			,String colName
-			,Double key
+			,DataCell key
 			,int total
 			,int counter
 			)
@@ -332,7 +336,7 @@ public class GroupAllNodeModel extends NodeModel {
 		container.addRowToTable(
 				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
 						StringCellFactory.create(colName)
-						,DoubleCellFactory.create(key)
+						,key
 						,IntCellFactory.create(total)
 						,IntCellFactory.create(counter)
 				}));
