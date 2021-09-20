@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./GroupAll.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Group All Columns</name>
+    <shortDescription>Performs an groupBy on all columns in the input table</shortDescription>
+    <fullDescription>
+		<intro>This node performs a groupBy on all input columns and returns them as ColumnName, ColumnVal, ColumnType, Total Occurrence, Sum Counter
+		</intro>
+		<option name="counter column">
+				Counter column you want to aggregate in the groupBy (has to be int)
+		</option>	
+		
+		<option name="Group Mode">
+				Select if you want to group all, all number or only all string columns
+		</option>	
+		<option name="min total">
+				Filter result for a minimum appearance of group
+		</option>		
+		<option name="min counter">
+				Filter result for a minimum appearance of the counter in group
+		</option>	
+	</fullDescription>
+    
+    <ports>
+        <inPort index="0" name="In-Port name">Table with input data</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Column, Value groups</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+</knimeNode>
