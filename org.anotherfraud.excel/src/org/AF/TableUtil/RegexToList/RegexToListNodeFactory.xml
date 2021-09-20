@@ -6,7 +6,7 @@
     <fullDescription>
 		<intro>Appends a collection column with all matches of a regex to the input table
 		</intro>
-		<option name="counter column">
+		<option name="Regex column">
 				Column you want to apply the regex to
 		</option>	
 		

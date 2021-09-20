@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./ExcelFormula.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Evaluate Excel Formula</name>
+    
+    <shortDescription>Evaluates columns with excel formulas</shortDescription>
+    
+    <fullDescription>
+		<intro>This node evaluates a selected column with Excel formulas
+			<br/>All columns of the input table will be considered in the formula evaluation.
+			<br/>Formula should start with equal sign (=) and should be in the English format e.g. =SUM(A1:A9)
+			<br/>The formula result will be returned as a string column
+			<br/>All string columns starting with an equal sign (=) will be considered as formulas as well
+		</intro>
+  	<option name="formula column to evaluate">
+			Select the column you want to evaluate
+			Should start with equal sign
+		</option>
+    </fullDescription>
+    <ports>
+        <inPort index="0" name="In-Port name">table to consider for excel formula - including formula cell</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">input table with an additional evaluated column</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+</knimeNode>
