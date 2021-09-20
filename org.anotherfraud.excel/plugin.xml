@@ -207,7 +207,26 @@
 	      factory-class="org.AF.SeleniumFire.WaitForWebElement.WaitForWebElementNodeFactory">	 
 	</node>
 
-	                 
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.GroupAll.GroupAllNodeFactory">	 
+    </node>
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RegexToList.RegexToListNodeFactory">	 
+    </node>
+    
+ 	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RegexSubstring.RegexSubstringNodeFactory">	 
+    </node>   
+    
+         
+	<node
+	        category-path="/community/AF_Utilities/ExcelUtil"
+	        factory-class="org.AF.ExcelUtilities.EvaluateExcelFormula.EvaluateExcelFormulaNodeFactory">	 
+	</node>	 
+		                 
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">
@@ -256,6 +275,15 @@
             name="FirefoxUtil"
             path="/community/AF_Utilities">
       </category>  
+      
+       <category
+            description="AF Misc Util"
+            icon="MiscCategory.png"
+            level-id="MiscUtil"
+            locked="true"
+            name="MiscUtil"
+            path="/community/AF_Utilities">
+      </category>
             
    </extension>
    <extension
