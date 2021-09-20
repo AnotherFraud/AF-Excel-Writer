@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./regexSubstring.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Regex Substring</name>
+    
+    <shortDescription>Returns substring of a regex</shortDescription>
+    <fullDescription>
+		<intro>Returns match(es) of a substring as a new string column
+			<br/>Multiple return modes cn be selected (first match, last match, match by number or concat all matches)
+		</intro>
+
+		<option name="Regex column">
+				Column you want to apply the regex to
+		</option>	
+		
+		<option name="Regex String">
+				Regex you want to apply
+		</option>	
+		<option name="Return Mode">
+				Define which match should be returned 
+				-first match = returns first match in string
+				-last match = returns last match in string
+				-match by number = returns match by defined number
+				-concat all matches = returns all matches - concatenated by delimiter character
+		</option>			
+		
+		<option name="Concat delimiter">
+				Define your delimiter character here when "concat all matches" mode is selected
+		</option>		
+		<option name="Match number">
+				Define which match you want to be returned when "match by number" mode is selected
+				Returns empty string if number of matches are less than selected number
+		</option>	
+	</fullDescription>
+    
+    <ports>
+        <inPort index="0" name="In-Port name">Table with input data</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Table with regex collection column</outPort>
+        <!-- possibly more output ports here-->
+    </ports>
+</knimeNode>

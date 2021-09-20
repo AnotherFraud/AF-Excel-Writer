@@ -12,6 +12,12 @@
             category-path="/community/AF_Utilities/ExcelUtil"
             factory-class="org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeFactory">	 
       </node>	 
+      
+      <node
+            category-path="/community/AF_Utilities/ExcelUtil"
+            factory-class="org.AF.ExcelUtilities.EvaluateExcelFormula.EvaluateExcelFormulaNodeFactory">	 
+      </node>	
+      
       <node
             category-path="/community/AF_Utilities"
             factory-class="org.AF.KeepassUtilities.KeepassReader.KeepassReaderNodeFactory">	 
@@ -215,6 +221,14 @@
             category-path="/community/AF_Utilities/MiscUtil"
             factory-class="org.AF.TableUtil.RegexToList.RegexToListNodeFactory">	 
     </node>
+    
+ 	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RegexSubstring.RegexSubstringNodeFactory">	 
+    </node>   
+    
+    
+    
 
 
 	                 

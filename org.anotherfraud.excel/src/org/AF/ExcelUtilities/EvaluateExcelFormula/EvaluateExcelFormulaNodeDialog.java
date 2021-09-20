@@ -1,16 +1,13 @@
-package org.AF.TableUtil.RegexToList;
-
-
+package org.AF.ExcelUtilities.EvaluateExcelFormula;
 
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * This is an example implementation of the node dialog of the
- * "RegexToList" node.
+ * "EvaluateExcelFormula" node.
  *
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more
@@ -20,33 +17,26 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * 
  * @author Another Fraud
  */
-public class RegexToListNodeDialog extends DefaultNodeSettingsPane {
+public class EvaluateExcelFormulaNodeDialog extends DefaultNodeSettingsPane {
 
 	/**
 	 * New dialog pane for configuring the node. The dialog created here
 	 * will show up when double clicking on a node in KNIME Analytics Platform.
 	 */
-    protected RegexToListNodeDialog() {
+    protected EvaluateExcelFormulaNodeDialog() {
         super();
-  
-      	final SettingsModelString valColName = RegexToListNodeModel.createValColNameStringSettingsModel();
-    	final SettingsModelString regexString = RegexToListNodeModel.createRegexStringSettingsModel();
+        
+    	final SettingsModelString valColName = EvaluateExcelFormulaNodeModel.createValColNameStringSettingsModel();
 
     	
 		addDialogComponent(
                 new DialogComponentColumnNameSelection(
                 		valColName
-                		,"Select column to apply regex:"
+                		,"Select formula column to evaluate:"
                 		,0
                 		,true
                 		,StringValue.class
                 ));
-		
-		
-		
-		// Add a new String component to the dialog.
-		addDialogComponent(new DialogComponentString(regexString, "regex string", true, 10));
-		
 		
     }
 }
