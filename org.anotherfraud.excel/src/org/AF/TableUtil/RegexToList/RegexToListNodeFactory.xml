@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./regexToList.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Regex To List</name>
+    
+    <shortDescription>Returns all matches of a regex to a collection column </shortDescription>
+    <fullDescription>
+		<intro>Appends a collection column with all matches of a regex to the input table
+		</intro>
+		<option name="Regex column">
+				Column you want to apply the regex to
+		</option>	
+		
+		<option name="Regex String">
+				Regex you want to apply
+		</option>		
+	</fullDescription>
+    
+    <ports>
+        <inPort index="0" name="In-Port name">Table with input data</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Table with regex collection column</outPort>
+        <!-- possibly more output ports here-->
+    </ports>
+</knimeNode>
