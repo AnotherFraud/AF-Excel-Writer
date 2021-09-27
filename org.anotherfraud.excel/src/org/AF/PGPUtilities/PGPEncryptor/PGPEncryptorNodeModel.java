@@ -47,6 +47,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 
 /**
  * This is an example implementation of the node model of the
