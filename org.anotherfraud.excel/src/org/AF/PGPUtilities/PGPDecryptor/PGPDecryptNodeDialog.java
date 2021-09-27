@@ -22,8 +22,10 @@ import javax.swing.JFileChooser;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
@@ -53,6 +55,19 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
         final SettingsModelFileChooser2 outputFilePathModel2 = PGPDecryptNodeModel.createOutFilePath2SettingsModel();
         final SettingsModelFileChooser2 keyFilePathModel2 = PGPDecryptNodeModel.createKeeFilePath2SettingsModel();
         final SettingsModelAuthentication passwordModel = PGPDecryptNodeModel.createPassSettingsModel();
+        final SettingsModelBoolean keyfilePassword = PGPDecryptNodeModel.createUseKeyfilePasswordSettingsModel();
+        
+        
+        
+    	//listener disable password if not required
+        keyfilePassword.addChangeListener(e -> {	
+            if (keyfilePassword.getBooleanValue()) {
+            	passwordModel.setEnabled(true);
+            } else {
+            	passwordModel.setEnabled(false);
+            }
+            
+        });
         
         
     
@@ -72,7 +87,7 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Output Folder Selection");
         
         final FlowVariableModel fvmOut = createFlowVariableModel(
-                new String[]{inputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                new String[]{outputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
             addDialogComponent(new DialogComponentFileChooser2(0, outputFilePathModel2, "OuputFile", JFileChooser.SAVE_DIALOG,
@@ -83,13 +98,13 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Keyfile Selection");
         
         final FlowVariableModel fvmKee = createFlowVariableModel(
-                new String[]{inputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                new String[]{keyFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
             addDialogComponent(new DialogComponentFileChooser2(0, keyFilePathModel2, "KeeFile", JFileChooser.OPEN_DIALOG,
                 JFileChooser.FILES_ONLY, fvmKee));     
             
-            
+            addDialogComponent(new DialogComponentBoolean(keyfilePassword, "Keyfile is password secured?"));
             addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Kee File Password", AuthenticationType.PWD));
             
         closeCurrentGroup();
