@@ -36,7 +36,7 @@ public class PGPEncryptorNodeDialog extends DefaultNodeSettingsPane {
         
     
         
-        createNewGroup("PGP File Selection");
+        createNewGroup("File to Encrypt Selection");
         
 
         final FlowVariableModel fvm = createFlowVariableModel(
@@ -51,7 +51,7 @@ public class PGPEncryptorNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Output Folder Selection");
         
         final FlowVariableModel fvmOut = createFlowVariableModel(
-                new String[]{inputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                new String[]{outputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
             addDialogComponent(new DialogComponentFileChooser2(0, outputFilePathModel2, "OuputFile", JFileChooser.SAVE_DIALOG,
@@ -62,7 +62,7 @@ public class PGPEncryptorNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Keyfile Selection");
         
         final FlowVariableModel fvmKee = createFlowVariableModel(
-                new String[]{inputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                new String[]{keyFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
             addDialogComponent(new DialogComponentFileChooser2(0, keyFilePathModel2, "Public Key File", JFileChooser.OPEN_DIALOG,
