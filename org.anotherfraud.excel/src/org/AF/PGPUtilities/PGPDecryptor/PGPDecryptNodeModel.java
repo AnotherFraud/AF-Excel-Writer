@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -92,6 +93,13 @@ public class PGPDecryptNodeModel extends NodeModel {
 	static final String outputfilePath2 = "outputFile2";
 	static final String keyfilePath2 = "keyFile2";
     static final String password = "pwd";	
+    static final String useKeywordPassword = "useKeywordPassword";
+	
+    
+	static SettingsModelBoolean createUseKeyfilePasswordSettingsModel() {
+		SettingsModelBoolean wlr = new SettingsModelBoolean(useKeywordPassword, true);
+		return wlr;				
+	}	
 	
 	
 	static SettingsModelFileChooser2 createInputFilePath2SettingsModel() {
@@ -119,6 +127,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 	private final SettingsModelFileChooser2 m_ouputfilePath2 = createOutFilePath2SettingsModel();
 	private final SettingsModelFileChooser2 m_keyfilePath2 = createKeeFilePath2SettingsModel();
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();	
+	private final SettingsModelBoolean m_useKeyfilePassword = createUseKeyfilePasswordSettingsModel();
 	
 	
 
@@ -196,7 +205,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 			)
 			{
 			
-			String password = m_pwd.getPassword();	
+			String password = m_useKeyfilePassword.getBooleanValue() ? m_pwd.getPassword() : "";
 			String outFile = outfilePath;
 
             
@@ -382,6 +391,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 		m_ouputfilePath2.saveSettingsTo(settings);
 		m_keyfilePath2.saveSettingsTo(settings);
 		m_pwd.saveSettingsTo(settings);
+		m_useKeyfilePassword.saveSettingsTo(settings);
 
 	}
 
@@ -402,6 +412,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 		m_ouputfilePath2.loadSettingsFrom(settings);
 		m_keyfilePath2.loadSettingsFrom(settings);
 		m_pwd.loadSettingsFrom(settings);
+		m_useKeyfilePassword.loadSettingsFrom(settings);
 		
 	}
 
@@ -420,6 +431,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 		m_ouputfilePath2.validateSettings(settings);
 		m_keyfilePath2.validateSettings(settings);
 		m_pwd.validateSettings(settings);
+		m_useKeyfilePassword.validateSettings(settings);
 	}
 
 	@Override
