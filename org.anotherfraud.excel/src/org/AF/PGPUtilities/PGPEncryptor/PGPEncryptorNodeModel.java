@@ -130,7 +130,6 @@ public class PGPEncryptorNodeModel extends NodeModel {
 		FileChooserHelper inputfileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
 		Path inputpathTemplate = inputfileHelperTemplate.getPathFromSettings();
 		String inputfilePath = inputpathTemplate.toAbsolutePath().toString();
-			
 	
 		FileChooserHelper outfileHelperTemplate = new FileChooserHelper(m_fs, m_ouputfilePath2, defaulttimeoutInSeconds * 1000);
 		Path outpathTemplate = outfileHelperTemplate.getPathFromSettings();
