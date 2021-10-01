@@ -61,12 +61,9 @@ public class ListSPFilesNodeModel extends NodeModel {
     static final String ProxyHost = "ProxyHost";
     static final String ProxyPort = "ProxyPort";
     static final String spFolderPath = "spFolderPath";
-    
-	
-    
- 
 
 	
+
 	static SettingsModelString createSpFolderPathSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(spFolderPath, "Shared%20Documents/<FolderName>");
 		coof.setEnabled(true);
@@ -128,7 +125,6 @@ public class ListSPFilesNodeModel extends NodeModel {
 	private final SettingsModelString m_sharePointUrl = createSharePointUrlSettingsModel();
 	private final SettingsModelString m_SPFolderPath = createSpFolderPathSettingsModel();
 
-	
 	
 
 	/**

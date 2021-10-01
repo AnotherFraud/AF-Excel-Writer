@@ -1,7 +1,14 @@
 package org.AF.SharePointUtilities.Conn.GetSPListItems;
 
+import java.util.Arrays;
+
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
@@ -23,13 +30,35 @@ public class GetSPListItemsNodeDialog extends DefaultNodeSettingsPane {
         
         final SettingsModelString spListNameModel = GetSPListItemsNodeModel.createSpListNameSettingsModel();
         final SettingsModelString sharePointNameModel = GetSPListItemsNodeModel.createSharePointNameSettingsModel();
-    	
+        final SettingsModelString loadingOrder = GetSPListItemsNodeModel.createLoadingOrderSettingsModel();
+        final SettingsModelIntegerBounded itemLimit = GetSPListItemsNodeModel.createItemLimitSettingsModel();
+        final SettingsModelBoolean loadAll = GetSPListItemsNodeModel.createLoadAllSettingsModel();
+        
+  
+    	//listener try to read in sheet names from given template file
+        loadAll.addChangeListener(e -> {	
+            if (loadAll.getBooleanValue()) {
+            	itemLimit.setEnabled(false);
+            } else {
+            	itemLimit.setEnabled(true);
+            }
+            
+        });
+        
        	createNewGroup("General Information"); 
 
        	addDialogComponent(new DialogComponentString(sharePointNameModel, "SharePoint Site Name", true, 60));
        	addDialogComponent(new DialogComponentString(spListNameModel, "List Title", true, 60));
    
         closeCurrentGroup();
+        createNewGroup("Loading Options"); 
+        
+        addDialogComponent(new DialogComponentBoolean(loadAll, "Load all items in list"));
+        addDialogComponent(new DialogComponentNumber(itemLimit, "Item Limit", 5000));
+        
+        addDialogComponent(
+                new DialogComponentStringSelection(loadingOrder, "Loading Order",
+                		Arrays.asList( "Ascending Creation Date","Descending Creation Date"),false));
     
     }
 }

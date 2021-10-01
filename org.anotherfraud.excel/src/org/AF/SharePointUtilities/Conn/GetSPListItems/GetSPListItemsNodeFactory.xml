@@ -16,6 +16,15 @@
 		<option name="List Title">
 			The Title of the List you want to retrieve (should be unique)
 		</option>
+		<option name="Load all items in list">
+			Enable if you want to load all items of the list (might take long with very large lists)
+		</option>
+		<option name="Item Limit">
+			Select how many items should be retrieved
+		</option>
+		<option name="Loading Order">
+			Select in which order (by creation date) the items should be retrieved
+		</option>
 			
     </fullDescription>
     
