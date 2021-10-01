@@ -9,10 +9,12 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -51,7 +53,9 @@ public class GetSPListItemsNodeDialog extends DefaultNodeSettingsPane {
        	final SettingsModelString sharePointOnlineSiteURLModel = GetSPListItemsNodeModel.createSharePointUrlSettingsModel();
         final SettingsModelString spListNameModel = GetSPListItemsNodeModel.createSpListNameSettingsModel();
         final SettingsModelString sharePointNameModel = GetSPListItemsNodeModel.createSharePointNameSettingsModel();
-    	
+        final SettingsModelString loadingOrder = GetSPListItemsNodeModel.createLoadingOrderSettingsModel();
+        final SettingsModelIntegerBounded itemLimit = GetSPListItemsNodeModel.createItemLimitSettingsModel();
+        final SettingsModelBoolean loadAll = GetSPListItemsNodeModel.createLoadAllSettingsModel();
         
        	//Map<AuthenticationType, Pair<String, String>> map;
        	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
@@ -93,7 +97,14 @@ public class GetSPListItemsNodeDialog extends DefaultNodeSettingsPane {
             }
         });  
        	
-       	
+        loadAll.addChangeListener(e -> {	
+            if (loadAll.getBooleanValue()) {
+            	itemLimit.setEnabled(false);
+            } else {
+            	itemLimit.setEnabled(true);
+            }
+            
+        });
        	
        	createNewGroup("General Information"); 
        	
@@ -110,9 +121,18 @@ public class GetSPListItemsNodeDialog extends DefaultNodeSettingsPane {
        	        
         closeCurrentGroup();
         
+       
+        createNewGroup("Loading Options"); 
         
+        addDialogComponent(new DialogComponentBoolean(loadAll, "Load all items in list"));
+        addDialogComponent(new DialogComponentNumber(itemLimit, "Item Limit", 5000));
         
-		
+        addDialogComponent(
+                new DialogComponentStringSelection(loadingOrder, "Loading Order",
+                		Arrays.asList( "Ascending Creation Date","Descending Creation Date"),false));
+        
+        closeCurrentGroup();
+        
         createNewTab("Proxy Options");
         createNewGroup("Proxy Options"); 
         
