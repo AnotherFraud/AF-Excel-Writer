@@ -2,6 +2,7 @@ package org.AF.SharePointUtilities.GetSPListItems;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
 import org.apache.http.HttpResponse;
@@ -33,6 +34,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -69,7 +71,26 @@ public class GetSPListItemsNodeModel extends NodeModel {
 	    static final String ProxyHost = "ProxyHost";
 	    static final String ProxyPort = "ProxyPort";
 	    static final String spListName = "spListName";
-		
+	    static final String loadingOrder = "loadingOrder";
+	    static final String itemLimit = "itemLimit";
+	    static final String loadAll = "loadAll";
+
+	    static SettingsModelBoolean createLoadAllSettingsModel() {
+			SettingsModelBoolean wlr = new SettingsModelBoolean(loadAll, true);
+			return wlr;				
+		}	
+	    
+	    static SettingsModelIntegerBounded createItemLimitSettingsModel() {
+			SettingsModelIntegerBounded si = new SettingsModelIntegerBounded(itemLimit, 5000, 100, 2147483647);
+			si.setEnabled(false);
+	        return si;
+	    }	
+	    
+	    static SettingsModelString createLoadingOrderSettingsModel() {
+			SettingsModelString coof = new SettingsModelString(loadingOrder, "Ascending Creation Date");
+			coof.setEnabled(true);
+			return coof;				
+		}	
 	    
 	 
 
@@ -143,7 +164,9 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		private final SettingsModelString m_proxyHost = createProxyHostSettingsModel();
 		private final SettingsModelString m_sharePointUrl = createSharePointUrlSettingsModel();
 		private final SettingsModelString m_SPListName = createSpListNameSettingsModel();
-	
+		private final SettingsModelString m_loadOrder = createLoadingOrderSettingsModel();
+		private final SettingsModelIntegerBounded m_itemlimit = createItemLimitSettingsModel();
+		private final SettingsModelBoolean m_loadall = createLoadAllSettingsModel();
 		
 
 		/**
@@ -195,6 +218,13 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
 		    	
 		    
+		    String loadOrder = (m_loadOrder.getStringValue().equals("Ascending Creation Date")) ? "asc" :  "desc";
+		    int itemlimt = m_itemlimit.getIntValue();
+		    
+			
+		
+		    
+		    /* Null or fail check */
 		    if (!token.isEmpty())
 		    { 
 		        /* Upload path and file name declaration */
@@ -204,17 +234,21 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		         * Files/
 		         */
 
-		
-		    	 String url = "https://"
-		        		+ sharePointSite
-		        		+ "/sites/"
-		        		+ sharePointName
-		        		+ "/_api/web/lists/GetByTitle('"
-		        		+ SharePointHelper.formatStringForUrl(listName)
-		        		+ "')/items?$top=5000";
+		        BufferedDataContainer container;
 
-
-			
+		        //get column types for table parsing
+		        String url = "https://"
+			        		+ sharePointSite
+			        		+ "/sites/"
+			        		+ SharePointHelper.formatStringForUrl(sharePointName)
+			        		+ "/_api/web/lists/getbytitle('"
+			        		+ SharePointHelper.formatStringForUrl(listName)
+			        		+ SharePointHelper.formatStringForUrl("')/fields?$select=Title,TypeAsString,TypeDisplayName,InternalName&$filter=Hidden eq false and ReadOnlyField eq false and TypeAsString ne 'Computed'")
+			        		;
+		    	 
+		    	 
+		    	 
+			    	 
 		        HttpClientBuilder clientbuilder = HttpClients.custom();
 		        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
 		         
@@ -227,58 +261,14 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		        HttpGet get = new HttpGet(url);
 		        SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
 		        
-
-		        
-			    get.setHeader("Authorization", "Bearer " + token);
-			    get.setHeader("accept", "application/json;odata=verbose");
-
-			    
-
-			    
-		
-
-		        /* Executing the post request */
-		        HttpResponse response = client.execute(get);
-		       
-		        
-		        String responseBody = EntityUtils.toString(response.getEntity());
-
-	     
-		        pushFlowVariableString("ResponseStatus", response.getStatusLine().toString());
-		        pushFlowVariableString("ResponseString", responseBody);
-		        
-		        
-		        BufferedDataContainer container;
-			    
-		        
-			     if(response.getStatusLine().getStatusCode()==200)
-			     {
-			    	
-
-
-		        //get column types for table parsing
-		    	 url = "https://"
-			        		+ sharePointSite
-			        		+ "/sites/"
-			        		+ SharePointHelper.formatStringForUrl(sharePointName)
-			        		+ "/_api/web/lists/getbytitle('"
-			        		+ SharePointHelper.formatStringForUrl(listName)
-			        		+ SharePointHelper.formatStringForUrl("')/fields?$select=Title,TypeAsString,TypeDisplayName,InternalName&$filter=Hidden eq false and ReadOnlyField eq false and TypeAsString ne 'Computed'")
-			        		;
-		    	 
-		    	 
-		    	 
-			    	 
-			        get = new HttpGet(url);
-			        SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
-			        
-				    get.setHeader("Authorization", "Bearer " + token);
-				    get.setHeader("accept", "application/json;odata=verbose");
+    
+				get.setHeader("Authorization", "Bearer " + token);
+				get.setHeader("accept", "application/json;odata=verbose");
 
 			        /* Executing the post request */
-				    HttpResponse responseColumnInfo = client.execute(get);
+				HttpResponse responseColumnInfo = client.execute(get);
 		  
-			        String responseBodyColumnInfo = EntityUtils.toString(responseColumnInfo.getEntity());
+			    String responseBodyColumnInfo = EntityUtils.toString(responseColumnInfo.getEntity());
 					        
 
 			        
@@ -286,13 +276,68 @@ public class GetSPListItemsNodeModel extends NodeModel {
 				    if(responseColumnInfo.getStatusLine().getStatusCode()==200)
 					     {   
 				    	
-				    	
-				    	 String[][] columnHeaders = parseColumnHeaderInfo(responseBodyColumnInfo);
-				    	 container = exec.createDataContainer(createSpec(columnHeaders));
+				    	String[][] columnHeaders = parseColumnHeaderInfo(responseBodyColumnInfo);
+				    	container = exec.createDataContainer(createSpec(columnHeaders));
 				    	 
-				    	 parseJsonResult(responseBody, container, columnHeaders);
+				    	 Boolean getNext = true;
+				    	 url = "https://"
+					        		+ sharePointSite
+					        		+ "/sites/"
+					        		+ sharePointName
+					        		+ "/_api/web/lists/GetByTitle('"
+					        		+ SharePointHelper.formatStringForUrl(listName)
+					        		+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
+				    	 
+				    	 clientbuilder = HttpClients.custom();
+					     SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
+
+					     client = clientbuilder.build();
+
+					     get = new HttpGet(url);
+					     SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
+						 get.setHeader("Authorization", "Bearer " + token);
+						 get.setHeader("accept", "application/json;odata=verbose");
+						 
+						 int rowCnt = 0;
+						 int responseCnt = 0;
+						 JSONObject responseJson = new JSONObject();
+						
+				    	 while(getNext)
+				    	 {
+					         get.setURI(URI.create(url));
+					    	 HttpResponse response = client.execute(get);
+							 String responseBody = EntityUtils.toString(response.getEntity());
+							 
+							 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);
+					    		 
+	
+							 JSONObject jsonObj = new JSONObject(responseBody);
+							 
+							 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
+							 
+							 JSONObject innerObject = jsonObj.getJSONObject("d");
+							
+							 if (innerObject.has("__next") 
+									 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
+							 )
+							 {				
+							 url = (String) innerObject.get("__next");
+							 responseCnt++;
+							 }
+							 else
+							 {
+							 	getNext = false;
+							 }
+
+				    	 }
+				    	 
+				    	 
+				    		
+
 				    	 container.close();
-				
+
+					     pushFlowVariableString("ResponseString", responseJson.toString());
+				    	 
 				    	 return new BufferedDataTable[] { container.getTable() };
 				    	 
 				    	 
@@ -305,7 +350,7 @@ public class GetSPListItemsNodeModel extends NodeModel {
 				    
 				    
 				    
-			     }		        
+			     		        
 		    }
 
 		    return new BufferedDataTable[] { };
@@ -340,13 +385,13 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		}
 		
 		
-		private void parseJsonResult(String responseBody, BufferedDataContainer container, String[][] columnHeaders) {
+		private int parseJsonResult(String responseBody, BufferedDataContainer container, String[][] columnHeaders, int rowCnt) {
 			JSONObject jsonObj = new JSONObject(responseBody); 
 
 
 			    JSONObject innerObject = jsonObj.getJSONObject("d");	    
 			    JSONArray jsonArray = innerObject.getJSONArray("results");
-			    int rowCnt = 0;
+			     
 
 			    
 			    DataCell[] cells = new DataCell[columnHeaders.length];
@@ -419,6 +464,7 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			      
 			      rowCnt++;
 			    }
+			    return rowCnt;
 			 		
 				
 		
@@ -550,7 +596,9 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			m_sharePointUrl.saveSettingsTo(settings);
 			m_SPListName.saveSettingsTo(settings);
 			m_clientToken.saveSettingsTo(settings);
-
+			m_loadOrder.saveSettingsTo(settings);
+			m_itemlimit.saveSettingsTo(settings);
+			m_loadall.saveSettingsTo(settings);
 		}
 
 		/**
@@ -574,7 +622,9 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			m_proxyHost.loadSettingsFrom(settings);
 			m_sharePointUrl.loadSettingsFrom(settings);
 			m_clientToken.loadSettingsFrom(settings);
-			
+			m_loadOrder.loadSettingsFrom(settings);
+			m_itemlimit.loadSettingsFrom(settings);
+			m_loadall.loadSettingsFrom(settings);		
 		}
 
 		/**
@@ -596,6 +646,9 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			m_proxyPort.validateSettings(settings);
 			m_proxyHost.validateSettings(settings);
 			m_sharePointUrl.validateSettings(settings);
+			m_loadOrder.validateSettings(settings);
+			m_itemlimit.validateSettings(settings);
+			m_loadall.validateSettings(settings);
 		}
 
 		@Override
