@@ -5,7 +5,7 @@
     <shortDescription>This node returns a List from your SharePoint as JSON</shortDescription>
     
     <fullDescription>
-		<intro>This nodes returns a list (top 5000 entrys) from Sharepoint using the Sharepoint rest v1 API
+		<intro>This nodes returns a list from Sharepoint using the Sharepoint rest v1 API
 			<br/>It requires a given authentication token (for details see GetRestAccessToken Node)
 			<br/>For details on the API see: https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-rest-reference
 		</intro>
