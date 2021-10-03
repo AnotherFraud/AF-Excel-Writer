@@ -219,8 +219,11 @@ public class GetSPListItemsNodeModel extends NodeModel {
 					        		+ sharePointName
 					        		+ "/_api/web/lists/GetByTitle('"
 					        		+ SharePointHelper.formatStringForUrl(listName)
-					        		+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
+					        		+ SharePointHelper.formatStringForUrl("')/items?&$orderby=Id " + loadOrder + "&$skiptoken=Paged=TRUE&$top=100");
+					        		//+ SharePointHelper.formatStringForUrl("')/items?$top=100$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
 				    	 
+					        		
+					        		
 				    	 clientbuilder = HttpClients.custom();
 					     SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
 
@@ -240,12 +243,22 @@ public class GetSPListItemsNodeModel extends NodeModel {
 					         get.setURI(URI.create(url));
 					    	 HttpResponse response = client.execute(get);
 							 String responseBody = EntityUtils.toString(response.getEntity());
-							 
-							 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);
-					    		 
-	
 							 JSONObject jsonObj = new JSONObject(responseBody);
 							 
+							 
+							 if (jsonObj.has("d"))
+							 {
+								 
+							 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);					 
+							 }
+							 else
+							 {
+								 pushFlowVariableString("ErrorResponseString", responseBody);
+								 pushFlowVariableString("ErrorResponseStatus", Integer.toString(response.getStatusLine().getStatusCode()));
+								 break;
+							 }
+					    		 
+	
 							 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
 							 
 							 JSONObject innerObject = jsonObj.getJSONObject("d");
