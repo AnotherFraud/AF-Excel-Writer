@@ -308,26 +308,35 @@ public class GetSPListItemsNodeModel extends NodeModel {
 					    	 HttpResponse response = client.execute(get);
 							 String responseBody = EntityUtils.toString(response.getEntity());
 							 
-							 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);
-					    		 
-	
 							 JSONObject jsonObj = new JSONObject(responseBody);
+							 if (jsonObj.has("d"))
+							 {
+								 
+								 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);					 
+								 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
+								 
+								 JSONObject innerObject = jsonObj.getJSONObject("d");
+								
+								 if (innerObject.has("__next") 
+										 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
+								 )
+								 {				
+								 url = (String) innerObject.get("__next");
+								 responseCnt++;
+								 }
+								 else
+								 {
+								 	getNext = false;
+								 }
 							 
-							 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
-							 
-							 JSONObject innerObject = jsonObj.getJSONObject("d");
-							
-							 if (innerObject.has("__next") 
-									 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
-							 )
-							 {				
-							 url = (String) innerObject.get("__next");
-							 responseCnt++;
 							 }
 							 else
 							 {
-							 	getNext = false;
+								 pushFlowVariableString("ErrorResponseString", responseBody);
+								 pushFlowVariableString("ErrorResponseStatus", Integer.toString(response.getStatusLine().getStatusCode()));
+								 break;
 							 }
+							 
 
 				    	 }
 				    	 
