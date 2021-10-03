@@ -286,7 +286,8 @@ public class GetSPListItemsNodeModel extends NodeModel {
 					        		+ sharePointName
 					        		+ "/_api/web/lists/GetByTitle('"
 					        		+ SharePointHelper.formatStringForUrl(listName)
-					        		+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
+					        		+ SharePointHelper.formatStringForUrl("')/items?&$orderby=Id " + loadOrder + "&$skiptoken=Paged=TRUE&$top=100");
+					        		//+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
 				    	 
 				    	 clientbuilder = HttpClients.custom();
 					     SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
@@ -302,32 +303,41 @@ public class GetSPListItemsNodeModel extends NodeModel {
 						 int responseCnt = 0;
 						 JSONObject responseJson = new JSONObject();
 						
-				    	 while(getNext)
+						 while(getNext)
 				    	 {
 					         get.setURI(URI.create(url));
 					    	 HttpResponse response = client.execute(get);
 							 String responseBody = EntityUtils.toString(response.getEntity());
 							 
-							 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);
-					    		 
-	
 							 JSONObject jsonObj = new JSONObject(responseBody);
+							 if (jsonObj.has("d"))
+							 {
+								 
+								 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);					 
+								 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
+								 
+								 JSONObject innerObject = jsonObj.getJSONObject("d");
+								
+								 if (innerObject.has("__next") 
+										 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
+								 )
+								 {				
+								 url = (String) innerObject.get("__next");
+								 responseCnt++;
+								 }
+								 else
+								 {
+								 	getNext = false;
+								 }
 							 
-							 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
-							 
-							 JSONObject innerObject = jsonObj.getJSONObject("d");
-							
-							 if (innerObject.has("__next") 
-									 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
-							 )
-							 {				
-							 url = (String) innerObject.get("__next");
-							 responseCnt++;
 							 }
 							 else
 							 {
-							 	getNext = false;
+								 pushFlowVariableString("ErrorResponseString", responseBody);
+								 pushFlowVariableString("ErrorResponseStatus", Integer.toString(response.getStatusLine().getStatusCode()));
+								 break;
 							 }
+							 
 
 				    	 }
 				    	 
