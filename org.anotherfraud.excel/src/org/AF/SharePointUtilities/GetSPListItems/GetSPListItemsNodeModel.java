@@ -286,7 +286,8 @@ public class GetSPListItemsNodeModel extends NodeModel {
 					        		+ sharePointName
 					        		+ "/_api/web/lists/GetByTitle('"
 					        		+ SharePointHelper.formatStringForUrl(listName)
-					        		+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
+					        		+ SharePointHelper.formatStringForUrl("')/items?&$orderby=Id " + loadOrder + "&$skiptoken=Paged=TRUE&$top=100");
+					        		//+ SharePointHelper.formatStringForUrl("')/items?$skiptoken=Paged=TRUE&$orderby=Created " + loadOrder);
 				    	 
 				    	 clientbuilder = HttpClients.custom();
 					     SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
