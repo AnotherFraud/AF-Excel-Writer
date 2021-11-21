@@ -15,7 +15,6 @@ import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.IntCell.IntCellFactory;
@@ -213,7 +212,7 @@ public class RangeBuilderNodeModel extends NodeModel {
 			int totalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
 			String catVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
 			
-			DoubleCell valueCell = ((DoubleCell) currentRow.getCell(valColIndex));
+			DataCell valueCell = ((DataCell) currentRow.getCell(valColIndex));
 			
 			
 			if( !currentCategory.equals(catVal))
@@ -249,7 +248,7 @@ public class RangeBuilderNodeModel extends NodeModel {
 						container
 						,"Row_" + rowCnt		
 						,(String) list.get(0)
-						,(DoubleCell) list.get(1)
+						,(DataCell) list.get(1)
 						,valueCell
 						,tmpTotal
 						,tmpCounter
@@ -325,8 +324,8 @@ public class RangeBuilderNodeModel extends NodeModel {
 			BufferedDataContainer container
 			,String rowKey
 			,String Category
-			,DoubleCell FromValue
-			,DoubleCell ToValue
+			,DataCell FromValue
+			,DataCell ToValue
 			,int total
 			,int counter
 			,Double perc
@@ -350,8 +349,8 @@ public class RangeBuilderNodeModel extends NodeModel {
 		
 		DataTableSpecCreator crator = new DataTableSpecCreator();
 		crator.addColumns(new DataColumnSpecCreator("Category", StringCellFactory.TYPE).createSpec());
-		crator.addColumns(new DataColumnSpecCreator("FromValue", DoubleCellFactory.TYPE).createSpec());
-		crator.addColumns(new DataColumnSpecCreator("ToValue", DoubleCellFactory.TYPE).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("FromValue", valColdataColumnSpec.getType()).createSpec());
+		crator.addColumns(new DataColumnSpecCreator("ToValue", valColdataColumnSpec.getType()).createSpec());
 		
 		
 		crator.addColumns(new DataColumnSpecCreator("total", IntCellFactory.TYPE).createSpec());
