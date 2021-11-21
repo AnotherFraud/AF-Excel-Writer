@@ -81,4 +81,5 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.TableUtil.GroupAll,
  org.AF.TableUtil.RegexToList,
  org.AF.ExcelUtilities.EvaluateExcelFormula,
- org.AF.TableUtil.RegexSubstring
+ org.AF.TableUtil.RegexSubstring,
+ org.AF.TableUtil.RangeBuilder
