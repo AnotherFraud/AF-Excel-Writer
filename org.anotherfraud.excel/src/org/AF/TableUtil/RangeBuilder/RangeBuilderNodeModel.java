@@ -64,7 +64,18 @@ public class RangeBuilderNodeModel extends NodeModel {
 	static final String minCounterPerGroup = "minCounterPerGroup";
 	static final String maxCounterPerGroup = "maxCounterPerGroup";
 	
+	static final String rangeType = "rangeType";
 	
+
+	
+	
+	static SettingsModelString createRangeTypeSettingsModel() {
+		SettingsModelString coof = new SettingsModelString(rangeType, "Negative");
+		coof.setEnabled(true);
+		return coof;				
+	}	
+	
+
 	
 	static SettingsModelString createCounterColNameStringSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(counterColName,null);
@@ -125,6 +136,7 @@ public class RangeBuilderNodeModel extends NodeModel {
 	private final SettingsModelIntegerBounded m_minCounter = createMinCounterSettingsModel();
 	private final SettingsModelIntegerBounded m_maxCounter = createMaxCounterSettingsModel();
 	
+	private final SettingsModelString m_rangeType = createRangeTypeSettingsModel();
 
 	
 	/**
@@ -181,7 +193,7 @@ public class RangeBuilderNodeModel extends NodeModel {
 		int totalIndex = inData[0].getDataTableSpec().findColumnIndex(m_totalColName.getStringValue());
 		int counterColIndex = inData[0].getDataTableSpec().findColumnIndex(m_counterColName.getStringValue());
 		
-		BufferedDataContainer container = exec.createDataContainer(getSpec(inData[0].getDataTableSpec().getColumnSpec(valColIndex)));
+		BufferedDataContainer NegRangeContainer = exec.createDataContainer(getSpec(inData[0].getDataTableSpec().getColumnSpec(valColIndex)));
 		
 		String currentCategory = "";		
 		ArrayList<List<Object>> countList = new ArrayList<>();
@@ -194,7 +206,7 @@ public class RangeBuilderNodeModel extends NodeModel {
 		 */
 		
 		CloseableRowIterator rowIterator = inputTable.iterator();
-
+	
 
 		/*
 		 * A counter for how many rows have already been processed. This is used to
@@ -203,110 +215,197 @@ public class RangeBuilderNodeModel extends NodeModel {
 		 */
 		int currentRowCounter = 0;
 		int rowCnt = 0;
+		
 		// Iterate over the rows of the input table.
 		while (rowIterator.hasNext()) {
 			DataRow currentRow = rowIterator.next();
-			
-		
-			int counterVal = ((IntCell) currentRow.getCell(counterColIndex)).getIntValue();
-			int totalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
-			String catVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
-			
-			DataCell valueCell = ((DataCell) currentRow.getCell(valColIndex));
-			
-			
-			if( !currentCategory.equals(catVal))
-			{
-				currentCategory = catVal;
-				countList = new ArrayList<>();
-			}
+
 			
 
-	
-			if (counterVal == 0)
+			
+			
+			
+			
+			if (m_rangeType.getStringValue().equals("Negative"))
 			{
-				if(countList.size()>0)
+
+				int counterVal = ((IntCell) currentRow.getCell(counterColIndex)).getIntValue();
+				int totalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
+				String catVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
+				DataCell valueCell = ((DataCell) currentRow.getCell(valColIndex));
+				
+				if( !currentCategory.equals(catVal))
 				{
-					List<Object> list = countList.get(countList.size()-1);
-					
-					int tmpTotal = (int) list.get(2) + totalVal;
-					int tmpCounter = (int) list.get(3) + counterVal;
-					
-				    list.set(2, tmpTotal);
-				    list.set(3, tmpCounter);
+					currentCategory = catVal;
+					countList = new ArrayList<>();
+				}				
+			
 
+				if (counterVal == 0)
+				{
+					if(countList.size()>0)
+					{
+						List<Object> list = countList.get(countList.size()-1);
+						
+						int tmpTotal = (int) list.get(2) + totalVal;
+					    list.set(2, tmpTotal);
+					}
+					
+					
 				}
+				else
+				{
+				
+					for(List<Object> list : countList)
+					{
+						
+						int tmpTotal = (int) list.get(2) + totalVal;
+						int tmpCounter = (int) list.get(3) + counterVal;
+						
+
+					    list.set(2, tmpTotal);
+					    list.set(3, tmpCounter);
+					    double tmpPerc = ((double) tmpCounter) / tmpTotal * 100;
+					    
+					    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, tmpCounter, tmpTotal, (String) list.get(0), (DataCell) list.get(1),valueCell, tmpPerc); 
+				
+					}
+					
+					countList.add(Arrays.asList(catVal, valueCell,totalVal,counterVal));
+					
+					double perc = ((double) counterVal) / totalVal * 100;
+				    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, counterVal, totalVal, catVal, valueCell,valueCell, perc); 
+				 
+				}			
+				
+
+				
 				
 			}
-			else
+			else //positive ranges
 			{
 			
+				boolean contAggre = true;	
+				
+				
+				int counterVal = ((IntCell) currentRow.getCell(counterColIndex)).getIntValue();
+				int totalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
+				String catVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
+				DataCell valueCell = ((DataCell) currentRow.getCell(valColIndex));
+				
+				if( !currentCategory.equals(catVal))
+				{
+					currentCategory = catVal;
+					countList = new ArrayList<>();
+				}	
+				
+				
+			if(counterVal == 0)
+			{
+
+				while (contAggre)
+				{
+					
+				DataCell CurrValueCell = ((DataCell) currentRow.getCell(valColIndex));	
+					
+				boolean hasNext = rowIterator.hasNext();
+				
+				if(hasNext)
+					{
+					currentRow = rowIterator.next();
+					}
+				
+				
+					int nextCounterVal = ((IntCell) currentRow.getCell(counterColIndex)).getIntValue();
+					int nextTotalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
+					String nextCatVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
+					
+					
+					if (currentCategory.equals(nextCatVal)
+							&& nextCounterVal == 0
+							&& hasNext
+							
+						)
+						{
+
+							counterVal = counterVal + nextCounterVal;
+							totalVal = totalVal + nextTotalVal;
+						} 
+						else
+						{
+							for(List<Object> list : countList)
+							{
+								
+								int tmpTotal = (int) list.get(2) + totalVal;
+								int tmpCounter = (int) list.get(3) + counterVal;
+								
+	
+							    list.set(2, tmpTotal);
+							    list.set(3, tmpCounter);
+							    double tmpPerc = ((double) tmpCounter) / tmpTotal * 100;
+							    
+							    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, tmpCounter, tmpTotal, (String) list.get(0), (DataCell) list.get(1),CurrValueCell, tmpPerc); 
+						
+							}
+							
+							countList.add(Arrays.asList(catVal, valueCell,totalVal,counterVal));
+							
+							double perc = ((double) counterVal) / totalVal * 100;
+						    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, counterVal, totalVal, catVal, valueCell,CurrValueCell, perc); 
+						    contAggre = false;
+						}						
+
+				}
+			} 
+			
+			if(((IntCell) currentRow.getCell(counterColIndex)).getIntValue()>0)
+			{
+				
+			//cleanup aggregation mess
+				if (!contAggre)
+				{
+					
+					counterVal = ((IntCell) currentRow.getCell(counterColIndex)).getIntValue();
+					totalVal = ((IntCell) currentRow.getCell(totalIndex)).getIntValue();
+					catVal = ((StringCell) currentRow.getCell(catColIndex)).getStringValue();
+					valueCell = ((DataCell) currentRow.getCell(valColIndex));
+					
+					if( !currentCategory.equals(catVal))
+					{
+						currentCategory = catVal;
+						countList = new ArrayList<>();
+					}	
+					
+				}
+	
+		
 				for(List<Object> list : countList)
 				{
 					
 					int tmpTotal = (int) list.get(2) + totalVal;
 					int tmpCounter = (int) list.get(3) + counterVal;
 					
-		
+	
 				    list.set(2, tmpTotal);
 				    list.set(3, tmpCounter);
 				    double tmpPerc = ((double) tmpCounter) / tmpTotal * 100;
 				    
-		
-				    
-				    if(
-				    	tmpPerc >= m_percRange.getMinRange() 
-				    	&& tmpPerc <= m_percRange.getMaxRange()
-				    	&& tmpTotal >= m_minTotal.getIntValue()
-				    	&& tmpCounter >= m_minCounter.getIntValue()
-				    	&& tmpCounter <= m_maxCounter.getIntValue()	
-				    )
-				    {
-						addRow
-						(
-							container
-							,"Row_" + rowCnt		
-							,(String) list.get(0)
-							,(DataCell) list.get(1)
-							,valueCell
-							,tmpTotal
-							,tmpCounter
-							,tmpPerc	
-						);
-						rowCnt++;
-		
-				    }  	
+				    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, tmpCounter, tmpTotal, (String) list.get(0), (DataCell) list.get(1),valueCell, tmpPerc); 
+			
 				}
-				
 				
 				countList.add(Arrays.asList(catVal, valueCell,totalVal,counterVal));
 				
 				double perc = ((double) counterVal) / totalVal * 100;
 				//System.out.println("Perc " + perc);
 				
-			    if(
-			    		perc >= m_percRange.getMinRange() 
-				    	&& perc <= m_percRange.getMaxRange()
-				    	&& totalVal >= m_minTotal.getIntValue()
-				    	&& counterVal >= m_minCounter.getIntValue()
-				    	&& counterVal <= m_maxCounter.getIntValue()	
-				    )
-				    {
-						addRow
-						(
-							container
-							,"Row_" + rowCnt		
-							,catVal
-							,valueCell
-							,valueCell
-							,totalVal
-							,counterVal
-							,perc	
-						);
-						rowCnt++;
-	
-				    } 			
+			    rowCnt = addRowWithFilter(NegRangeContainer, rowCnt, counterVal, totalVal, catVal, valueCell,valueCell, perc); 
+					    
+
+							
+				}
 			}
+
 
 
 			// We finished processing one row, hence increase the counter
@@ -331,10 +430,40 @@ public class RangeBuilderNodeModel extends NodeModel {
 		}
 		
 	
-		container.close();
-		BufferedDataTable out = container.getTable();
+		NegRangeContainer.close();
+		BufferedDataTable out = NegRangeContainer.getTable();
 		return new BufferedDataTable[] { out };
 	}
+
+
+	private int addRowWithFilter(BufferedDataContainer NegRangeContainer, int rowCnt, int counterVal, int totalVal,
+			String catVal, DataCell FromValueCell,DataCell ToValueCell, double perc) {
+		if(
+				perc >= m_percRange.getMinRange() 
+		    	&& perc <= m_percRange.getMaxRange()
+		    	&& totalVal >= m_minTotal.getIntValue()
+		    	&& counterVal >= m_minCounter.getIntValue()
+		    	&& counterVal <= m_maxCounter.getIntValue()	
+		    )
+		    {
+				addRow
+				(
+					NegRangeContainer
+					,"Row_" + rowCnt		
+					,catVal
+					,FromValueCell
+					,ToValueCell
+					,totalVal
+					,counterVal
+					,perc	
+				);
+				rowCnt++;
+
+		    }
+		return rowCnt;
+	}
+
+
 
 	
 
@@ -412,6 +541,8 @@ public class RangeBuilderNodeModel extends NodeModel {
 		m_minTotal.saveSettingsTo(settings);
 		m_minCounter.saveSettingsTo(settings);
 		m_maxCounter.saveSettingsTo(settings);
+		
+		m_rangeType.saveSettingsTo(settings);
 	}
 
 	/**
@@ -436,6 +567,9 @@ public class RangeBuilderNodeModel extends NodeModel {
 		m_minTotal.loadSettingsFrom(settings);
 		m_minCounter.loadSettingsFrom(settings);
 		m_maxCounter.loadSettingsFrom(settings);
+		
+		
+		m_rangeType.loadSettingsFrom(settings);
 	}
 
 	/**
@@ -459,6 +593,9 @@ public class RangeBuilderNodeModel extends NodeModel {
 		m_minTotal.validateSettings(settings);
 		m_minCounter.validateSettings(settings);
 		m_maxCounter.validateSettings(settings);
+		
+		
+		m_rangeType.validateSettings(settings);
 	}
 
 	@Override
