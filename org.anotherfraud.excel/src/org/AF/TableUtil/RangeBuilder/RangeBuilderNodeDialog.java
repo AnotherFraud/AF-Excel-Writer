@@ -1,5 +1,8 @@
 package org.AF.TableUtil.RangeBuilder;
 
+import java.util.Arrays;
+
+
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.StringValue;
@@ -7,6 +10,7 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentDoubleRange;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleRange;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -38,7 +42,7 @@ public class RangeBuilderNodeDialog extends DefaultNodeSettingsPane {
     	final SettingsModelString valColName = RangeBuilderNodeModel.createValColNameStringSettingsModel();
     	final SettingsModelString catColName = RangeBuilderNodeModel.createCatColNameStringSettingsModel();
     	final SettingsModelDoubleRange percRange = RangeBuilderNodeModel.createPercRangeSettingsModel();
-    	
+    	final SettingsModelString rangeType = RangeBuilderNodeModel.createRangeTypeSettingsModel();
     	final SettingsModelIntegerBounded minTotal = RangeBuilderNodeModel.createMinTotalSettingsModel();
     	final SettingsModelIntegerBounded minCounter = RangeBuilderNodeModel.createMinCounterSettingsModel();
     	final SettingsModelIntegerBounded maxCounter = RangeBuilderNodeModel.createMaxCounterSettingsModel();
@@ -89,9 +93,18 @@ public class RangeBuilderNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(new DialogComponentNumber(maxCounter, "filter out groups with more counter cases than", 0));
 		
 		addDialogComponent(new DialogComponentDoubleRange(percRange, 0, 100, 0.1, "include Percenage between"));
+		closeCurrentGroup();
 		
-		
+		createNewTab("Advanced Options");
+	    createNewGroup("Grouping Mode"); 
+	     
+	     addDialogComponent(
+			        new DialogComponentStringSelection(rangeType, "Select Range Type",
+			        		Arrays.asList( "Positive", "Negative"),false));
+     
+	     
 	     closeCurrentGroup();
+
     }
 }
 
