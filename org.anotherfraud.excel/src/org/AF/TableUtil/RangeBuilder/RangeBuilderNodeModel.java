@@ -221,92 +221,73 @@ public class RangeBuilderNodeModel extends NodeModel {
 				countList = new ArrayList<>();
 			}
 			
-
 	
-			if (counterVal == 0)
+			for(List<Object> list : countList)
 			{
-				if(countList.size()>0)
-				{
-					List<Object> list = countList.get(countList.size()-1);
-					
-					int tmpTotal = (int) list.get(2) + totalVal;
-					int tmpCounter = (int) list.get(3) + counterVal;
-					
-				    list.set(2, tmpTotal);
-				    list.set(3, tmpCounter);
-
-				}
 				
-			}
-			else
-			{
-			
-				for(List<Object> list : countList)
-				{
-					
-					int tmpTotal = (int) list.get(2) + totalVal;
-					int tmpCounter = (int) list.get(3) + counterVal;
-					
-		
-				    list.set(2, tmpTotal);
-				    list.set(3, tmpCounter);
-				    double tmpPerc = ((double) tmpCounter) / tmpTotal * 100;
-				    
-		
-				    
-				    if(
-				    	tmpPerc >= m_percRange.getMinRange() 
-				    	&& tmpPerc <= m_percRange.getMaxRange()
-				    	&& tmpTotal >= m_minTotal.getIntValue()
-				    	&& tmpCounter >= m_minCounter.getIntValue()
-				    	&& tmpCounter <= m_maxCounter.getIntValue()	
-				    )
-				    {
-						addRow
-						(
-							container
-							,"Row_" + rowCnt		
-							,(String) list.get(0)
-							,(DataCell) list.get(1)
-							,valueCell
-							,tmpTotal
-							,tmpCounter
-							,tmpPerc	
-						);
-						rowCnt++;
-		
-				    }  	
-				}
+				int tmpTotal = (int) list.get(2) + totalVal;
+				int tmpCounter = (int) list.get(3) + counterVal;
 				
-				
-				countList.add(Arrays.asList(catVal, valueCell,totalVal,counterVal));
-				
-				double perc = ((double) counterVal) / totalVal * 100;
-				//System.out.println("Perc " + perc);
-				
+	
+			    list.set(2, tmpTotal);
+			    list.set(3, tmpCounter);
+			    double tmpPerc = ((double) tmpCounter) / tmpTotal * 100;
+			    
+	
+			    
 			    if(
-			    		perc >= m_percRange.getMinRange() 
-				    	&& perc <= m_percRange.getMaxRange()
-				    	&& totalVal >= m_minTotal.getIntValue()
-				    	&& counterVal >= m_minCounter.getIntValue()
-				    	&& counterVal <= m_maxCounter.getIntValue()	
-				    )
-				    {
-						addRow
-						(
-							container
-							,"Row_" + rowCnt		
-							,catVal
-							,valueCell
-							,valueCell
-							,totalVal
-							,counterVal
-							,perc	
-						);
-						rowCnt++;
+			    	tmpPerc >= m_percRange.getMinRange() 
+			    	&& tmpPerc <= m_percRange.getMaxRange()
+			    	&& tmpTotal >= m_minTotal.getIntValue()
+			    	&& tmpCounter >= m_minCounter.getIntValue()
+			    	&& tmpCounter <= m_maxCounter.getIntValue()	
+			    )
+			    {
+					addRow
+					(
+						container
+						,"Row_" + rowCnt		
+						,(String) list.get(0)
+						,(DataCell) list.get(1)
+						,valueCell
+						,tmpTotal
+						,tmpCounter
+						,tmpPerc	
+					);
+					rowCnt++;
 	
-				    } 			
+			    }  	
 			}
+			
+			
+			countList.add(Arrays.asList(catVal, valueCell,totalVal,counterVal));
+			
+			double perc = ((double) counterVal) / totalVal * 100;
+			//System.out.println("Perc " + perc);
+			
+		    if(
+		    		perc >= m_percRange.getMinRange() 
+			    	&& perc <= m_percRange.getMaxRange()
+			    	&& totalVal >= m_minTotal.getIntValue()
+			    	&& counterVal >= m_minCounter.getIntValue()
+			    	&& counterVal <= m_maxCounter.getIntValue()	
+			    )
+			    {
+					addRow
+					(
+						container
+						,"Row_" + rowCnt		
+						,catVal
+						,valueCell
+						,valueCell
+						,totalVal
+						,counterVal
+						,perc	
+					);
+					rowCnt++;
+
+			    } 			
+			
 
 
 			// We finished processing one row, hence increase the counter
