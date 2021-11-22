@@ -243,14 +243,14 @@ public class RangeBuilderNodeModel extends NodeModel {
 
 				if (counterVal == 0)
 				{
-					if(countList.size()>0)
+					
+					for(List<Object> list : countList)
 					{
-						List<Object> list = countList.get(countList.size()-1);
 						
 						int tmpTotal = (int) list.get(2) + totalVal;
 					    list.set(2, tmpTotal);
-					}
-					
+
+					}					
 					
 				}
 				else
