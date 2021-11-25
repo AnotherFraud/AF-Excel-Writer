@@ -58,7 +58,8 @@ public class GroupAllNodeModel extends NodeModel {
 	static final String groupMode = "groupMode";
 	static final String minTotalPerGroup = "minTotalPerGroup";
 	static final String minCounterPerGroup = "minCounterPerGroup";
-
+	static final String maxCounterPerGroup = "maxCounterPerGroup";
+	
 	static SettingsModelString createValColNameStringSettingsModel() {
 		SettingsModelString coof = new SettingsModelString(valColName,null);
 		coof.setEnabled(true);
@@ -82,11 +83,16 @@ public class GroupAllNodeModel extends NodeModel {
 		return roff;				
 	}	
 	
+	static SettingsModelIntegerBounded createMaxCounterSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(maxCounterPerGroup, 0, 0, 1048575);
+		return roff;				
+	}	
+	
 	private final SettingsModelString m_valColName = createValColNameStringSettingsModel();
 	private final SettingsModelString m_groupMode = createGroupModeSettingsModel();
 	private final SettingsModelIntegerBounded m_minTotal = createMinTotalSettingsModel();
 	private final SettingsModelIntegerBounded m_minCounter = createMinCounterSettingsModel();
-
+	private final SettingsModelIntegerBounded m_maxCounter = createMaxCounterSettingsModel();
 	/**
 	 * Constructor for the node model.
 	 */
@@ -247,7 +253,7 @@ public class GroupAllNodeModel extends NodeModel {
 		
 		for (Entry<List<Object>, int[]> entry : mapper.getData().entrySet()) {
 			
-			if (entry.getValue()[0] >= m_minTotal.getIntValue()  && entry.getValue()[1] >= m_minCounter.getIntValue())
+			if (entry.getValue()[0] >= m_minTotal.getIntValue()  && entry.getValue()[1] >= m_minCounter.getIntValue() && entry.getValue()[1] <= m_maxCounter.getIntValue())
 			{
 				if(groupMode.equals("all columns"))
 				{
@@ -341,23 +347,8 @@ public class GroupAllNodeModel extends NodeModel {
 						,IntCellFactory.create(counter)
 				}));
 	}
-	private void addRow(
-			BufferedDataContainer container
-			,String rowKey
-			,String colName
-			,String key
-			,int total
-			,int counter
-			)
-	{
-		container.addRowToTable(
-				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
-						StringCellFactory.create(colName)
-						,StringCellFactory.create(key)
-						,IntCellFactory.create(total)
-						,IntCellFactory.create(counter)
-				}));
-	}	
+
+	
 	
 	private DataTableSpec getSpec(String groupMode)
 	{
@@ -413,6 +404,7 @@ public class GroupAllNodeModel extends NodeModel {
 		m_groupMode.saveSettingsTo(settings);
 		m_minTotal.saveSettingsTo(settings);
 		m_minCounter.saveSettingsTo(settings);
+		m_maxCounter.saveSettingsTo(settings);
 	}
 
 	/**
@@ -431,6 +423,7 @@ public class GroupAllNodeModel extends NodeModel {
 		m_groupMode.loadSettingsFrom(settings);
 		m_minTotal.loadSettingsFrom(settings);
 		m_minCounter.loadSettingsFrom(settings);
+		m_maxCounter.loadSettingsFrom(settings);
 	}
 
 	/**
@@ -448,6 +441,7 @@ public class GroupAllNodeModel extends NodeModel {
 		m_groupMode.validateSettings(settings);
 		m_minTotal.validateSettings(settings);
 		m_minCounter.validateSettings(settings);
+		m_maxCounter.validateSettings(settings);
 	}
 
 	@Override
