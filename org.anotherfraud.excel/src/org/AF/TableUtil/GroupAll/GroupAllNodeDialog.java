@@ -37,7 +37,7 @@ public class GroupAllNodeDialog extends DefaultNodeSettingsPane {
     	final SettingsModelString groupMode = GroupAllNodeModel.createGroupModeSettingsModel();
     	final SettingsModelIntegerBounded minTotal = GroupAllNodeModel.createMinTotalSettingsModel();
     	final SettingsModelIntegerBounded minCounter = GroupAllNodeModel.createMinCounterSettingsModel();
-
+    	final SettingsModelIntegerBounded maxCounter = GroupAllNodeModel.createMaxCounterSettingsModel();
     	
 		addDialogComponent(
                 new DialogComponentColumnNameSelection(
@@ -52,6 +52,8 @@ public class GroupAllNodeDialog extends DefaultNodeSettingsPane {
 		createNewGroup("Grouping filter"); 
 		addDialogComponent(new DialogComponentNumber(minTotal, "filter out groups with less total cases than", 0));
 		addDialogComponent(new DialogComponentNumber(minCounter, "filter out groups with less counter cases than", 0));
+		addDialogComponent(new DialogComponentNumber(maxCounter, "filter out groups with more counter cases than", 999999));
+		
 		closeCurrentGroup();
 		
 		 createNewTab("Advanced Options");
