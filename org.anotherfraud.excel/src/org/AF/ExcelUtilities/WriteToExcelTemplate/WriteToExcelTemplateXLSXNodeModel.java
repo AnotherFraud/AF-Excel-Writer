@@ -23,7 +23,6 @@ package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -85,11 +84,16 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-
+import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 
 
 @SuppressWarnings("deprecation")
@@ -101,7 +105,12 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	 * the class of this node model.
 	 */
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateXLSXNodeModel.class);
-	private Optional<FSConnection> m_fs = Optional.empty();
+	
+	
+	private FSConnection con = DefaultFSConnectionFactory.createLocalFSConnection();
+	private Optional<FSConnection> m_fs = Optional.of(con);
+	
+	
 	private int defaulttimeoutInSeconds = 5;
     static final String templatefilePath2 = "templateFile2";
     static final String templatefilePath = "templateFile";
@@ -291,7 +300,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 
 	
 
-		
+	
 		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
 		
@@ -306,21 +315,78 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	try 
 	{
 			
+
 		
-		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
+		//FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
+		//Path pathTemplate = fileHelperTemplate.getPathFromSettings();
 		
-		FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = fileHelperOutput.getPathFromSettings();
+		
+
+		
+		FSConnection con2 = retrieveFSConnection(m_templatefilePath2, defaulttimeoutInSeconds * 1000);
+		
+		//LocalRelativeToWorkflowDataFSConnection test = new LocalRelativeToWorkflowDataFSConnection(con2.);
+		//BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC
+		
+		//RelativeTo.WORKFLOW.getSettingsValue();
+		
+		//WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
+		//Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+		//WorkflowContextUtil.getWorkflowContext().
+	
+
+		//FSPath pathOrUrl = con2.getFileSystem().getPath(m_templatefilePath2.getPathOrURL());     
+		
+		/*DefaultFSLocationSpec DATA_AREA_LOCATION_SPEC =
+		        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
+	
+		FSLocation fsLoc = new FSLocation(DATA_AREA_LOCATION_SPEC.getFileSystemCategory(),
+	            DATA_AREA_LOCATION_SPEC.getFileSystemSpecifier().orElse(null), m_templatefilePath2.getPathOrURL());
+		
+		FSConnection con3 = DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.fromSettingsValue(m_templatefilePath2.getKNIMEFileSystem()));
+		*/
+
+		
+		
+		Path pathTemplate = getPathFromSettings(m_templatefilePath2, con2);	
+		
+	
+		
+		
+		
+
+
+	
+		
+		//FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
+		//Path pathOutput = fileHelperOutput.getPathFromSettings();
+		//Path pathOutput = getPathFromSettings(m_templatefilePath2, retrieveFSConnection(m_outputfilePath2, defaulttimeoutInSeconds * 1000)); 
+		
+		
+		FSConnection con3 = retrieveFSConnection(m_outputfilePath2, defaulttimeoutInSeconds * 1000);
+		
+		Path pathOutput = getPathFromSettings(m_outputfilePath2, con3);	
+		
+	
+		
+		//System.out.println("Choice: " + m_templatefilePath2.getFileSystemChoice().getType().toString());
+		//System.out.println("Rel:  " + RelativeTo.fromSettingsValue(m_outputfilePath2.getKNIMEFileSystem()));
+		
+		//System.out.println("Rel:  " +  RelativeTo.WORKFLOW_DATA.getSettingsValue());
+		//System.out.println("Rel:  " +  RelativeTo.WORKFLOW.getSettingsValue());
+		//System.out.println("Paths:  " +  pathOutput.toString());
 		
 		
 		String templatefilePath = pathTemplate.toAbsolutePath().toString();
 		String outputPath;
 
+
 		
 		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
 	
 	
+		
+		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
 			outputPath = pathOutput.toAbsolutePath().toString();
@@ -329,6 +395,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		else
 		{
 			outputPath = templatefilePath;
+			pathOutput = pathTemplate;
 		}
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
@@ -428,17 +495,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			workbook.setForceFormulaRecalculation(m_forceFormulaUpdateOption.getBooleanValue());
 			
 			
-		
-			
-			
 			
 			
 			try(
-					FileOutputStream out = new FileOutputStream(new File(outputPath))		
+					OutputStream out = Files.newOutputStream(pathOutput);	
 			)
 			{
 				
-			writeXlsWithPassword(workbook,outputPath, out);	
+			writeXlsWithPassword(workbook, out);	
 			out.close();
 			
 			} catch (Exception c) {
@@ -479,7 +543,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	 * handles the different output write options 
 	 * writes if selected the Excel file with password or without
 	 */
-		private void writeXlsWithPassword(Workbook workbook, String outputPath, FileOutputStream out) throws Exception {
+		private void writeXlsWithPassword(Workbook workbook, OutputStream out) throws Exception {
 			
 			String outputPass = "";
 			
@@ -528,7 +592,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		/**
 		 * handles xls file encryption
 		 */
-		 public static void encryptXLS(Workbook workbook, FileOutputStream out, String outputPass) throws Exception {
+		 public static void encryptXLS(Workbook workbook, OutputStream out, String outputPass) throws Exception {
 
 	
 			 Biff8EncryptionKey.setCurrentUserPassword(outputPass);
@@ -539,7 +603,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			/**
 			 * handles xlsx/xslm file encryption
 			 */	 
-		 public static void encryptXLSX(Workbook workbook, FileOutputStream out,String outputPass) throws Exception {
+		 public static void encryptXLSX(Workbook workbook, OutputStream out,String outputPass) throws Exception {
 
 			  POIFSFileSystem fs = new POIFSFileSystem();
 			  EncryptionInfo info = new EncryptionInfo(EncryptionMode.agile);
@@ -862,8 +926,71 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	}
 	
 
-	
-	
+    public Path getPathFromSettings(SettingsModelFileChooser2 m_settings, FSConnection fs) throws InvalidSettingsException  {
+        if (m_settings.getPathOrURL() == null || m_settings.getPathOrURL().isEmpty()) {
+            throw new InvalidSettingsException("No path specified");
+        }
+        
+        
+
+        final FSPath pathOrUrl;
+        final Choice fileSystemChoice = m_settings.getFileSystemChoice().getType();
+        switch (fileSystemChoice) {
+            case CONNECTED_FS:
+                return fs.getFileSystem().getPath(m_settings.getPathOrURL());
+            case CUSTOM_URL_FS:
+                return fs.getFileSystem().getPath(toCustomUrlFSLocation(m_settings.getPathOrURL(), defaulttimeoutInSeconds*1000));
+            case KNIME_FS:
+                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
+                ValidationUtils.validateKnimeFSPath(pathOrUrl);
+                return pathOrUrl;
+            case KNIME_MOUNTPOINT:
+                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
+                if (!pathOrUrl.isAbsolute()) {
+                    throw new InvalidSettingsException("The path must be absolute, i.e. it must start with '/'.");
+                }
+                return pathOrUrl;
+            case LOCAL_FS:
+                ValidationUtils.validateLocalFsAccess();
+                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
+                if (!pathOrUrl.isAbsolute()) {
+                    throw new InvalidSettingsException("The path must be absolute.");
+                }
+                return pathOrUrl;
+            default:
+                final String errMsg =
+                    String.format("Unknown choice enum '%s', make sure the switch covers all cases!", fileSystemChoice);
+                throw new RuntimeException(errMsg);
+        }
+    }
+    
+    
+    public static final FSConnection retrieveFSConnection(final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
+
+            final FileSystemChoice choice = settings.getFileSystemChoice();
+            switch (choice.getType()) {
+                case LOCAL_FS:
+                    return DefaultFSConnectionFactory.createLocalFSConnection();
+                case CUSTOM_URL_FS:
+                    return DefaultFSConnectionFactory.createCustomURLConnection(settings.getPathOrURL(), timeoutInMillis);
+                case KNIME_MOUNTPOINT:
+                    final var mountID = settings.getKnimeMountpointFileSystem();
+                    return DefaultFSConnectionFactory.createMountpointConnection(mountID);
+                case KNIME_FS:
+                    final RelativeTo type = RelativeTo.fromSettingsValue(settings.getKNIMEFileSystem());
+                    return DefaultFSConnectionFactory.createRelativeToConnection(type);
+                default:
+                    throw new IllegalArgumentException("Unsupported file system choice: " + choice.getType());
+            }
+        }
+    
+    private static FSLocation toCustomUrlFSLocation(final String url, final int timeoutInMillis) {
+        return new FSLocation(FSCategory.CUSTOM_URL, Integer.toString(timeoutInMillis), url);
+    }
+    
+    
+    
+    
 	 /**
 		 * try to reach file and return file from filepath/url if exists
 		 */				
