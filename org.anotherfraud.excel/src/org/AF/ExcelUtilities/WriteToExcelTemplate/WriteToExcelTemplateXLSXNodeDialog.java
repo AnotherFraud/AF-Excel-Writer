@@ -12,18 +12,17 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
-import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-
+import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+
 
 /*
  * This program is free software: you can redistribute it and/or modify
@@ -56,6 +55,10 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         super();
 
 
+    
+    	
+        
+    	
     	
     	final SettingsModelString sheetNamesModel = WriteToExcelTemplateXLSXNodeModel.createSheetNamesModel();
         final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetNameOrIndexSettingsModel();
