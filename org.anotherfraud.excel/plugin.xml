@@ -226,6 +226,13 @@
 	        category-path="/community/AF_Utilities/ExcelUtil"
 	        factory-class="org.AF.ExcelUtilities.EvaluateExcelFormula.EvaluateExcelFormulaNodeFactory">	 
 	</node>	 
+	
+		<node
+	        category-path="/community/AF_Utilities/ExcelUtil"
+	        factory-class="org.AF.ExcelUtilities.TableToExcelCellUpdater.TableToExcelCellUpdaterNodeFactory">	 
+	</node>	 
+	
+
 		                 
    </extension>
    <extension
