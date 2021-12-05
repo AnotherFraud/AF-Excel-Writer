@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./CellUpdateFormat.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Table To Excel Cell Updater</name>
+    <shortDescription>Transforms a table to the Excel Cell Updater Node format</shortDescription>
+    <fullDescription>
+		<intro>This node transforms each cell of the input table to the required format by the Excel Cell Updater Node.
+			<br/>Each cell will be returned as a new row with the needed Excel cell address
+		</intro>
+		
+		<option name="Offsets">Select how many columns/rows you want to skip for the cell update
+			E.g. if you want to write the first cell of the input KNIME table to Excel cell A2
+			you will have to offset rows by 1.
+			If you want to shift this by 2 rows and 1 column (so starting at B3):
+				Row offset: 2
+				Column offset: 1
+		</option>	
+		<option name="Cell addresses">Select if you want to output the addresses in Excel cell format or as numeric format
+		</option>		
+		<option name="Ignore Missing Cells?">Check this if you do not want to output missing cell values
+		</option>				
+		
+			
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Input table">Table that contains all cells of the input table as rows with the corresponding excel cell address
+			Each different type of the input table will get an extra column with the values of the input table
+		</inPort>
+	</ports>
+</knimeNode>

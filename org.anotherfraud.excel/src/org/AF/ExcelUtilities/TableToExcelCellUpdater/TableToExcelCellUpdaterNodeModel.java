@@ -1,23 +1,22 @@
-package org.AF.TableUtil.GroupAll;
+package org.AF.ExcelUtilities.TableToExcelCellUpdater;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
+import org.apache.poi.ss.util.CellReference;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataContainer;
@@ -30,13 +29,13 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-
 /**
  * This is an example implementation of the node model of the
- * "GroupAll" node.
+ * "TableToExcelCellUpdater" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -44,53 +43,51 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  *
  * @author Another Fraud
  */
-public class GroupAllNodeModel extends NodeModel {
+public class TableToExcelCellUpdaterNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(GroupAllNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(TableToExcelCellUpdaterNodeModel.class);
 
+    static final String rowOffset = "rowOffset";
+    static final String colOffset = "colOff";
+    static final String cellAddress = "cellAddress";   
+    static final String ignoreMissing = "ignoreMissing";  
+    
 
-	static final String valColName = "valColName";
-	static final String groupMode = "groupMode";
-	static final String minTotalPerGroup = "minTotalPerGroup";
-	static final String minCounterPerGroup = "minCounterPerGroup";
-
-	static SettingsModelString createValColNameStringSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(valColName,null);
-		coof.setEnabled(true);
-		return coof;				
+	static SettingsModelIntegerBounded createRowOffsetSettingsModel() {
+		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(rowOffset, 0, 0, 1048575);
+		return roff;				
+	}	
+	
+	static SettingsModelIntegerBounded createColOffsetSettingsModel() {
+		SettingsModelIntegerBounded coff = new SettingsModelIntegerBounded(colOffset, 0, 0, 16384);
+		return coff;				
 	}	
 	
 	
-	static SettingsModelString createGroupModeSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(groupMode, "all columns");
-		coof.setEnabled(true);
-		return coof;				
+	static SettingsModelString createCellAddressSettingsModel() {
+		return new SettingsModelString(cellAddress, "excelAddr");
 	}	
     
-	static SettingsModelIntegerBounded createMinTotalSettingsModel() {
-		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(minTotalPerGroup, 0, 0, 1048575);
-		return roff;				
+	static SettingsModelBoolean createIgnoreMissingSettingsModel() {
+		SettingsModelBoolean wlr = new SettingsModelBoolean(ignoreMissing, false);
+		return wlr;				
 	}	
+
 	
-	static SettingsModelIntegerBounded createMinCounterSettingsModel() {
-		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(minCounterPerGroup, 0, 0, 1048575);
-		return roff;				
-	}	
-	
-	private final SettingsModelString m_valColName = createValColNameStringSettingsModel();
-	private final SettingsModelString m_groupMode = createGroupModeSettingsModel();
-	private final SettingsModelIntegerBounded m_minTotal = createMinTotalSettingsModel();
-	private final SettingsModelIntegerBounded m_minCounter = createMinCounterSettingsModel();
+	private final SettingsModelIntegerBounded m_rowOffset = createRowOffsetSettingsModel();
+    private final SettingsModelIntegerBounded m_colOffset = createColOffsetSettingsModel();
+	private final SettingsModelString m_cellAddress = createCellAddressSettingsModel();
+	private final SettingsModelBoolean m_ignoreMissing = createIgnoreMissingSettingsModel();
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected GroupAllNodeModel() {
+	protected TableToExcelCellUpdaterNodeModel() {
 		/**
 		 * Here we specify how many data input and output tables the node should have.
 		 * In this case its one input and one output table.
@@ -117,7 +114,7 @@ public class GroupAllNodeModel extends NodeModel {
 		 * Some example log output. This will be printed to the KNIME console and KNIME
 		 * log.
 		 */
-		LOGGER.info("Start grouping columns");
+		LOGGER.info("Table to Excel Cell Updater Format");
 
 		/*
 		 * The input data table to work with. The "inData" array will contain as many
@@ -125,9 +122,13 @@ public class GroupAllNodeModel extends NodeModel {
 		 * (see constructor).
 		 */
 		BufferedDataTable inputTable = inData[0];
-		GroupingMapper mapper = new GroupingMapper();
-		
 
+		/*
+		 * Create the spec of the output table, for each double column of the input
+		 * table we will create one formatted String column in the output. See the
+		 * javadoc of the "createOutputSpec(...)" for more information.
+		 */
+		DataTableSpec outputSpec = createOutputSpec(inputTable.getDataTableSpec());
 
 		/*
 		 * The execution context provides storage capacity, in this case a
@@ -137,83 +138,60 @@ public class GroupAllNodeModel extends NodeModel {
 		 * framework. Have a look at the methods of the "exec". There is a lot of
 		 * functionality to create and change data tables.
 		 */
-		
-		
-		String groupMode = m_groupMode.getStringValue();
-		BufferedDataContainer container = exec.createDataContainer(getSpec(groupMode));
-		
-		String[] colNames = inData[0].getDataTableSpec().getColumnNames();
-		int valColIndex = inData[0].getDataTableSpec().findColumnIndex(m_valColName.getStringValue());
+		BufferedDataContainer container = exec.createDataContainer(outputSpec);
 
-		
 		/*
 		 * Get the row iterator over the input table which returns each row one-by-one
 		 * from the input table.
 		 */
-		
 		CloseableRowIterator rowIterator = inputTable.iterator();
 
-		
-
-		
 		/*
 		 * A counter for how many rows have already been processed. This is used to
 		 * calculate the progress of the node, which is displayed as a loading bar under
 		 * the node icon.
 		 */
-		int currentRowCounter = 0;
+		int rowNumber = 0;
+		int rowId = 0;
+		
+		
 		// Iterate over the rows of the input table.
 		while (rowIterator.hasNext()) {
 			DataRow currentRow = rowIterator.next();
-			
-	
 			int numberOfCells = currentRow.getNumCells();
+			/*
+			 * A list to collect the cells to output for the current row. The type and
+			 * amount of cells must match the DataTableSpec we used when creating the
+			 * DataContainer. 
+			 */
 
-			int counterVal = ((IntCell) currentRow.getCell(valColIndex)).getIntValue();
-			
 			// Iterate over the cells of the current row.
 			for (int i = 0; i < numberOfCells; i++) {
 				DataCell cell = currentRow.getCell(i);
-					
-		
 				
-				if (i != valColIndex) {
-					
-					if(groupMode.equals("all columns"))
-					{
-					//mapper.add(colNames[i] + "col:|" + cell.toString(), counterVal);
-					mapper.add(Arrays.asList(colNames[i], cell.toString(), cell.getType().toPrettyString()), counterVal);
-					}
-					else if (
-							groupMode.equals("only numbers") && cell.getType().getCellClass().equals((DoubleCell.class))
-							|| groupMode.equals("only numbers") && cell.getType().getCellClass().equals((IntCell.class))
-							
-							)
-					{
-					mapper.add(Arrays.asList(colNames[i], cell), counterVal);	
-					}
-					else if (groupMode.equals("only string") && cell.getType().getCellClass().equals((StringCell.class)))
-					{
-					mapper.add(Arrays.asList(colNames[i], cell), counterVal);	
-					}						
-					
-				}
-				/*
-				 * In this example we do not check for missing cells. If there are missing cells
-				 * in a row, the node will throw an Exception because we try to create a row
-				 * with less cells than specified in the table specification we used to create
-				 * the data container above. Hence, for your node implementation keep in mind to
-				 * check for missing cells in the input table. Then create missing cells with an
-				 * appropriate message or throw an Exception with a nice error message in case
-				 * missing cells are not allowed at all. Here, this could be done in an 'else
-				 * if' clause checking 'cell.isMissing()'. Then, add a new MissingCell to the
-				 * list of cells.
-				 */
+
+				
+				if (!cell.isMissing() || !m_ignoreMissing.getBooleanValue())
+
+				addRow
+				(
+					container
+					,outputSpec
+					,"Row_" + rowId		
+					,rowNumber
+					,i
+					,cell	
+				);
+				
+				rowId++;
+				
+				
+				
+
 			}
-			
 
 			// We finished processing one row, hence increase the counter
-			currentRowCounter++;
+			rowNumber++;
 
 			/*
 			 * Here we check if a user triggered a cancel of the node. If so, this call will
@@ -222,7 +200,8 @@ public class GroupAllNodeModel extends NodeModel {
 			 * possible.
 			 */
 			exec.checkCanceled();
-
+		
+			
 			/*
 			 * Calculate the percentage of execution progress and inform the
 			 * ExecutionMonitor. Additionally, we can set a message what the node is
@@ -230,156 +209,150 @@ public class GroupAllNodeModel extends NodeModel {
 			 * over the progress bar of the node). This is especially useful to inform the
 			 * user about the execution status for long running nodes.
 			 */
-			exec.setProgress(currentRowCounter / (double) inputTable.size(), "computing row " + currentRowCounter);
-		}
-		
-		
-		int rowNum = 0;
+			exec.setProgress(rowNumber / (double) inputTable.size(), "Addings cells from row " + rowNumber);
 
-		exec.setProgress(currentRowCounter / (double) inputTable.size(), "prepare result table");
-		
-		
-		
 
-		
-		
-		
-		
-		for (Entry<List<Object>, int[]> entry : mapper.getData().entrySet()) {
 			
-			if (entry.getValue()[0] >= m_minTotal.getIntValue()  && entry.getValue()[1] >= m_minCounter.getIntValue())
-			{
-				if(groupMode.equals("all columns"))
-				{
-					addRow
-					(
-						container
-						,"Row_" + rowNum		
-						,(String) entry.getKey().get(0)
-						,(String) entry.getKey().get(1)
-						,(String) entry.getKey().get(2)
-						,entry.getValue()[0]
-						,entry.getValue()[1]		
-					);
-					
-				}
-				else if (groupMode.equals("only numbers"))
-				{
-					addRow
-					(
-						container
-						,"Row_" + rowNum		
-						,(String) entry.getKey().get(0)
-						,(DataCell) entry.getKey().get(1)
-						,entry.getValue()[0]
-						,entry.getValue()[1]		
-					);
-				}
-				else if (groupMode.equals("only string"))
-				{
-					addRow
-					(
-						container
-						,"Row_" + rowNum		
-						,(String) entry.getKey().get(0)
-						,(DataCell) entry.getKey().get(1)
-						,entry.getValue()[0]
-						,entry.getValue()[1]		
-					);
-				}	
-				
-				
-				rowNum++;
-			}
-
 		}
-		
-		
+
+		/*
+		 * Once we are done, we close the container and return its table. Here we need
+		 * to return as many tables as we specified in the constructor. This node has
+		 * one output, hence return one table (wrapped in an array of tables).
+		 */
 		container.close();
 		BufferedDataTable out = container.getTable();
 		return new BufferedDataTable[] { out };
 	}
 
-	
-	
+	private void addRow(BufferedDataContainer container, DataTableSpec outputSpec, String rowId, int rowNumber, int colNumber, DataCell cell) {
+		
 
-	private void addRow(
-			BufferedDataContainer container
-			,String rowKey
-			,String colName
-			,String key
-			,String type
-			,int total
-			,int counter
-			)
-	{
-		container.addRowToTable(
-				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
-						StringCellFactory.create(colName)
-						,StringCellFactory.create(key)
-						,StringCellFactory.create(type)
-						,IntCellFactory.create(total)
-						,IntCellFactory.create(counter)
+		List<DataCell> dataCells = new ArrayList<DataCell>();
+		
+
+		
+
+		dataCells.add(StringCellFactory.create(getAddress(rowNumber,colNumber)));
+		
+		
+		
+		// Iterate over the input column specs
+		for (int i = 1; i < outputSpec.getNumColumns(); i++) {
+			
+			DataColumnSpec columnSpec = outputSpec.getColumnSpec(i);
 						
-				}));
-	}
-	
-	private void addRow(
-			BufferedDataContainer container
-			,String rowKey
-			,String colName
-			,DataCell key
-			,int total
-			,int counter
-			)
-	{
+			
+			if (columnSpec.getType().equals(cell.getType()))
+			{
+				dataCells.add(cell);
+				
+			}
+			else
+			{
+
+				dataCells.add(DataType.getMissingCell()); 
+				
+			}
+
+		}
+		
+		DataCell[] cells = new DataCell[dataCells.size()];
+		dataCells.toArray(cells);
+	    
+	    
 		container.addRowToTable(
-				new DefaultRow(new RowKey(rowKey), new DataCell[] { 
-						StringCellFactory.create(colName)
-						,key
-						,IntCellFactory.create(total)
-						,IntCellFactory.create(counter)
-				}));
+					new DefaultRow(new RowKey(rowId)
+					,cells
+					));	
+		
+		
+
+		
+		
+		
 	}
 
+	private String getAddress(int rowNumber, int colNumber) {
+		
 
-	private DataTableSpec getSpec(String groupMode)
-	{
 		
+		String cellAddress = "";
+		rowNumber = rowNumber + m_rowOffset.getIntValue();
+		colNumber = colNumber + m_colOffset.getIntValue();
 		
-		DataTableSpecCreator crator = new DataTableSpecCreator();
-		crator.addColumns(new DataColumnSpecCreator("ColName", StringCellFactory.TYPE).createSpec());
-		
-		if(groupMode.equals("only numbers"))
+		if (m_cellAddress.getStringValue().equals("excelAddr"))
 		{
-		crator.addColumns(new DataColumnSpecCreator("Key", DoubleCellFactory.TYPE).createSpec());
+			cellAddress = CellReference.convertNumToColString(colNumber);
+			cellAddress = cellAddress + (rowNumber+1);
+			
 		}
 		else
 		{
-		crator.addColumns(new DataColumnSpecCreator("Key", StringCellFactory.TYPE).createSpec());
+			cellAddress = (rowNumber+1) + ":" + (colNumber+1);
+			
 		}
+
 		
 		
-		if(groupMode.equals("all columns"))
-		{
-		crator.addColumns(new DataColumnSpecCreator("type", StringCellFactory.TYPE).createSpec());
-		}
-		crator.addColumns(new DataColumnSpecCreator("total", IntCellFactory.TYPE).createSpec());
-		crator.addColumns(new DataColumnSpecCreator("counter", IntCellFactory.TYPE).createSpec());
-		return crator.createSpec();
+		return cellAddress;
 	}
-	
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-		//return new DataTableSpec[] { getSpec() };
 		return new DataTableSpec[] {null};
 	}
+	
+	
+	
 
+	/**
+	 * Creates the output table spec from the input spec. For each double column in
+	 * the input, one String column will be created containing the formatted double
+	 * value as String.
+	 * 
+	 * @param inputTableSpec
+	 * @return
+	 */
+	private DataTableSpec createOutputSpec(DataTableSpec inputTableSpec) {
+	
+		//ensure that each datatyp is only used once
+		Map<String, DataColumnSpec > uniqueSpecs = new LinkedHashMap<String, DataColumnSpec >();
 
+	    
+	    
+	    
+	    
+		DataColumnSpecCreator specCreator = new DataColumnSpecCreator("ExcelAddress", StringCell.TYPE);
+
+		uniqueSpecs.put("ExcelAddress", specCreator.createSpec());
+		
+		
+		
+		
+		// Iterate over the input column specs
+		for (int i = 0; i < inputTableSpec.getNumColumns(); i++) {
+			DataColumnSpec columnSpec = inputTableSpec.getColumnSpec(i);
+
+			specCreator = new DataColumnSpecCreator(columnSpec.getType().toPrettyString(), columnSpec.getType());
+			uniqueSpecs.putIfAbsent(columnSpec.getType().toPrettyString(), specCreator.createSpec());			
+		}
+
+		
+		
+
+		
+		// Create and return a new DataTableSpec from the list of DataColumnSpecs.
+		DataColumnSpec[] newColumnSpecsArray = new DataColumnSpec[uniqueSpecs.size()];
+		uniqueSpecs.values().toArray(newColumnSpecsArray);
+		
+		
+		
+		return new DataTableSpec(newColumnSpecsArray);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -393,10 +366,10 @@ public class GroupAllNodeModel extends NodeModel {
 		 * all common data types. Hence, you can easily write your settings manually.
 		 * See the methods of the NodeSettingsWO.
 		 */
-		m_valColName.saveSettingsTo(settings);
-		m_groupMode.saveSettingsTo(settings);
-		m_minTotal.saveSettingsTo(settings);
-		m_minCounter.saveSettingsTo(settings);
+		m_rowOffset.saveSettingsTo(settings);
+		m_colOffset.saveSettingsTo(settings);
+		m_cellAddress.saveSettingsTo(settings);
+		m_ignoreMissing.saveSettingsTo(settings);
 	}
 
 	/**
@@ -411,10 +384,11 @@ public class GroupAllNodeModel extends NodeModel {
 		 * The SettingsModel will handle the loading. After this call, the current value
 		 * (from the view) can be retrieved from the settings model.
 		 */
-		m_valColName.loadSettingsFrom(settings);
-		m_groupMode.loadSettingsFrom(settings);
-		m_minTotal.loadSettingsFrom(settings);
-		m_minCounter.loadSettingsFrom(settings);
+
+		m_rowOffset.loadSettingsFrom(settings);
+		m_colOffset.loadSettingsFrom(settings);
+		m_cellAddress.loadSettingsFrom(settings);
+		m_ignoreMissing.loadSettingsFrom(settings);
 	}
 
 	/**
@@ -428,10 +402,11 @@ public class GroupAllNodeModel extends NodeModel {
 		 * already handled in the dialog. Do not actually set any values of any member
 		 * variables.
 		 */
-		m_valColName.validateSettings(settings);
-		m_groupMode.validateSettings(settings);
-		m_minTotal.validateSettings(settings);
-		m_minCounter.validateSettings(settings);
+
+		m_rowOffset.validateSettings(settings);
+		m_colOffset.validateSettings(settings);
+		m_cellAddress.validateSettings(settings);
+		m_ignoreMissing.validateSettings(settings);
 	}
 
 	@Override
