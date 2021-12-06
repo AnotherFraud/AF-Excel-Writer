@@ -289,7 +289,7 @@ public class TableToExcelCellUpdaterNodeModel extends NodeModel {
 		}
 		else
 		{
-			cellAddress = (rowNumber+1) + ":" + (colNumber+1);
+			cellAddress = (colNumber+1) + ":" + (rowNumber+1);
 			
 		}
 
