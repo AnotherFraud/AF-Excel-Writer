@@ -7,5 +7,7 @@
 	<classpathentry kind="lib" path="lib/core-1.54.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/openkeepass-0.6.0.jar"/>
 	<classpathentry kind="lib" path="lib/simple-xml-2.7.1.jar"/>
+	<classpathentry kind="lib" path="lib/bcpg-jdk15on-1.69.jar"/>
+	<classpathentry kind="lib" path="lib/bcprov-jdk15on-1.69.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
