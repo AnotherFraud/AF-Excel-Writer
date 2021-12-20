@@ -1,12 +1,17 @@
 package org.AF.SeleniumFire.CreateFirefoxBrowserInstance;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import javax.swing.JFileChooser;
 
 import org.AF.SeleniumFire.Utilities.DialogComponentFirefoxPreferences;
 import org.AF.SeleniumFire.Utilities.SettingsModelFirefoxSettings;
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
@@ -15,10 +20,12 @@ import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.Pair;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -36,13 +43,15 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  */
 public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsPane {
 
-
+	private final DialogComponentAuthentication m_authenticationPanel;
+	private final SettingsModelAuthentication proxyAuth;
+	
    	
     @SuppressWarnings("deprecation")
 	protected CreateFirefoxBrowserInstanceNodeDialog() {
         super();
         
-       final SettingsModelAuthentication proxyAuth = CreateFirefoxBrowserInstanceNodeModel.createProxySettingsModel();
+       proxyAuth = CreateFirefoxBrowserInstanceNodeModel.createProxySettingsModel();
         
 
        	final SettingsModelString useProxyModel = CreateFirefoxBrowserInstanceNodeModel.createUseProxySettingsModel();
@@ -76,6 +85,17 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
        	
        	
 
+       	//Map<AuthenticationType, Pair<String, String>> map;
+       	HashMap<AuthenticationType, Pair<String, String>> mapPass = new HashMap<AuthenticationType, Pair<String, String>>()
+       	{
+		private static final long serialVersionUID = -3983031017710953380L;
+
+		{
+       	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Proxy Credential","Proxy Credential"));
+       	     put(AuthenticationType.USER_PWD, new Pair<String, String>("Proxy User/Password","Proxy User/Password"));
+
+       	}}; 
+       	
        	
        	
         final FlowVariableModel fvmD = createFlowVariableModel(
@@ -129,11 +149,35 @@ public class CreateFirefoxBrowserInstanceNodeDialog extends DefaultNodeSettingsP
         addDialogComponent(new DialogComponentString(proxyHost, "Proxy Host", true, 30));
         addDialogComponent(new DialogComponentNumber(proxyPort, "Proxy Port", 1));
         
-        addDialogComponent(new  DialogComponentAuthentication(proxyAuth, "Proxy User/Password", AuthenticationType.USER_PWD));
+
+        m_authenticationPanel = new  DialogComponentAuthentication(proxyAuth, "Proxy User/Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.USER_PWD), mapPass);
+        addDialogComponent(m_authenticationPanel);
+        
+        
 
         closeCurrentGroup();
         
         
     }
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	proxyAuth.saveSettingsTo(settings);    	
+ 
+    	
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	try {
+    		proxyAuth.loadSettingsFrom(settings);
+    		m_authenticationPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+
+    		
+    	} catch (InvalidSettingsException e) {
+    		throw new NotConfigurableException(e.getMessage(), e);
+    	}
+    }
+    
 }
 

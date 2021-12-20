@@ -211,7 +211,7 @@ public class GetRestAccessTokenAsStringNodeModel extends NodeModel {
 		    List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
 		    urlParameters.add(new BasicNameValuePair("grant_type", "client_credentials"));
 		    urlParameters.add(new BasicNameValuePair("client_id", clientId));
-		    urlParameters.add(new BasicNameValuePair("client_secret", m_clientSecret.getPassword()));
+		    urlParameters.add(new BasicNameValuePair("client_secret", m_clientSecret.getPassword(getCredentialsProvider())));
 		    urlParameters.add(new BasicNameValuePair("resource", resource));
 		    
 		    post.setEntity(new UrlEncodedFormEntity(urlParameters));
