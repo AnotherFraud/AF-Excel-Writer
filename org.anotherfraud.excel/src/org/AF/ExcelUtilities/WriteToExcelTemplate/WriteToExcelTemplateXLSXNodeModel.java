@@ -23,7 +23,6 @@ package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -85,7 +84,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
@@ -308,36 +306,49 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			
 		
 		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
+		Path templatePath = fileHelperTemplate.getPathFromSettings();
 		
 		FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = fileHelperOutput.getPathFromSettings();
+		Path outputPath;
 		
 		
-		String templatefilePath = pathTemplate.toAbsolutePath().toString();
-		String outputPath;
+		String templatefilePath = templatePath.toAbsolutePath().toString();
+		String pathOutputSting;
 
+
+		Workbook workbook;
 		
-		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
-	
-	
+		try(
+				InputStream in = Files.newInputStream(templatePath);
+		)
+		{
+			workbook = openWorkBook(in);
+		};
+		
+		
+		
+		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
-			outputPath = pathOutput.toAbsolutePath().toString();
+			
+			outputPath = fileHelperOutput.getPathFromSettings();
+			pathOutputSting = outputPath.toAbsolutePath().toString();
+			
 			
 		}
 		else
 		{
-			outputPath = templatefilePath;
+			pathOutputSting = templatefilePath;
+			outputPath = templatePath;
 		}
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
-		pushFlowVariableString("outputFilePath", outputPath);
+		pushFlowVariableString("outputFilePath", pathOutputSting);
 		
 		
 		
 		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null 
+		if (isFileReachable(pathOutputSting) != null 
 				&& m_overrideOrFail.getStringValue().equals("Fail") 
 				&& m_copyOrWrite.getStringValue().equals("CopyFrom")
 				)
@@ -434,11 +445,11 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			
 			
 			try(
-					FileOutputStream out = new FileOutputStream(new File(outputPath))		
+					OutputStream out = Files.newOutputStream(outputPath);	
 			)
 			{
 				
-			writeXlsWithPassword(workbook,outputPath, out);	
+			writeXlsWithPassword(workbook, out);	
 			out.close();
 			
 			} catch (Exception c) {
@@ -479,19 +490,19 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	 * handles the different output write options 
 	 * writes if selected the Excel file with password or without
 	 */
-		private void writeXlsWithPassword(Workbook workbook, String outputPath, FileOutputStream out) throws Exception {
+		private void writeXlsWithPassword(Workbook workbook, OutputStream out) throws Exception {
 			
 			String outputPass = "";
 			
 			
 			if (m_enablePassOption.getStringValue().equals("Open with PWD")) {
-				outputPass = m_pwd.getPassword();
+				outputPass = m_pwd.getPassword(getCredentialsProvider());
             } else if (m_enablePassOption.getStringValue().equals("Remove PWD")) {
             	outputPass = "";
             }else if (m_enablePassOption.getStringValue().equals("Change PWD")) {
-            	outputPass = m_outPwd.getPassword();
+            	outputPass = m_outPwd.getPassword(getCredentialsProvider());
             }else if (m_enablePassOption.getStringValue().equals("Add PWD")) {
-            	outputPass = m_outPwd.getPassword();
+            	outputPass = m_outPwd.getPassword(getCredentialsProvider());
             }
 			
 			
@@ -528,7 +539,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		/**
 		 * handles xls file encryption
 		 */
-		 public static void encryptXLS(Workbook workbook, FileOutputStream out, String outputPass) throws Exception {
+		 public static void encryptXLS(Workbook workbook, OutputStream out, String outputPass) throws Exception {
 
 	
 			 Biff8EncryptionKey.setCurrentUserPassword(outputPass);
@@ -539,7 +550,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			/**
 			 * handles xlsx/xslm file encryption
 			 */	 
-		 public static void encryptXLSX(Workbook workbook, FileOutputStream out,String outputPass) throws Exception {
+		 public static void encryptXLSX(Workbook workbook, OutputStream out,String outputPass) throws Exception {
 
 			  POIFSFileSystem fs = new POIFSFileSystem();
 			  EncryptionInfo info = new EncryptionInfo(EncryptionMode.agile);
@@ -568,8 +579,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 			
 			Workbook workbook = null;
 
-
-			workbook = WorkbookFactory.create(file,m_pwd.getPassword());
+			workbook = WorkbookFactory.create(file,m_pwd.getPassword(getCredentialsProvider()));
 			file.close();
 			
 	
