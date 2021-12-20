@@ -17,19 +17,25 @@ package org.AF.PGPUtilities.PGPDecryptor;
  * 
  */
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import javax.swing.JFileChooser;
 
-import org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeModel;
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.Pair;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -51,16 +57,18 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
 	 * New dialog pane for configuring the node. The dialog created here
 	 * will show up when double clicking on a node in KNIME Analytics Platform.
 	 */
+	private final DialogComponentAuthentication m_authenticationTokenPanel;
+	private final SettingsModelAuthentication passwordModel;
     protected PGPDecryptNodeDialog() {
         super();
         
         final SettingsModelFileChooser2 inputFilePathModel2 = PGPDecryptNodeModel.createInputFilePath2SettingsModel();
         final SettingsModelFileChooser2 outputFilePathModel2 = PGPDecryptNodeModel.createOutFilePath2SettingsModel();
         final SettingsModelFileChooser2 keyFilePathModel2 = PGPDecryptNodeModel.createKeeFilePath2SettingsModel();
-        final SettingsModelAuthentication passwordModel = PGPDecryptNodeModel.createPassSettingsModel();
+        passwordModel = PGPDecryptNodeModel.createPassSettingsModel();
         final SettingsModelBoolean keyfilePassword = PGPDecryptNodeModel.createUseKeyfilePasswordSettingsModel();
         
-    
+        
         
     	//listener try to read in sheet names from given template file
         keyfilePassword.addChangeListener(e -> {	
@@ -72,7 +80,16 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
             
         });
         
-        
+       	//Map<AuthenticationType, Pair<String, String>> map;
+       	HashMap<AuthenticationType, Pair<String, String>> map = new HashMap<AuthenticationType, Pair<String, String>>()
+       	{
+		private static final long serialVersionUID = -3983032018710953380L;
+
+		{
+       	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Key File Credential","Key File Credentials"));
+       	     put(AuthenticationType.PWD, new Pair<String, String>("Key File Password","Key File Password"));
+
+       	}};      
         
         
         createNewGroup("PGP File Selection");
@@ -104,14 +121,36 @@ public class PGPDecryptNodeDialog extends DefaultNodeSettingsPane {
                 new String[]{keyFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
                 Type.STRING);
 
-            addDialogComponent(new DialogComponentFileChooser2(0, keyFilePathModel2, "KeeFile", JFileChooser.OPEN_DIALOG,
+            addDialogComponent(new DialogComponentFileChooser2(0, keyFilePathModel2, "KeyFile", JFileChooser.OPEN_DIALOG,
                 JFileChooser.FILES_ONLY, fvmKee));     
             
             
             addDialogComponent(new DialogComponentBoolean(keyfilePassword, "Keyfile is password secured?"));
-            addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Kee File Password", AuthenticationType.PWD));
+            
+            m_authenticationTokenPanel = new  DialogComponentAuthentication(passwordModel, "Key File Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), map);
+            addDialogComponent(m_authenticationTokenPanel);
+            
+          
             
         closeCurrentGroup();
     }
+    
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	passwordModel.saveSettingsTo(settings);    	
+    	
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	try {
+    		passwordModel.loadSettingsFrom(settings);
+    		m_authenticationTokenPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+    	} catch (InvalidSettingsException e) {
+    		throw new NotConfigurableException(e.getMessage(), e);
+    	}
+    }
+    
 }
 

@@ -3,11 +3,16 @@ package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JFileChooser;
 
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
@@ -17,7 +22,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.Pair;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -48,7 +55,11 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
 
 
 	
+	private final DialogComponentAuthentication m_authenticationTemplatePanel;
+	private final SettingsModelAuthentication passwordModel;
 	
+	private final DialogComponentAuthentication m_authenticationTOutputPanel;
+	private final SettingsModelAuthentication outPasswordModel;		
     
     
 	@SuppressWarnings("deprecation")
@@ -62,8 +73,8 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetIndexModel();
 
         final SettingsModelFileChooser2 templateFilePathModel2 = WriteToExcelTemplateXLSXNodeModel.createTemplateFilePath2SettingsModel();
-        final SettingsModelAuthentication passwordModel = WriteToExcelTemplateXLSXNodeModel.createPassSettingsModel();
-        final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateXLSXNodeModel.createOutPassSettingsModel();
+        passwordModel = WriteToExcelTemplateXLSXNodeModel.createPassSettingsModel();
+        outPasswordModel = WriteToExcelTemplateXLSXNodeModel.createOutPassSettingsModel();
         
         
         final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(sheetNamesModel, "Sheet Name",
@@ -88,7 +99,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
     	//listener try to read in sheet names from given template file
         templateFilePathModel2.addChangeListener(e -> {	
             if (templateFilePathModel2.getPathOrURL().length() > 0) {
-            	List<String> sheetNames = WriteToExcelTemplateXLSXNodeModel.tryGetExcelSheetNames(templateFilePathModel2.getPathOrURL(),passwordModel.getPassword()); 	
+            	List<String> sheetNames = WriteToExcelTemplateXLSXNodeModel.tryGetExcelSheetNames(templateFilePathModel2.getPathOrURL(),passwordModel.getPassword(getCredentialsProvider())); 	
             		if(sheetNames != null)
             		{
             			if (!sheetNames.contains(sheetNamesModel.getStringValue()))
@@ -170,7 +181,30 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         
         
 
-        
+       	//Map<AuthenticationType, Pair<String, String>> map;
+       	HashMap<AuthenticationType, Pair<String, String>> mapPass = new HashMap<AuthenticationType, Pair<String, String>>()
+       	{
+		private static final long serialVersionUID = -3983032018710953380L;
+
+		{
+       	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Template Credential","Excel Template Credential"));
+       	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Template Password","Excel Template Password"));
+
+       	}}; 
+       	
+       	
+       	//Map<AuthenticationType, Pair<String, String>> map;
+       	HashMap<AuthenticationType, Pair<String, String>> mapOut = new HashMap<AuthenticationType, Pair<String, String>>()
+       	{
+		private static final long serialVersionUID = -3983012018710953380L;
+
+		{
+       	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Output Credential","Excel Output Credential"));
+       	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Output Password","Excel Output Password"));
+
+       	}}; 
+       	
+       	
         
     
         
@@ -266,12 +300,13 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         new DialogComponentStringSelection(enablePassModel, "Password action",
         		Arrays.asList( "No PWD needed", "Open with PWD", "Remove PWD","Change PWD","Add PWD"),false));
         
+                
+        m_authenticationTemplatePanel = new  DialogComponentAuthentication(passwordModel, "Excel Template Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapPass);
+        addDialogComponent(m_authenticationTemplatePanel);
         
         
-        addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Excel Template Password", AuthenticationType.PWD));
-        addDialogComponent(new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", AuthenticationType.PWD));
-
-        
+        m_authenticationTOutputPanel = new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapOut);
+        addDialogComponent(m_authenticationTOutputPanel);    
         
         closeCurrentGroup();
         
@@ -282,6 +317,27 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         
     }
 
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	passwordModel.saveSettingsTo(settings);    	
+    	outPasswordModel.saveSettingsTo(settings);   
+    	
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	try {
+    		passwordModel.loadSettingsFrom(settings);
+    		m_authenticationTemplatePanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+    		
+    		outPasswordModel.loadSettingsFrom(settings);
+    		m_authenticationTOutputPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+    		
+    	} catch (InvalidSettingsException e) {
+    		throw new NotConfigurableException(e.getMessage(), e);
+    	}
+    }
 
     
 }

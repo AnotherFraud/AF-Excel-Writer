@@ -18,19 +18,26 @@ package org.AF.KeepassUtilities.KeepassReader;
  */
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JFileChooser;
 
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentButton;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.Pair;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -52,6 +59,11 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
 	 * New dialog pane for configuring the node. The dialog created here
 	 * will show up when double clicking on a node in KNIME Analytics Platform.
 	 */
+	
+	private final DialogComponentAuthentication m_authenticationPanel;
+	private final SettingsModelAuthentication passwordModel;
+	
+	
     protected KeepassReaderNodeDialog() {
         super();
 
@@ -61,7 +73,7 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
         	
         	final SettingsModelString keepassEntryNameModel = KeepassReaderNodeModel.createKeepassEntryNamesModel();
             final SettingsModelFileChooser2 inputFilePathModel2 = KeepassReaderNodeModel.createInputFilePath2SettingsModel();
-            final SettingsModelAuthentication passwordModel = KeepassReaderNodeModel.createPassSettingsModel();
+            passwordModel = KeepassReaderNodeModel.createPassSettingsModel();
             
             final DialogComponentButton loadEntrys = new DialogComponentButton("Load entrys from file");
             final DialogComponentStringSelection entryNameSelection = new DialogComponentStringSelection(keepassEntryNameModel, "Entry Name",
@@ -72,7 +84,7 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             loadEntrys.addActionListener(e -> {
             	
                 if (inputFilePathModel2.getPathOrURL().length() > 0) {
-                	List<String> entryNames = KeepassReaderNodeModel.tryLoadKeePassEntryTitles(inputFilePathModel2.getPathOrURL(),passwordModel.getPassword());	
+                	List<String> entryNames = KeepassReaderNodeModel.tryLoadKeePassEntryTitles(inputFilePathModel2.getPathOrURL(),passwordModel.getPassword(getCredentialsProvider()));	
                 		if(entryNames != null)
                 		{
                 			if (!entryNames.contains(keepassEntryNameModel.getStringValue()))
@@ -85,8 +97,19 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
                 } else {
      
                 }
-            });           
+            });   
             
+           	//Map<AuthenticationType, Pair<String, String>> map;
+           	HashMap<AuthenticationType, Pair<String, String>> mapPass = new HashMap<AuthenticationType, Pair<String, String>>()
+           	{
+    		private static final long serialVersionUID = -3983032017710953380L;
+
+    		{
+           	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Keepass Store Credential","Keepass Store Credential"));
+           	     put(AuthenticationType.PWD, new Pair<String, String>("Keepass Store Password","Keepass Store Password"));
+
+           	}}; 
+           	
             createNewGroup("File Selection");
             
 
@@ -106,8 +129,10 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             
                
             createNewGroup("Keepass Password");
-            addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Keepass Store Password", AuthenticationType.PWD));
-
+            m_authenticationPanel = new  DialogComponentAuthentication(passwordModel, "Keepass Store Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapPass);
+            addDialogComponent(m_authenticationPanel);
+            
+            
             
             
             closeCurrentGroup();
@@ -119,7 +144,26 @@ public class KeepassReaderNodeDialog extends DefaultNodeSettingsPane {
             
         }
 
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	passwordModel.saveSettingsTo(settings);    	
+ 
+    	
+    }
 
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	try {
+    		passwordModel.loadSettingsFrom(settings);
+    		m_authenticationPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+
+    		
+    	} catch (InvalidSettingsException e) {
+    		throw new NotConfigurableException(e.getMessage(), e);
+    	}
+    }
+    
         
     }
 
