@@ -1,22 +1,4 @@
-package org.AF.ExcelUtilities.ExcelPasswordManager;
-
-/*
- * This program is free software: you can redistribute it and/or modify
- * Copyright [2021] [Another Fraud]
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- */
+package org.AF.ExcelUtilities.CopyExcelSheet;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,25 +41,65 @@ import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 
+import java.io.IOException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.IllegalFormatException;
+import java.util.List;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 
-public class ExcelPasswordManagerNodeModel extends NodeModel {
+/**
+ * This is an example implementation of the node model of the
+ * "CopyExcelSheet" node.
+ * 
+ * This example node performs simple number formatting
+ * ({@link String#format(String, Object...)}) using a user defined format string
+ * on all double columns of its input table.
+ *
+ * @author Another Fraud
+ */
+public class CopyExcelSheetNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(ExcelPasswordManagerNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CopyExcelSheetNodeModel.class);
+
+	
 	private Optional<FSConnection> m_fs = Optional.empty();
 	private int defaulttimeoutInSeconds = 5;
     static final String templatefilePath2 = "templateFile2";
     static final String templatefilePath = "templateFile";
-     static final String outputfilePath2 = "outputFile2";
+    static final String outputfilePath2 = "outputFile2";
     static final String outputfilePath = "outputFile";
     static final String copyOrWrite = "copywrite";
     static final String overrideOrFail = "overridefail";
-     static final String password = "pwd";
+    static final String password = "pwd";
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
         
@@ -160,28 +182,10 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
     private final SettingsModelString m_overrideOrFail = createOverrideOrFailModelSettingsModel();
 
 
-    
-    
-	/**
-	 * The settings model to manage the shared settings. This model will hold the
-	 * value entered by the user in the dialog and will update once the user changes
-	 * the value. Furthermore, it provides methods to easily load and save the value
-	 * to and from the shared settings (see:
-	 * <br>
-	 * {@link #loadValidatedSettingsFrom(NodeSettingsRO)},
-	 * {@link #saveSettingsTo(NodeSettingsWO)}). 
-	 * <br>
-	 * Here, we use a SettingsModelString as the number format is a String. 
-	 * There are models for all common data types. Also have a look at the comments 
-	 * in the constructor of the {@link ExcelPasswordManagerNodeDialog} as the settings 
-	 * models are also used to create simple dialogs.
-	 */
-
-
 	/**
 	 * Constructor for the node model.
 	 */
-	protected ExcelPasswordManagerNodeModel() {
+	protected CopyExcelSheetNodeModel() {
 		/**
 		 * Here we specify how many data input and output tables the node should have.
 		 * In this case its one input and one output table.
@@ -582,3 +586,5 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 */
 	}
 }
+
+

@@ -315,68 +315,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	try 
 	{
 			
-
-		
-		//FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
-		//Path pathTemplate = fileHelperTemplate.getPathFromSettings();
-		
-		
-
-		
-		FSConnection con2 = retrieveFSConnection(m_templatefilePath2, defaulttimeoutInSeconds * 1000);
-		
-		//LocalRelativeToWorkflowDataFSConnection test = new LocalRelativeToWorkflowDataFSConnection(con2.);
-		//BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC
-		
-		//RelativeTo.WORKFLOW.getSettingsValue();
-		
-		//WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
-		//Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-		//WorkflowContextUtil.getWorkflowContext().
-	
-
-		//FSPath pathOrUrl = con2.getFileSystem().getPath(m_templatefilePath2.getPathOrURL());     
-		
-		/*DefaultFSLocationSpec DATA_AREA_LOCATION_SPEC =
-		        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
-	
-		FSLocation fsLoc = new FSLocation(DATA_AREA_LOCATION_SPEC.getFileSystemCategory(),
-	            DATA_AREA_LOCATION_SPEC.getFileSystemSpecifier().orElse(null), m_templatefilePath2.getPathOrURL());
-		
-		FSConnection con3 = DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.fromSettingsValue(m_templatefilePath2.getKNIMEFileSystem()));
-		*/
-
-		
-		
+		FSConnection con2 = retrieveFSConnection(m_templatefilePath2, defaulttimeoutInSeconds * 1000);		
 		Path pathTemplate = getPathFromSettings(m_templatefilePath2, con2);	
 		
 	
-		
-		
-		
 
-
-	
-		
-		//FileChooserHelper fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		//Path pathOutput = fileHelperOutput.getPathFromSettings();
-		//Path pathOutput = getPathFromSettings(m_templatefilePath2, retrieveFSConnection(m_outputfilePath2, defaulttimeoutInSeconds * 1000)); 
-		
-		
 		FSConnection con3 = retrieveFSConnection(m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		
 		Path pathOutput = getPathFromSettings(m_outputfilePath2, con3);	
-		
-	
-		
-		//System.out.println("Choice: " + m_templatefilePath2.getFileSystemChoice().getType().toString());
-		//System.out.println("Rel:  " + RelativeTo.fromSettingsValue(m_outputfilePath2.getKNIMEFileSystem()));
-		
-		//System.out.println("Rel:  " +  RelativeTo.WORKFLOW_DATA.getSettingsValue());
-		//System.out.println("Rel:  " +  RelativeTo.WORKFLOW.getSettingsValue());
-		//System.out.println("Paths:  " +  pathOutput.toString());
-		
-		
+
 		String templatefilePath = pathTemplate.toAbsolutePath().toString();
 		String outputPath;
 

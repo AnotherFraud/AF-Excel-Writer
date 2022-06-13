@@ -1,21 +1,19 @@
 package org.AF.PGPUtilities.PGPEncryptor;
 
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Optional;
 
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -35,6 +33,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
@@ -44,6 +43,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
@@ -127,21 +128,26 @@ public class PGPEncryptorNodeModel extends NodeModel {
 		{
 			
 
-		FileChooserHelper inputfileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path inputpathTemplate = inputfileHelperTemplate.getPathFromSettings();
-		String inputfilePath = inputpathTemplate.toAbsolutePath().toString();
-	
-		FileChooserHelper outfileHelperTemplate = new FileChooserHelper(m_fs, m_ouputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path outpathTemplate = outfileHelperTemplate.getPathFromSettings();
-		String outfilePath = outpathTemplate.toAbsolutePath().toString();
+			FileChooserHelper inputfileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
+			Path inputpathTemplate = inputfileHelperTemplate.getPathFromSettings();
+			String inputfilePath = inputpathTemplate.toAbsolutePath().toString();
+				
 		
-		FileChooserHelper keyfileHelperTemplate = new FileChooserHelper(m_fs, m_keyfilePath2, defaulttimeoutInSeconds * 1000);
-		Path keypathTemplate = keyfileHelperTemplate.getPathFromSettings();
-		String keyfilePath = keypathTemplate.toAbsolutePath().toString();
-		
-		pushFlowVariableString("inputfilePath", inputfilePath);
-		pushFlowVariableString("outfilePath", outfilePath);
-		pushFlowVariableString("keyfilePath", keyfilePath);
+			FileChooserHelper outfileHelperTemplate = new FileChooserHelper(m_fs, m_ouputfilePath2, defaulttimeoutInSeconds * 1000);
+			Path outpathTemplate = outfileHelperTemplate.getPathFromSettings();
+			String outfilePath = outpathTemplate.toAbsolutePath().toString();
+			
+
+			
+			FileChooserHelper keyfileHelperTemplate = new FileChooserHelper(m_fs, m_keyfilePath2, defaulttimeoutInSeconds * 1000);
+			Path keypathTemplate = keyfileHelperTemplate.getPathFromSettings();
+			String keyfilePath = keypathTemplate.toAbsolutePath().toString();
+			
+
+			
+			pushFlowVariableString("inputfilePath", inputfilePath);
+			pushFlowVariableString("outfilePath", outfilePath);
+			pushFlowVariableString("keyfilePath", keyfilePath);
 		
 
 	    
@@ -154,12 +160,12 @@ public class PGPEncryptorNodeModel extends NodeModel {
        
 
 
-       OutputStream out = new BufferedOutputStream(new FileOutputStream(outfilePath));
-       PGPPublicKey encKey = readPublicKey(keyfilePath);
-       message = encryptFile(out, inputfilePath, encKey, armor, integrityCheck);
+		
+       OutputStream out = Files.newOutputStream(outpathTemplate);   
+       PGPPublicKey encKey = readPublicKey(keypathTemplate);
+       message = encryptFile(out, inputpathTemplate, encKey, armor, integrityCheck);
        pushFlowVariableString("encryptionMessage", message);
        out.close();
-
 
 		}
 		 catch (Exception e) {
@@ -178,9 +184,9 @@ public class PGPEncryptorNodeModel extends NodeModel {
 	
 	
 	
-	static PGPPublicKey readPublicKey(String fileName) throws IOException, PGPException
+	static PGPPublicKey readPublicKey(Path keypathTemplate) throws IOException, PGPException
     {
-        InputStream keyIn = new BufferedInputStream(new FileInputStream(fileName));
+        InputStream keyIn = Files.newInputStream(keypathTemplate);
         PGPPublicKey pubKey = readPublicKey(keyIn);
         keyIn.close();
         return pubKey;
@@ -225,13 +231,23 @@ public class PGPEncryptorNodeModel extends NodeModel {
         throw new IllegalArgumentException("Can't find encryption key in key ring.");
     }
 
-    static byte[] compressFile(String fileName, int algorithm) throws IOException
+    static byte[] compressFile(Path file, int algorithm) throws IOException
     {
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+ 
+    	File f = FileUtil.createTempFile(file.getFileName().toString(), NodeContext.getContext().getWorkflowManager().getID().toString(), new File(KNIMEConstants.getKNIMETempDir()), true);
+    	FileUtils.copyInputStreamToFile(Files.newInputStream(file), f);
+    	
+    	
+    	
+    	ByteArrayOutputStream bOut = new ByteArrayOutputStream();
         PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(algorithm);
         PGPUtil.writeFileToLiteralData(comData.open(bOut), PGPLiteralData.BINARY,
-            new File(fileName));
+        		f);
         comData.close();
+        
+        f.delete();
+        
+        
         return bOut.toByteArray();
     }
     
@@ -239,7 +255,7 @@ public class PGPEncryptorNodeModel extends NodeModel {
 
 private static String encryptFile(
         OutputStream    out,
-        String          fileName,
+        Path          inputpathTemplate,
         PGPPublicKey    encKey,
         boolean         armor,
         boolean         withIntegrityCheck)
@@ -253,7 +269,7 @@ private static String encryptFile(
         try
         {
         	BouncyCastleProvider bouncy = new BouncyCastleProvider();
-            byte[] bytes = compressFile(fileName, CompressionAlgorithmTags.ZIP);
+            byte[] bytes = compressFile(inputpathTemplate, CompressionAlgorithmTags.ZIP);
 
             PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(
                 new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5).setWithIntegrityPacket(withIntegrityCheck).setSecureRandom(new SecureRandom()).setProvider(bouncy));

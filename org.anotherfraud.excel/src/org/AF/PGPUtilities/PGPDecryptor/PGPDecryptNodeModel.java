@@ -17,14 +17,12 @@ package org.AF.PGPUtilities.PGPDecryptor;
  * 
  */
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Optional;
@@ -162,23 +160,23 @@ public class PGPDecryptNodeModel extends NodeModel {
 			
 
 		FileChooserHelper inputfileHelperTemplate = new FileChooserHelper(m_fs, m_inputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path inputpathTemplate = inputfileHelperTemplate.getPathFromSettings();
-		String inputfilePath = inputpathTemplate.toAbsolutePath().toString();
+		Path inputPath = inputfileHelperTemplate.getPathFromSettings();
+		String inputPathString = inputPath.toAbsolutePath().toString();
 			
 	
 		FileChooserHelper outfileHelperTemplate = new FileChooserHelper(m_fs, m_ouputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path outpathTemplate = outfileHelperTemplate.getPathFromSettings();
-		String outfilePath = outpathTemplate.toAbsolutePath().toString();
+		Path outputPath = outfileHelperTemplate.getPathFromSettings();
+		String outputPathString = outputPath.toAbsolutePath().toString();
 		
 		FileChooserHelper keyfileHelperTemplate = new FileChooserHelper(m_fs, m_keyfilePath2, defaulttimeoutInSeconds * 1000);
-		Path keypathTemplate = keyfileHelperTemplate.getPathFromSettings();
-		String keyfilePath = keypathTemplate.toAbsolutePath().toString();
+		Path keyPath = keyfileHelperTemplate.getPathFromSettings();
+		String keyPathString = keyPath.toAbsolutePath().toString();
 		
-		pushFlowVariableString("inputfilePath", inputfilePath);
-		pushFlowVariableString("outfilePath", outfilePath);
-		pushFlowVariableString("keyfilePath", keyfilePath);
+		pushFlowVariableString("inputfilePath", inputPathString);
+		pushFlowVariableString("outfilePath", outputPathString);
+		pushFlowVariableString("keyfilePath", keyPathString);
 		
-		decryptPGP(inputfilePath, outfilePath, keyfilePath);			
+		decryptPGP(inputPath, outputPath, keyPath);			
 		
 		
 		
@@ -196,17 +194,19 @@ public class PGPDecryptNodeModel extends NodeModel {
 	}
 
 
-	private void decryptPGP(String inputfilePath, String outfilePath, String keyfilePath)
+	private void decryptPGP(Path inputPath, Path outputPath, Path keyfilePath)
 			throws InvalidSettingsException {
 		try
-			(
-			InputStream in = PGPUtil.getDecoderStream(new BufferedInputStream(new FileInputStream(inputfilePath)));
-		     InputStream keyIn = new BufferedInputStream(new FileInputStream(keyfilePath));
-			)
-			{
-			
-			String password = m_useKeyfilePassword.getBooleanValue() ? m_pwd.getPassword() : "";
-			String outFile = outfilePath;
+		(
+				
+				
+		InputStream in = PGPUtil.getDecoderStream(Files.newInputStream(inputPath));
+		InputStream keyIn = PGPUtil.getDecoderStream(Files.newInputStream(keyfilePath));
+		)
+		{
+		
+		String password = m_useKeyfilePassword.getBooleanValue() ? m_pwd.getPassword(getCredentialsProvider()) : "";
+		
 
             
             
@@ -290,7 +290,7 @@ public class PGPDecryptNodeModel extends NodeModel {
 
 
 	
-		                OutputStream fOut = new BufferedOutputStream(new FileOutputStream(outFile));
+		                OutputStream fOut = new BufferedOutputStream(Files.newOutputStream(outputPath));
 					int bytesRead = 0;
 					    byte[] buffer = new byte[4096];
 					    while ((bytesRead = unc.read(buffer)) != -1) {
