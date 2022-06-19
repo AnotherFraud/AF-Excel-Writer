@@ -1,28 +1,29 @@
 package org.AF.ExcelUtilities.CopyExcelSheet;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 
-
 import org.knime.core.node.FlowVariableModel;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.workflow.FlowVariable.Type;
-import org.knime.core.util.Pair;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+
+
+
 /**
  * This is an example implementation of the node dialog of the
  * "CopyExcelSheet" node.
@@ -36,176 +37,186 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  * @author Another Fraud
  */
 public class CopyExcelSheetNodeDialog extends DefaultNodeSettingsPane {
-
-	private final DialogComponentAuthentication m_authenticationTemplatePanel;
-	private final SettingsModelAuthentication passwordModel;
-	
-	private final DialogComponentAuthentication m_authenticationTOutputPanel;
-	private final SettingsModelAuthentication outPasswordModel;	
 	
 	
     protected CopyExcelSheetNodeDialog() {
         super();
         
+       	final SettingsModelString sheetNamesInModel = CopyExcelSheetNodeModel.createInputSheetNamesModel();
+       	final SettingsModelString sheetNamesOutModel = CopyExcelSheetNodeModel.createOutputSheetNamesModel();
+        final SettingsModelString sheetOrIndexModel = CopyExcelSheetNodeModel.createSheetNameOrIndexSettingsModel();
+        final SettingsModelIntegerBounded sheetIndexModel = CopyExcelSheetNodeModel.createSheetIndexModel();
+
         final SettingsModelFileChooser2 templateFilePathModel2 = CopyExcelSheetNodeModel.createTemplateFilePath2SettingsModel();
-       passwordModel = CopyExcelSheetNodeModel.createPassSettingsModel();
-       outPasswordModel = CopyExcelSheetNodeModel.createOutPassSettingsModel();
-       
-   
-   	final SettingsModelFileChooser2 outputFilePathModel2 = CopyExcelSheetNodeModel.createOutputFilePath2SettingsModel();
-       
-   	final SettingsModelString copyOrWriteModel = CopyExcelSheetNodeModel.createCopyOrWriteSettingsModel();
-   	final SettingsModelString overrideOrFailModel = CopyExcelSheetNodeModel.createOverrideOrFailModelSettingsModel();
-   	
-   	
-   	final SettingsModelString enablePassModel = CopyExcelSheetNodeModel.enablePasswordSettingsModel();
-   	
-   	
-           
-       //listener check selection for password usage
-       enablePassModel.addChangeListener(e -> {
-           if (enablePassModel.getStringValue().equals("Add PWD")) {
-           	passwordModel.setEnabled(true);
-           	outPasswordModel.setEnabled(false);
-           } else if (enablePassModel.getStringValue().equals("Remove PWD")) {
-           	passwordModel.setEnabled(true);
-           	outPasswordModel.setEnabled(false);
-           }else if (enablePassModel.getStringValue().equals("Change PWD")) {
-           	passwordModel.setEnabled(true);
-           	outPasswordModel.setEnabled(true);
-           }else if (enablePassModel.getStringValue().equals("Add PWD")) {
-           	passwordModel.setEnabled(false);
-           	outPasswordModel.setEnabled(true);
-           }
-           else  {
-           	passwordModel.setEnabled(true);
-           	outPasswordModel.setEnabled(false);
-           }
-       });            
+        final SettingsModelAuthentication passwordModel = CopyExcelSheetNodeModel.createPassSettingsModel();
+        final SettingsModelAuthentication outPasswordModel = CopyExcelSheetNodeModel.createOutPassSettingsModel();
+        
+        
+        final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(sheetNamesInModel, "Sheet Name",
+        		Arrays.asList("default", ""),true);
 
-   
-     //listener check selection for output file
-       copyOrWriteModel.addChangeListener(e -> {
-           if (copyOrWriteModel.getStringValue().equals("WriteInto")) {
-           	outputFilePathModel2.setEnabled(false);  
-           	overrideOrFailModel.setEnabled(false); 
-           } else if (copyOrWriteModel.getStringValue().equals("CopyFrom")) {
-           	outputFilePathModel2.setEnabled(true); 
-           	overrideOrFailModel.setEnabled(true);  
-           }
-       });
-       
 
-   	//Map<AuthenticationType, Pair<String, String>> map;
-      	HashMap<AuthenticationType, Pair<String, String>> mapPass = new HashMap<AuthenticationType, Pair<String, String>>()
-      	{
-		private static final long serialVersionUID = -3983012018710953380L;
+    	final SettingsModelFileChooser2 outputFilePathModel2 = CopyExcelSheetNodeModel.createOutputFilePath2SettingsModel();
+        
+    	
+    	
+    	
+    	
+    	final SettingsModelString enablePassModel = CopyExcelSheetNodeModel.enablePasswordSettingsModel();
+    	
+    	
+    	
+    	
+         
+    	//listener try to read in sheet names from given template file
+        templateFilePathModel2.addChangeListener(e -> {	
+            if (templateFilePathModel2.getPathOrURL().length() > 0) {
+            	List<String> sheetNames = CopyExcelSheetNodeModel.tryGetExcelSheetNames(templateFilePathModel2.getPathOrURL(),passwordModel.getPassword()); 	
+            		if(sheetNames != null)
+            		{
+            			if (!sheetNames.contains(sheetNamesInModel.getStringValue()))
+            			{
+            			sheetNames.add(0, sheetNamesInModel.getStringValue());
+            			}
+            			sheetNameSelection.replaceListItems(sheetNames, null);
+            		}
 
-		{
-      	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Template Credential","Excel Template Credential"));
-      	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Template Password","Excel Template Password"));
+            } else {
+ 
+            }
+            
+        });
+        
+        
 
-      	}}; 
-      	
-      	
-      	//Map<AuthenticationType, Pair<String, String>> map;
-      	HashMap<AuthenticationType, Pair<String, String>> mapOut = new HashMap<AuthenticationType, Pair<String, String>>()
-      	{
-		private static final long serialVersionUID = -3983011018710953380L;
+            
+         
+        
+      //listener check selection for password usage
+        enablePassModel.addChangeListener(e -> {
+            if (enablePassModel.getStringValue().equals("Open with PWD")) {
+            	passwordModel.setEnabled(true);
+            	outPasswordModel.setEnabled(false);
+            } else if (enablePassModel.getStringValue().equals("Remove PWD")) {
+            	passwordModel.setEnabled(true);
+            	outPasswordModel.setEnabled(false);
+            }else if (enablePassModel.getStringValue().equals("Change PWD")) {
+            	passwordModel.setEnabled(true);
+            	outPasswordModel.setEnabled(true);
+            }else if (enablePassModel.getStringValue().equals("Add PWD")) {
+            	passwordModel.setEnabled(false);
+            	outPasswordModel.setEnabled(true);
+            }
+            else  {
+            	passwordModel.setEnabled(false); 
+            	outPasswordModel.setEnabled(false);
+            }
+        });
+        
+        
 
-		{
-      	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Output Credential","Excel Output Credential"));
-      	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Output Password","Excel Output Password"));
 
-      	}};      
-   
-       
-       createNewGroup("Input File Selection");
-       
-       final FlowVariableModel fvm = createFlowVariableModel(
-           new String[]{templateFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
-           Type.STRING);
-
-       
-       
-
-       addDialogComponent(new DialogComponentFileChooser2(0, templateFilePathModel2, "XLStemplate", JFileChooser.OPEN_DIALOG,
-           JFileChooser.FILES_ONLY, fvm));
-       
-       
-
-       createNewGroup("Output File Selection");
-       
-       addDialogComponent(new DialogComponentButtonGroup(
-       		copyOrWriteModel      		
-       		, "", false
-       			,new String[] { "Create new file", "Change PWD in Input File"}
-       			,new String[] { "CopyFrom", "WriteInto"}
-       		));
-       
+      //listener check option for sheet name selection
+        sheetOrIndexModel.addChangeListener(e -> {
+            if (sheetOrIndexModel.getStringValue().equals("name")) {
+            	sheetIndexModel.setEnabled(false);  
+            	sheetNamesInModel.setEnabled(true); 
+            } else if (sheetOrIndexModel.getStringValue().equals("index")) {
+            	sheetIndexModel.setEnabled(true); 
+            	sheetNamesInModel.setEnabled(false);  
+            }
+        });
+        
+        
+        
+      
 
         
-       final FlowVariableModel tplfvm = createFlowVariableModel(
-               new String[]{outputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
-               Type.STRING);
-       
-       addDialogComponent(new DialogComponentFileChooser2(0, outputFilePathModel2, "XLSoutput", JFileChooser.SAVE_DIALOG,
-               JFileChooser.FILES_ONLY, tplfvm));
-           
-       addDialogComponent(new DialogComponentButtonGroup(
-       		overrideOrFailModel      		
-       		, "", false
-       			,new String[] { "Override existing file", "Fail if file exists"}
-       			,new String[] { "Override", "Fail"}
-       		));
-       
-       
-       closeCurrentGroup();
-       
-       
+        
+    
+        
+        createNewGroup("Template File Selection");
+        
 
-       createNewGroup("Password Options"); 
-       
-       addDialogComponent(
-       new DialogComponentStringSelection(enablePassModel, "Password action",
-       		Arrays.asList( "Add PWD","Remove PWD","Change PWD"),false));
-       
-       
-       
-       m_authenticationTemplatePanel = new  DialogComponentAuthentication(passwordModel, "Excel Template Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapPass);
-       addDialogComponent(m_authenticationTemplatePanel);
-       
-       
-       m_authenticationTOutputPanel = new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapOut);
-       addDialogComponent(m_authenticationTOutputPanel);    
-       
-       
-       
-       
-       closeCurrentGroup();
-       
-}
-@Override
-public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-	passwordModel.saveSettingsTo(settings);    	
-	outPasswordModel.saveSettingsTo(settings);   
-	
-}
-
-@Override
-public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
-       final PortObjectSpec[] specs) throws NotConfigurableException {
-	try {
-		passwordModel.loadSettingsFrom(settings);
-		m_authenticationTemplatePanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
-		
-		outPasswordModel.loadSettingsFrom(settings);
-		m_authenticationTOutputPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
-		
-	} catch (InvalidSettingsException e) {
-		throw new NotConfigurableException(e.getMessage(), e);
-	}
-}
+        final FlowVariableModel fvm = createFlowVariableModel(
+            new String[]{templateFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+            Type.STRING);
 
 
+        
+        
+        addDialogComponent(new DialogComponentFileChooser2(0, templateFilePathModel2, "XLStemplate", JFileChooser.OPEN_DIALOG,
+            JFileChooser.FILES_ONLY, fvm));
+        
+        
+        createNewGroup("Template Sheet Name Selection");
+        
+       
+        
+        addDialogComponent(new DialogComponentButtonGroup(
+        		sheetOrIndexModel      		
+        		, "", false
+        			,new String[] {  "Get Sheet By Index", "Get Sheet By Name"}
+        			,new String[] {  "index", "name"}
+        		));
+        
+        
+        addDialogComponent(new DialogComponentNumber(sheetIndexModel, "Sheet Index", 1));
+        addDialogComponent(sheetNameSelection); 
+        
+        
+        
+        closeCurrentGroup();
+        createNewGroup("Output File Selection");
+        
+
+         
+        final FlowVariableModel tplfvm = createFlowVariableModel(
+                new String[]{outputFilePathModel2.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                Type.STRING);
+        
+        addDialogComponent(new DialogComponentFileChooser2(0, outputFilePathModel2, "XLSoutput", JFileChooser.SAVE_DIALOG,
+                JFileChooser.FILES_ONLY, tplfvm));
+            
+        
+        addDialogComponent(new DialogComponentString(sheetNamesOutModel, "Output Sheetname", true, 60));
+        
+        
+        closeCurrentGroup();
+        
+        
+        
+        createNewTab("Advanced Options");
+        createNewGroup("Header and Formulas"); 
+                
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
+        		CopyExcelSheetNodeModel.froceFormulaUpdate, false), "Should all exising formulas be recalculated?"));
+        
+        closeCurrentGroup();
+
+        createNewGroup("Excel Template Password"); 
+
+        addDialogComponent(
+        new DialogComponentStringSelection(enablePassModel, "Password action",
+        		Arrays.asList( "No PWD needed", "Open with PWD", "Remove PWD","Change PWD","Add PWD"),false));
+        
+        
+        
+        addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Excel Template Password", AuthenticationType.PWD));
+        addDialogComponent(new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", AuthenticationType.PWD));
+
+        
+        
+        closeCurrentGroup();
+        
+   	   
+  
+       
+        
+        
+    }
+
+
+    
 }
+

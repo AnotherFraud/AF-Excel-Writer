@@ -242,6 +242,12 @@
 	        category-path="/community/AF_Utilities/ExcelUtil"
 	        factory-class="org.AF.ExcelUtilities.CopyExcelSheet.CopyExcelSheetNodeFactory">	 
 	</node>	 
+
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RangeBuilder.RangeBuilderNodeFactory">	 
+    </node>
+    
 	
 		                 
    </extension>
