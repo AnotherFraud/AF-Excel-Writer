@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./Hmac.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Hmac Hashing</name>
+    
+    <shortDescription>Returns substring of a regex</shortDescription>
+    <fullDescription>
+		<intro>Returns match(es) of a substring as a new string column
+			<br/>Multiple return modes cn be selected (first match, last match, match by number or concat all matches)
+		</intro>
+
+		<option name="Key column">
+				Column you want to apply the regex to
+		</option>	
+		<option name="Message column">
+				Column you want to apply the regex to
+		</option>	
+				
+		<option name="Hmac Mode">
+				Define which hash type should be returned 
+				-the following types are available: "HmacSHA512","HmacSHA256","HmacSHA1","HmacMD5"	
+		</option>		
+		
+		
+	</fullDescription>
+    
+    <ports>
+        <inPort index="0" name="In-Port name">Table with input data</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Table with Hmac column</outPort>
+        <!-- possibly more output ports here-->
+    </ports>
+</knimeNode>

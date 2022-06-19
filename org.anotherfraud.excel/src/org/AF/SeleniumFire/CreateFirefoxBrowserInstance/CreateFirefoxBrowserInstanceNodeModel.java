@@ -405,6 +405,9 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		
 		
 		FileUtils.copyInputStreamToFile(driverStream, tempDriver);
+		tempDriver.setExecutable(true);
+		tempDriver.setReadable(true);
+		
 		m_driverPath = tempDriver.getAbsolutePath();
 		
 		

@@ -1,24 +1,4 @@
-package org.AF.ExcelUtilities.WriteToExcelTemplate;
-
-
-/*
- * This program is free software: you can redistribute it and/or modify
- * Copyright [2021] [Another Fraud]
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- */
-
+package org.AF.ExcelUtilities.CopyExcelSheet;
 
 
 import java.io.File;
@@ -31,11 +11,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey;
+import org.apache.poi.hssf.usermodel.HSSFAnchor;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
+import org.apache.poi.hssf.usermodel.HSSFShape;
+import org.apache.poi.hssf.usermodel.HSSFSimpleShape;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.poifs.crypt.EncryptionInfo;
@@ -45,30 +31,26 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Footer;
+import org.apache.poi.ss.usermodel.Header;
 import org.apache.poi.ss.usermodel.Picture;
+import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Shape;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.SimpleShape;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFAnchor;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
+import org.apache.poi.xssf.usermodel.XSSFShape;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataRow;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.date.DateAndTimeCell;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.data.def.TimestampCell;
-import org.knime.core.data.image.png.PNGImageCell;
-import org.knime.core.data.image.png.PNGImageContent;
-import org.knime.core.data.image.png.PNGImageValue;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -84,6 +66,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
@@ -96,16 +80,25 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 
 
-@SuppressWarnings("deprecation")
-public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
+/**
+ * This is an example implementation of the node model of the
+ * "CopyExcelSheet" node.
+ * 
+ * This example node performs simple number formatting
+ * ({@link String#format(String, Object...)}) using a user defined format string
+ * on all double columns of its input table.
+ *
+ * @author Another Fraud
+ */
+public class CopyExcelSheetNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateXLSXNodeModel.class);
-	
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(CopyExcelSheetNodeModel.class);
+
 	
 	private FSConnection con = DefaultFSConnectionFactory.createLocalFSConnection();
 	private Optional<FSConnection> m_fs = Optional.of(con);
@@ -114,22 +107,20 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	private int defaulttimeoutInSeconds = 5;
     static final String templatefilePath2 = "templateFile2";
     static final String templatefilePath = "templateFile";
-    static final String colOffset = "colOff";
-    static final String rowOffset = "rowOff";
     static final String outputfilePath2 = "outputFile2";
     static final String outputfilePath = "outputFile";
-    static final String copyOrWrite = "copywrite";
     static final String overrideOrFail = "overridefail";
-    static final String sheetName = "sheet";
+    static final String inputSheetName = "inputsheet";
+    static final String outputSheetName = "outputsheet";
+    
     static final String sheetIndex = "sheetIndex";
     static final String sheetNameOrIndex = "sheetOrIndex";
-    static final String writeHeaderOption = "writeHeader";
-    static final String writeFormulaOption = "writeFormula";
     static final String froceFormulaUpdate = "forceFormula";
-    static final String writeLastRowOption = "lastRowOption";
     static final String password = "pwd";
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
+    
+    
         
 	static SettingsModelString createTemplateFilePathSettingsModel() {
 		return new SettingsModelString(templatefilePath, null);
@@ -174,19 +165,18 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 
 	
 	
-	static SettingsModelString createCopyOrWriteSettingsModel() {
-		return new SettingsModelString(copyOrWrite, "WriteInto");
-	}	
 	
-	
-	
-	static SettingsModelString createSheetNamesModel() {
-		SettingsModelString sn = new SettingsModelString(sheetName, "");
+	static SettingsModelString createInputSheetNamesModel() {
+		SettingsModelString sn = new SettingsModelString(inputSheetName, "");
 		sn.setEnabled(false);	
         return sn;
     }
 
-	
+	static SettingsModelString createOutputSheetNamesModel() {
+		SettingsModelString sn = new SettingsModelString(outputSheetName, "");
+		sn.setEnabled(true);	
+        return sn;
+    }
 	
 	static SettingsModelIntegerBounded createSheetIndexModel() {
 		SettingsModelIntegerBounded si = new SettingsModelIntegerBounded(sheetIndex, 0, 0, 255);
@@ -199,29 +189,8 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	}	
 	
 	
-	
-	static SettingsModelString createOverrideOrFailModelSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(overrideOrFail, "Fail");
-		coof.setEnabled(false);
-		return coof;				
-	}	
-	
 
-	static SettingsModelIntegerBounded createRowOffsetSettingsModel() {
-		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(rowOffset, 2, 1, 1048575);
-		return roff;				
-	}	
 	
-	static SettingsModelIntegerBounded createColOffsetSettingsModel() {
-		SettingsModelIntegerBounded coff = new SettingsModelIntegerBounded(colOffset, 1, 1, 16384);
-		return coff;				
-	}	
-	
-	
-	static SettingsModelBoolean createWriteLastRowSettingsModel() {
-		SettingsModelBoolean wlr = new SettingsModelBoolean(writeLastRowOption, false);
-		return wlr;				
-	}	
 
 	static SettingsModelString enablePasswordSettingsModel() {
 		SettingsModelString epw = new SettingsModelString(enablePassOption, "No PWD needed");
@@ -232,55 +201,36 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();
 	private final SettingsModelAuthentication m_outPwd = createOutPassSettingsModel();
-	private final SettingsModelString m_sheetName = createSheetNamesModel();
+	private final SettingsModelString m_sheetNameIn = createInputSheetNamesModel();
+	private final SettingsModelString m_sheetNameOut = createOutputSheetNamesModel();
 	private final SettingsModelFileChooser2 m_templatefilePath2 = createTemplateFilePath2SettingsModel();
 	private final SettingsModelFileChooser2 m_outputfilePath2 = createOutputFilePath2SettingsModel();
 
-	private final SettingsModelString m_copyOrWrite = createCopyOrWriteSettingsModel();
 	private final SettingsModelString m_sheetOrIndex = createSheetNameOrIndexSettingsModel();
 	private final SettingsModelIntegerBounded m_sheetIndex = createSheetIndexModel();
 	
-	private final SettingsModelIntegerBounded m_rowOffset = createRowOffsetSettingsModel();
-    private final SettingsModelIntegerBounded m_colOffset = createColOffsetSettingsModel();
-    private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();      
-    private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
-    private final SettingsModelString m_overrideOrFail = createOverrideOrFailModelSettingsModel();
-
-    private final SettingsModelBoolean m_writeHeaderOption =
-            new SettingsModelBoolean(writeHeaderOption, false);
+	private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
     
-    private final SettingsModelBoolean m_writeFormulaOption =
-            new SettingsModelBoolean(writeFormulaOption, false);
+
     
     private final SettingsModelBoolean m_forceFormulaUpdateOption =
             new SettingsModelBoolean(froceFormulaUpdate, false);
     
-	/**
-	 * The settings model to manage the shared settings. This model will hold the
-	 * value entered by the user in the dialog and will update once the user changes
-	 * the value. Furthermore, it provides methods to easily load and save the value
-	 * to and from the shared settings (see:
-	 * <br>
-	 * {@link #loadValidatedSettingsFrom(NodeSettingsRO)},
-	 * {@link #saveSettingsTo(NodeSettingsWO)}). 
-	 * <br>
-	 * Here, we use a SettingsModelString as the number format is a String. 
-	 * There are models for all common data types. Also have a look at the comments 
-	 * in the constructor of the {@link WriteToExcelTemplateXLSXNodeDialog} as the settings 
-	 * models are also used to create simple dialogs.
-	 */
+    
 
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected WriteToExcelTemplateXLSXNodeModel() {
+	protected CopyExcelSheetNodeModel() {
 		/**
 		 * Here we specify how many data input and output tables the node should have.
 		 * In this case its one input and one output table.
 		 */
-		super(1,0);
+		super(new PortType[] {FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[] {});
+
 	}
+
 
 
 	/**
@@ -296,20 +246,10 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		 * implementation will write in input buffered table to the selected Excel sheet
 		 * output
 		 */
-		LOGGER.info("Start execution of excel file to template");
+		LOGGER.info("Start execution of copy excel sheet");
 
-	
 
-	
-		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
-		
-		/*
-		 * A counter for how many rows have already been processed. This is used to
-		 * calculate the progress of the node, which is displayed as a loading bar under
-		 * the node icon.
-		 */
-		CloseableRowIterator rowIterator = inputTable.iterator();
 
 	
 	try 
@@ -324,121 +264,262 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		Path pathOutput = getPathFromSettings(m_outputfilePath2, con3);	
 
 		String templatefilePath = pathTemplate.toAbsolutePath().toString();
-		String outputPath;
+		String outputPath = pathOutput.toAbsolutePath().toString();
 
 
 		
-		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
-	
+		Workbook workbookIn = openWorkBook(Files.newInputStream(pathTemplate));
+		Workbook workbookOut = openWorkBook(Files.newInputStream(pathOutput));
 	
 		
 		
-		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
-		{	
-			outputPath = pathOutput.toAbsolutePath().toString();
-			
-		}
-		else
-		{
-			outputPath = templatefilePath;
-			pathOutput = pathTemplate;
-		}
+
+		
+		
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
 		pushFlowVariableString("outputFilePath", outputPath);
 		
 		
 		
-		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null 
-				&& m_overrideOrFail.getStringValue().equals("Fail") 
-				&& m_copyOrWrite.getStringValue().equals("CopyFrom")
-				)
-		{
-			throw new IOException("Output file exists and fail overwrite option was selected");
-		}
+		Sheet sheetIn;
+		Sheet sheetOut;
 		
-		Sheet sheet;
-		
-		DataFormat df = workbook.createDataFormat();
-		CellStyle textStyle = workbook.createCellStyle();
+		DataFormat df = workbookIn.createDataFormat();
+		CellStyle textStyle = workbookIn.createCellStyle();
 		textStyle.setDataFormat(df.getFormat("text"));	
 		
-		int xlsxRowOffset;
-		int xlsxColOffset =  m_colOffset.getIntValue() - 1;
 		int currentRowCounter = 0;
+		
+		
+		
 		
 		
 
 		//use sheet name if available
-		if (m_sheetName.getStringValue().length() > 0 && m_sheetOrIndex.getStringValue().equals("name"))
+		if (m_sheetNameIn.getStringValue().length() > 0 && m_sheetOrIndex.getStringValue().equals("name"))
 		{
-			sheet = workbook.getSheet(m_sheetName.getStringValue());
+			sheetIn = workbookIn.getSheet(m_sheetNameIn.getStringValue());
 			
 		} else
 		{
-			sheet = workbook.getSheetAt(m_sheetIndex.getIntValue());
+			sheetIn = workbookIn.getSheetAt(m_sheetIndex.getIntValue());
 		}
 		
 
+		//create output sheet
+		sheetOut = workbookOut.createSheet(m_sheetNameOut.getStringValue());
 		
 		
-		//get last row in Excel if write to last row option is selected
-		if(m_writeLastRowOption.getBooleanValue())
-		{
+		
+		copySheetSettings(sheetIn,sheetOut);
+		copyColumnFormats(sheetIn,sheetOut);
+		
+		
+		
+		
+		
+		Iterator<Row> rowIterator = sheetIn.iterator();
+		
+		//if (templatefilePath.equals(outputPath))		
+		//Sheet sheetnew = workbook.cloneSheet(workbook.getSheetIndex(sheet.getSheetName()));
+		//workbook.setSheetName(workbook.getSheetIndex(sheetnew), m_sheetNameOut.getStringValue());
+			
 
-			xlsxRowOffset = sheet.getPhysicalNumberOfRows();
-		}
-		else
-		{
-			xlsxRowOffset =	m_rowOffset.getIntValue() - 1;
 
-		};
-		
-		
-		
-		//writer column headers if enabled
-		if (m_writeHeaderOption.getBooleanValue())
-		{
-		int colHeaderIndex = 0;
-			for (String headerName: inputTable.getSpec().getColumnNames()) {           
-				writeXlsSSCell(workbook,sheet,textStyle,currentRowCounter + xlsxRowOffset, colHeaderIndex + xlsxColOffset, new StringCell(headerName));
-				colHeaderIndex++;
-				
-			}
-			xlsxRowOffset = xlsxRowOffset + 1;
-
-		}
-		
-		
-		
 		try
 		{
 			
 
+			
 			// Iterate over the rows of the input table.
 			while (rowIterator.hasNext()) {
 				
-				DataRow currentRow = rowIterator.next();
-				int numberOfCells = currentRow.getNumCells();
+				
+				
+				
+			Row currentRow = rowIterator.next();
+			
+			Row outRow = sheetOut.createRow(currentRow.getRowNum());
+			
+			
+			
+	        if (currentRow.isFormatted())
+	        {
 
+	            CellStyle rowStyle = currentRow.getRowStyle();
+	            
+	    		CellStyle newStyle = workbookOut.createCellStyle();
+	    		newStyle.cloneStyleFrom(rowStyle);	
 
-				
-				for (int i = 0; i < numberOfCells; i++) {
-					writeXlsSSCell(workbook, sheet,textStyle, currentRowCounter + xlsxRowOffset, i + xlsxColOffset, currentRow.getCell(i));
-					}
-					
-				
+	            outRow.setRowStyle(newStyle);
+	        }
+	        
+	        
+	        
+	        int defaultHight = sheetIn.getDefaultRowHeight();
+	        if (currentRow.getHeight() != defaultHight)
+	        {
+	        	outRow.setHeight(currentRow.getHeight());
+	        }
+	        
+			
+			Iterator <Cell> cellIterator = currentRow.cellIterator();
+	    
+			while (cellIterator.hasNext()) {
+		    	Cell cellIn = cellIterator.next();
+		    	Cell cellOut = outRow.createCell(cellIn.getColumnIndex());
 
-				
-				exec.checkCanceled();
-				
-				currentRowCounter++;
-				exec.setProgress(currentRowCounter / (double) inputTable.size(), "writing row " + currentRowCounter);				
-				
-
+		    	copyCell(cellIn, cellOut, workbookOut); 
+		      }			
+			     
+			
+			exec.checkCanceled();
+			
+			currentRowCounter++;
+			exec.setProgress(currentRowCounter / (double) sheetIn.getPhysicalNumberOfRows(), "writing row " + currentRowCounter);	
+			
 			}
-			workbook.setForceFormulaRecalculation(m_forceFormulaUpdateOption.getBooleanValue());
+			
+			
+			
+			
+			//merged regions
+	        for (int i = 0; i < sheetIn.getNumMergedRegions(); i++)
+	        {
+	            CellRangeAddress mergedRegion = sheetIn.getMergedRegion(i);
+	            sheetOut.addMergedRegion(mergedRegion);
+	        }
+	        
+	        
+	        
+	        //pictures and shapes
+	        
+	 
+	        Drawing drawing = sheetIn.getDrawingPatriarch();
+	        Drawing drawingOut = sheetOut.createDrawingPatriarch();
+	   
+	        if (drawing instanceof HSSFPatriarch) {
+	            HSSFPatriarch hp = (HSSFPatriarch) drawing;
+	            
+
+        
+	            
+	            for (HSSFShape hs : hp.getChildren()) {	   
+	            	
+	            	
+	            	
+	            	
+	            	HSSFAnchor xsA = hs.getAnchor();
+	            	
+	    	        HSSFClientAnchor anc = new HSSFClientAnchor();
+	    	        anc.setDx1(xsA.getDx1());
+	    	        anc.setDx2(xsA.getDx2());
+	    	        anc.setDy1(xsA.getDy1());
+	    	        anc.setDy2(xsA.getDy2());
+	    
+	 
+	                if (hs instanceof Picture) {
+	                	Picture pic = (Picture) hs; 
+	        		        		 int picIndex = workbookOut.addPicture(pic.getPictureData().getData(),  pic.getPictureData().getPictureType());
+		        		 drawingOut.createPicture(pic.getClientAnchor(), picIndex);
+		        	 }
+	                
+	                if (hs instanceof SimpleShape) {	                
+	                	HSSFSimpleShape pic = (HSSFSimpleShape) hs; 
+	                	
+	                
+	                	HSSFSimpleShape sp  = hp.createSimpleShape(anc);
+	 
+	                	sp.setShapeType(pic.getShapeType());
+	                	
+	                	/*
+	                	sp.setText(pic.getText());
+	                	sp.setBottomInset(pic.getBottomInset());
+	                	sp.setLeftInset(pic.getLeftInset());
+	                	sp.setRightInset(pic.getRightInset());
+	                	sp.setTopInset(pic.getTopInset());
+	                	
+	          
+	                	sp.setTextDirection(pic.getTextDirection());
+	                	sp.setWordWrap(pic.getWordWrap());
+	                	sp.setVerticalAlignment(pic.getVerticalAlignment());
+	                	sp.setTextAutofit(pic.getTextAutofit());
+	                	*/
+		        	 }	                
+	                
+	                
+	                
+ 
+	            }
+	            
+	            
+	            
+	            
+	            
+	            
+	        } else {
+	        	
+	        	
+	        	
+	            XSSFDrawing xdraw = (XSSFDrawing) drawing;
+	            for (XSSFShape xs : xdraw.getShapes()) {
+
+	            	
+	            	XSSFAnchor xsA = xs.getAnchor();
+	            	
+	    	        XSSFClientAnchor anc = new XSSFClientAnchor();
+	    	        anc.setDx1(xsA.getDx1());
+	    	        anc.setDx2(xsA.getDx2());
+	    	        anc.setDy1(xsA.getDy1());
+	    	        anc.setDy2(xsA.getDy2());
+	    
+	 
+	                if (xs instanceof Picture) {
+	                	Picture pic = (Picture) xs; 
+	        		        		 int picIndex = workbookOut.addPicture(pic.getPictureData().getData(),  pic.getPictureData().getPictureType());
+		        		 drawingOut.createPicture(pic.getClientAnchor(), picIndex);
+		        	 }
+	                
+	                if (xs instanceof SimpleShape) {	                
+	                	XSSFSimpleShape pic = (XSSFSimpleShape) xs; 
+	                	
+	  
+	           
+	                	XSSFSimpleShape sp  = xdraw.createSimpleShape(anc);
+	 
+	                	sp.setShapeType(pic.getShapeType());
+	                	sp.setText(pic.getText());
+	                	sp.setBottomInset(pic.getBottomInset());
+	                	sp.setLeftInset(pic.getLeftInset());
+	                	sp.setRightInset(pic.getRightInset());
+	                	sp.setTopInset(pic.getTopInset());
+	                	
+	          
+	                	sp.setTextDirection(pic.getTextDirection());
+	                	sp.setWordWrap(pic.getWordWrap());
+	                	sp.setVerticalAlignment(pic.getVerticalAlignment());
+	                	sp.setTextAutofit(pic.getTextAutofit());
+		        	 }	                
+	                
+	                
+	                
+	                
+	 
+	            }
+	        }
+	        
+	        
+
+					
+
+				
+			
+			
+
+			
+			
+			workbookOut.setForceFormulaRecalculation(m_forceFormulaUpdateOption.getBooleanValue());
 			
 			
 			
@@ -448,7 +529,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			)
 			{
 				
-			writeXlsWithPassword(workbook, out);	
+			writeXlsWithPassword(workbookOut, out);	
 			out.close();
 			
 			} catch (Exception c) {
@@ -467,11 +548,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 						"Error while writing " + c.getMessage(), c);
 
 		} 
-		
-		
-		
-		
-		
+
 		
 	}
 	 catch (Exception e) {
@@ -481,7 +558,149 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 
 	} 
 	
+	
+	
+
+	
+	
+	
+	
+
+    private void copyColumnFormats(Sheet sheetIn, Sheet sheetOut) {
+
+
+     Row firstRow = sheetIn.getRow(sheetIn.getFirstRowNum());
+     Iterator <Cell> cellIterator = firstRow.cellIterator();
+	    
+     
+		while (cellIterator.hasNext()) {
+	    	Cell cellIn = cellIterator.next();
+	    	int cellIndex = cellIn.getColumnIndex();
+	    	sheetOut.setDefaultColumnStyle(cellIndex, sheetIn.getColumnStyle(cellIndex));
+	    	sheetOut.setColumnWidth(cellIndex, sheetIn.getColumnWidth(cellIndex));
+
+	      }	
+    	
+    	
 		
+    	
+    	
+		
+	}
+
+
+
+	private void copySheetSettings(Sheet sheetIn, Sheet sheetOut)
+    {
+        sheetOut.setAutobreaks(sheetIn.getAutobreaks());
+        sheetOut.setDefaultColumnWidth(sheetIn.getDefaultColumnWidth());
+        sheetOut.setDefaultRowHeight(sheetIn.getDefaultRowHeight());
+        sheetOut.setDefaultRowHeightInPoints(sheetIn.getDefaultRowHeightInPoints());
+        sheetOut.setDisplayGuts(sheetIn.getDisplayGuts());
+        sheetOut.setFitToPage(sheetIn.getFitToPage());
+
+        sheetOut.setForceFormulaRecalculation(sheetIn.getForceFormulaRecalculation());
+
+
+        Header sheetInHeader = sheetIn.getHeader();
+        Header sheetOutHeader = sheetOut.getHeader();
+        sheetOutHeader.setCenter(sheetInHeader.getCenter());
+        sheetOutHeader.setLeft(sheetInHeader.getLeft());
+        sheetOutHeader.setRight(sheetInHeader.getRight());
+
+        Footer sheetInFooter = sheetIn.getFooter();
+        Footer sheetOutFooter = sheetOut.getFooter();
+        sheetOutFooter.setCenter(sheetInFooter.getCenter());
+        sheetOutFooter.setLeft(sheetInFooter.getLeft());
+        sheetOutFooter.setRight(sheetInFooter.getRight());
+
+        sheetOut.setHorizontallyCenter(sheetIn.getHorizontallyCenter());
+        sheetOut.setMargin(Sheet.LeftMargin, sheetIn.getMargin(Sheet.LeftMargin));
+        sheetOut.setMargin(Sheet.RightMargin, sheetIn.getMargin(Sheet.RightMargin));
+        sheetOut.setMargin(Sheet.TopMargin, sheetIn.getMargin(Sheet.TopMargin));
+        sheetOut.setMargin(Sheet.BottomMargin, sheetIn.getMargin(Sheet.BottomMargin));
+
+        sheetOut.setPrintGridlines(sheetIn.isPrintGridlines());
+        sheetOut.setRowSumsBelow(sheetIn.getRowSumsBelow());
+        sheetOut.setRowSumsRight(sheetIn.getRowSumsRight());
+        sheetOut.setVerticallyCenter(sheetIn.getVerticallyCenter());
+        sheetOut.setDisplayFormulas(sheetIn.isDisplayFormulas());
+        sheetOut.setDisplayGridlines(sheetIn.isDisplayGridlines());
+        sheetOut.setDisplayRowColHeadings(sheetIn.isDisplayRowColHeadings());
+        sheetOut.setDisplayZeros(sheetIn.isDisplayZeros());
+        sheetOut.setPrintGridlines(sheetIn.isPrintGridlines());
+        sheetOut.setRightToLeft(sheetIn.isRightToLeft());
+
+        PrintSetup sheetInPrintSetup = sheetIn.getPrintSetup();
+        PrintSetup sheetOutPrintSetup = sheetOut.getPrintSetup();
+
+        sheetOutPrintSetup.setPaperSize(sheetInPrintSetup.getPaperSize());
+        sheetOutPrintSetup.setScale(sheetInPrintSetup.getScale());
+        sheetOutPrintSetup.setPageStart(sheetInPrintSetup.getPageStart());
+        sheetOutPrintSetup.setFitWidth(sheetInPrintSetup.getFitWidth());
+        sheetOutPrintSetup.setFitHeight(sheetInPrintSetup.getFitHeight());
+        sheetOutPrintSetup.setLeftToRight(sheetInPrintSetup.getLeftToRight());
+        sheetOutPrintSetup.setLandscape(sheetInPrintSetup.getLandscape());
+        sheetOutPrintSetup.setValidSettings(sheetInPrintSetup.getValidSettings());
+        sheetOutPrintSetup.setNoColor(sheetInPrintSetup.getNoColor());
+        sheetOutPrintSetup.setDraft(sheetInPrintSetup.getDraft());
+        sheetOutPrintSetup.setNotes(sheetInPrintSetup.getNotes());
+        sheetOutPrintSetup.setNoOrientation(sheetInPrintSetup.getNoOrientation());
+        sheetOutPrintSetup.setUsePage(sheetInPrintSetup.getUsePage());
+        sheetOutPrintSetup.setHResolution(sheetInPrintSetup.getHResolution());
+        sheetOutPrintSetup.setVResolution(sheetInPrintSetup.getVResolution());
+        sheetOutPrintSetup.setHeaderMargin(sheetInPrintSetup.getHeaderMargin());
+        sheetOutPrintSetup.setFooterMargin(sheetInPrintSetup.getFooterMargin());
+        sheetOutPrintSetup.setCopies(sheetInPrintSetup.getCopies());
+     
+        
+    }
+    
+    
+	
+	private void copyCell(Cell cellIn, Cell cellOut, Workbook wb)
+    {
+		
+		
+		
+		
+		CellStyle newStyle = wb.createCellStyle();
+		
+		newStyle.cloneStyleFrom(cellIn.getCellStyle());	
+		cellOut.setCellStyle(newStyle);
+		
+		
+	
+        switch (cellIn.getCellType())
+        {
+        case STRING:
+        	cellOut.setCellValue(cellIn.getStringCellValue());
+            break;
+        case NUMERIC:
+        	cellOut.setCellValue(cellIn.getNumericCellValue());
+            break;
+        case BLANK:
+        	cellOut.setBlank();
+            break;
+        case BOOLEAN:
+        	cellOut.setCellValue(cellIn.getBooleanCellValue());
+            break;
+        case ERROR:
+        	cellOut.setCellErrorValue(cellIn.getErrorCellValue());
+            break;
+        case FORMULA:
+        	cellOut.setCellFormula(cellIn.getCellFormula());
+            break;
+        default:
+            break;
+        }
+        
+        
+        cellOut.setCellComment(cellIn.getCellComment());
+   
+        
+    }
+
 	
 	
 	
@@ -592,202 +811,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 
 	
 
-/**
-	 * writes cell to excel and set current format if row/column have to be created
- * @param textStyle 
-	 */		
-	private void writeXlsSSCell(Workbook workbook, Sheet sheet, CellStyle textStyle, int rowIndex, int colIndex,  DataCell cell)	
-	{
-		CreationHelper createHelper = workbook.getCreationHelper();
-		FormulaEvaluator evaluator = createHelper.createFormulaEvaluator();
-		
-	
-		Row row = sheet.getRow(rowIndex);
-		
-
-		if(row == null)
-		{
-			
-			createRowAtIndexWithColFormats(sheet, rowIndex);
-			row = sheet.getRow(rowIndex);
-			
-			
-		}
-		
-		
-		
-		//shift xls col by offset
-		Cell xlsxCell = row.getCell(colIndex); 
-
-			
-		if(xlsxCell == null)
-		{
-			
-			xlsxCell = row.createCell(colIndex);
-			xlsxCell.setCellStyle(getCellStype(row, colIndex));
-
-		}
-		
-		
-		if(cell.isMissing())
-		{
-		//handle all null values
-			
-		}
-		else if(cell.getType().getCellClass().equals((IntCell.class))) 
-		{
-			
-			IntCell intCell = (IntCell) cell;
-			xlsxCell.setCellValue(
-					intCell.getIntValue());
-		}
-		else if(cell.getType().getCellClass().equals((DoubleCell.class))) 
-		{
-			DoubleCell doubleCell = (DoubleCell) cell;
-			xlsxCell.setCellValue(
-					doubleCell.getDoubleValue());
-		}
-		
-		else if(cell.getType().getCellClass().equals((LongCell.class))) 
-		{
-			LongCell longCell = (LongCell) cell;
-			xlsxCell.setCellValue(
-					longCell.getLongValue());
-		}
-		
-		
-
-		else if(cell.getType().getCellClass().equals((DateAndTimeCell.class))) 
-		{
-			
-			DateAndTimeCell timeDateCell = (DateAndTimeCell) cell;
-			xlsxCell.setCellValue(
-					timeDateCell.getStringValue());			
-
-			
-		}
-		else if(cell.getType().getCellClass().equals((TimestampCell.class))) 
-		{
-			
-			TimestampCell timeCell = (TimestampCell) cell;
-			xlsxCell.setCellValue(
-					timeCell.getDate());			
-		}					
-		else if(cell.getType().getCellClass().equals((BooleanCell.class))) 
-		{
-			BooleanCell boolCell = (BooleanCell) cell;
-			xlsxCell.setCellValue(
-					boolCell.getBooleanValue());	
-			
-		}
-		
-		
-		
-		
-		else if(cell.getType().getCellClass().equals((StringCell.class))) 
-		{
-			StringCell stringCell = (StringCell) cell;
-			
-			if (stringCell.getStringValue().startsWith("=") && m_writeFormulaOption.getBooleanValue())
-			{
-				
-				xlsxCell.setCellStyle(textStyle);
-				//escape formula 
-				xlsxCell.setCellValue(createHelper.createRichTextString(stringCell.getStringValue()));
-				
-				
-			} else if (stringCell.getStringValue().startsWith("=") && !m_writeFormulaOption.getBooleanValue())
-			{
-				
-				xlsxCell.setCellFormula(stringCell.getStringValue().substring(1));
-				evaluator.evaluateFormulaCell(xlsxCell);
-			
-				
-			}
-			
-			
-			
-			else
-			{
-				xlsxCell.setCellValue(createHelper.createRichTextString(stringCell.getStringValue()));
-			}	
-		}
-		
-
-		else if(cell.getType().getCellClass().equals((PNGImageCell.class))) 
-		{
-			
-			
-			PNGImageContent image = ((PNGImageValue) cell).getImageContent();
-			
-			byte[] bytes = image.getByteArray();
-
-			
-			int my_picture_id = workbook.addPicture(bytes, Workbook.PICTURE_TYPE_PNG);
-			Drawing<?> drawing = (Drawing<?>) sheet.createDrawingPatriarch();
-			
-			ClientAnchor my_anchor = createHelper.createClientAnchor();
-			
-			//upper right
-			my_anchor.setCol1(colIndex);
-			my_anchor.setRow1(rowIndex); 
-			
-			//lower left
-			my_anchor.setCol2(colIndex+1);
-			my_anchor.setRow2(rowIndex+1); 
-		
-
-			@SuppressWarnings("unused")
-			Picture my_picture = drawing.createPicture(my_anchor, my_picture_id);
-			//my_picture.resize();
-			   
-		}
-		
-
-		
-		else
-		{
-			xlsxCell.setCellValue(cell.toString());
-		}
-		
-	}
-
-	private CellStyle getCellStype(Row row, int colIndex) {
-			Cell cell = row.createCell(colIndex);
-			CellStyle cellStyle = cell.getCellStyle();
-			if (cellStyle.getIndex() == 0) 
-			{
-				cellStyle = row.getRowStyle();
-			}
-			if (cellStyle == null) 
-			{
-				cellStyle = cell.getSheet().getColumnStyle(colIndex);
-			}
-			if (cellStyle == null) 
-			{
-				cellStyle = cell.getCellStyle();
-			}
-			return cellStyle;
-			
-			
-		}
-
-
-	private void createRowAtIndexWithColFormats(Sheet sheet, int rowIndex) {
-			
-		
-		sheet.createRow(rowIndex);
-		Row row = sheet.getRow(rowIndex);
-		row.getLastCellNum();
-		
-		for (int i = 0; i < row.getLastCellNum(); i++)
-		{
-			row.getCell(i).setCellStyle(sheet.getColumnStyle(i));
-		}
-		
-	}
-
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -824,7 +847,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 */
 		//DataTableSpec inputTableSpec = inSpecs[0];
 		//return new DataTableSpec[] { createOutputSpec(inputTableSpec) };
-		return new PortObjectSpec[]{};
+		return new PortObjectSpec[0];
 	}
 
 	
@@ -984,16 +1007,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 */
 		//m_numberFormatSettings.saveSettingsTo(settings);
 		
-		m_sheetName.saveSettingsTo(settings);
-		m_copyOrWrite.saveSettingsTo(settings);
-		m_colOffset.saveSettingsTo(settings);
-		m_rowOffset.saveSettingsTo(settings);
+		m_sheetNameIn.saveSettingsTo(settings);
+		m_sheetNameOut.saveSettingsTo(settings);
 		m_sheetOrIndex.saveSettingsTo(settings);
 		m_sheetIndex.saveSettingsTo(settings);
-		m_writeLastRowOption.saveSettingsTo(settings);
-		m_writeHeaderOption.saveSettingsTo(settings);
-		m_writeFormulaOption.saveSettingsTo(settings);
-		m_overrideOrFail.saveSettingsTo(settings);
 		m_pwd.saveSettingsTo(settings);
 		m_outPwd.saveSettingsTo(settings);
 		m_templatefilePath2.saveSettingsTo(settings);
@@ -1017,17 +1034,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 
 		
 
-		m_sheetName.loadSettingsFrom(settings);
-		m_colOffset.loadSettingsFrom(settings);
-		m_rowOffset.loadSettingsFrom(settings);
-		
-		m_copyOrWrite.loadSettingsFrom(settings);
+		m_sheetNameIn.loadSettingsFrom(settings);
+		m_sheetNameOut.loadSettingsFrom(settings);
 		m_sheetOrIndex.loadSettingsFrom(settings);
 		m_sheetIndex.loadSettingsFrom(settings);
-		m_writeLastRowOption.loadSettingsFrom(settings);
-		m_writeHeaderOption.loadSettingsFrom(settings);
-		m_writeFormulaOption.loadSettingsFrom(settings);
-		m_overrideOrFail.loadSettingsFrom(settings);
 		m_pwd.loadSettingsFrom(settings);
 		m_outPwd.loadSettingsFrom(settings);
 		m_templatefilePath2.loadSettingsFrom(settings);
@@ -1048,55 +1058,19 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 * variables.
 		 */
 
-		m_sheetName.validateSettings(settings);
-		m_colOffset.validateSettings(settings);
-		m_rowOffset.validateSettings(settings);
-		m_copyOrWrite.validateSettings(settings);
+		m_sheetNameIn.validateSettings(settings);
+		m_sheetNameOut.validateSettings(settings);
 		m_sheetOrIndex.validateSettings(settings);
 		m_sheetIndex.validateSettings(settings);
-		m_writeLastRowOption.validateSettings(settings);
-		m_writeHeaderOption.validateSettings(settings);
-		m_writeFormulaOption.validateSettings(settings);
-		m_overrideOrFail.validateSettings(settings);
 		m_pwd.validateSettings(settings);
 		m_outPwd.validateSettings(settings);
 		m_templatefilePath2.validateSettings(settings);
 		m_outputfilePath2.validateSettings(settings);
 		m_enablePassOption.validateSettings(settings);
 		m_forceFormulaUpdateOption.validateSettings(settings);
-		validateUserInput();
 
 	}
 	
-	protected void validateUserInput() throws InvalidSettingsException
-	{
-		int colOff = m_colOffset.getIntValue();
-		int rowOff = m_rowOffset.getIntValue();
-		
-
-		if(
-				colOff > 16384
-		)
-		{
-			throw new InvalidSettingsException(
-					"Starting column offset is to large - Excel only supports 16384 columns");	
-		} else if(colOff < 1 )
-		{
-			throw new InvalidSettingsException(
-					"Starting column offset cannot be below 1");	
-		}
-		if(
-				rowOff > 1048575
-		)
-		{
-			throw new InvalidSettingsException(
-					"Starting row offset is to large - Excel only supports 1048575 rows");	
-		} else if(rowOff < 1 )
-		{
-			throw new InvalidSettingsException(
-					"Starting row offset cannot be below 1");	
-		}
-	}
 
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
@@ -1130,4 +1104,3 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 */
 	}
 }
-
