@@ -19,7 +19,13 @@
             category-path="/community/AF_Utilities"
             factory-class="org.AF.PGPUtilities.PGPDecryptor.PGPDecryptNodeFactory">	 
       </node>
-            <node
+      
+      <node
+            category-path="/community/AF_Utilities"
+            factory-class="org.AF.PGPUtilities.HmacHashing.HmacHashingNodeFactory">	 
+      </node>
+      
+      <node
             category-path="/community/AF_Utilities"
             factory-class="org.AF.PGPUtilities.PGPEncryptor.PGPEncryptorNodeFactory">	 
       </node>
@@ -226,6 +232,23 @@
 	        category-path="/community/AF_Utilities/ExcelUtil"
 	        factory-class="org.AF.ExcelUtilities.EvaluateExcelFormula.EvaluateExcelFormulaNodeFactory">	 
 	</node>	 
+	
+	<node
+	        category-path="/community/AF_Utilities/ExcelUtil"
+	        factory-class="org.AF.ExcelUtilities.TableToExcelCellUpdater.TableToExcelCellUpdaterNodeFactory">	 
+	</node>	 
+	
+	<node
+	        category-path="/community/AF_Utilities/ExcelUtil"
+	        factory-class="org.AF.ExcelUtilities.CopyExcelSheet.CopyExcelSheetNodeFactory">	 
+	</node>	 
+
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.TableUtil.RangeBuilder.RangeBuilderNodeFactory">	 
+    </node>
+    
+	
 		                 
    </extension>
    <extension

@@ -81,5 +81,8 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.TableUtil.GroupAll,
  org.AF.TableUtil.RegexToList,
  org.AF.ExcelUtilities.EvaluateExcelFormula,
- org.AF.TableUtil.RegexSubstring
+ org.AF.TableUtil.RegexSubstring,
+ org.AF.ExcelUtilities.TableToExcelCellUpdater,
+ org.AF.ExcelUtilities.CopyExcelSheet,
+ org.AF.TableUtil.RangeBuilder
 Import-Package: org.w3c.dom.events;version="3.0.0"
