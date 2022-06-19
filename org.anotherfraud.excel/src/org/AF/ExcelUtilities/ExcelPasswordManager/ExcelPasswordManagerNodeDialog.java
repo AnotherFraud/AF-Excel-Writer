@@ -20,10 +20,15 @@ package org.AF.ExcelUtilities.ExcelPasswordManager;
 
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import javax.swing.JFileChooser;
 
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
@@ -31,9 +36,12 @@ import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.core.util.Pair;
+
 /**
  * This is an example implementation of the node dialog of the
  * "ExcelPasswordManager" node.
@@ -55,14 +63,22 @@ public class ExcelPasswordManagerNodeDialog extends DefaultNodeSettingsPane {
 	 * New dialog pane for configuring the node. The dialog created here
 	 * will show up when double clicking on a node in KNIME Analytics Platform.
 	 */
+	
+	private final DialogComponentAuthentication m_authenticationTemplatePanel;
+	private final SettingsModelAuthentication passwordModel;
+	
+	private final DialogComponentAuthentication m_authenticationTOutputPanel;
+	private final SettingsModelAuthentication outPasswordModel;	
+	
+	
     protected ExcelPasswordManagerNodeDialog() {
             super();
 
 
         	
              final SettingsModelFileChooser2 templateFilePathModel2 = ExcelPasswordManagerNodeModel.createTemplateFilePath2SettingsModel();
-            final SettingsModelAuthentication passwordModel = ExcelPasswordManagerNodeModel.createPassSettingsModel();
-            final SettingsModelAuthentication outPasswordModel = ExcelPasswordManagerNodeModel.createOutPassSettingsModel();
+            passwordModel = ExcelPasswordManagerNodeModel.createPassSettingsModel();
+            outPasswordModel = ExcelPasswordManagerNodeModel.createOutPassSettingsModel();
             
         
         	final SettingsModelFileChooser2 outputFilePathModel2 = ExcelPasswordManagerNodeModel.createOutputFilePath2SettingsModel();
@@ -109,7 +125,28 @@ public class ExcelPasswordManagerNodeDialog extends DefaultNodeSettingsPane {
             });
             
 
-            
+        	//Map<AuthenticationType, Pair<String, String>> map;
+           	HashMap<AuthenticationType, Pair<String, String>> mapPass = new HashMap<AuthenticationType, Pair<String, String>>()
+           	{
+    		private static final long serialVersionUID = -3983012018710953380L;
+
+    		{
+           	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Template Credential","Excel Template Credential"));
+           	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Template Password","Excel Template Password"));
+
+           	}}; 
+           	
+           	
+           	//Map<AuthenticationType, Pair<String, String>> map;
+           	HashMap<AuthenticationType, Pair<String, String>> mapOut = new HashMap<AuthenticationType, Pair<String, String>>()
+           	{
+    		private static final long serialVersionUID = -3983011018710953380L;
+
+    		{
+           	     put(AuthenticationType.CREDENTIALS, new Pair<String, String>("Excel Output Credential","Excel Output Credential"));
+           	     put(AuthenticationType.PWD, new Pair<String, String>("Excel Output Password","Excel Output Password"));
+
+           	}};      
         
             
             createNewGroup("Input File Selection");
@@ -164,13 +201,41 @@ public class ExcelPasswordManagerNodeDialog extends DefaultNodeSettingsPane {
             
             
             
-            addDialogComponent(new  DialogComponentAuthentication(passwordModel, "Excel Template Password", AuthenticationType.PWD));
-            addDialogComponent(new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", AuthenticationType.PWD));
-
+            m_authenticationTemplatePanel = new  DialogComponentAuthentication(passwordModel, "Excel Template Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapPass);
+            addDialogComponent(m_authenticationTemplatePanel);
+            
+            
+            m_authenticationTOutputPanel = new  DialogComponentAuthentication(outPasswordModel, "Excel Output Password", Arrays.asList(AuthenticationType.CREDENTIALS, AuthenticationType.PWD), mapOut);
+            addDialogComponent(m_authenticationTOutputPanel);    
+            
+            
             
             
             closeCurrentGroup();
             
     }
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	passwordModel.saveSettingsTo(settings);    	
+    	outPasswordModel.saveSettingsTo(settings);   
+    	
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	try {
+    		passwordModel.loadSettingsFrom(settings);
+    		m_authenticationTemplatePanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+    		
+    		outPasswordModel.loadSettingsFrom(settings);
+    		m_authenticationTOutputPanel.loadSettingsFrom(settings, specs, getCredentialsProvider());
+    		
+    	} catch (InvalidSettingsException e) {
+    		throw new NotConfigurableException(e.getMessage(), e);
+    	}
+    }
+    
+    
 }
 

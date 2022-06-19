@@ -22,6 +22,7 @@ package org.AF.KeepassUtilities.KeepassReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.File;
 import java.io.IOException;
@@ -179,7 +180,7 @@ public class KeepassReaderNodeModel extends NodeModel {
 
 			String inputfilePath = pathTemplate.toAbsolutePath().toString();
 				
-			KeePassFile database = KeePassDatabase.getInstance(inputfilePath).openDatabase(m_pwd.getPassword());
+			KeePassFile database = KeePassDatabase.getInstance(Files.newInputStream(pathTemplate)).openDatabase(m_pwd.getPassword(getCredentialsProvider()));
 			Entry passEntry = database.getEntryByTitle(title);	
 			
 			
