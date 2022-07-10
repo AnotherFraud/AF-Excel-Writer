@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.knime.core.data.DataCell;
@@ -34,8 +34,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -266,14 +266,14 @@ public class GetSPListItemsNodeModel extends NodeModel {
 				get.setHeader("accept", "application/json;odata=verbose");
 
 			        /* Executing the post request */
-				HttpResponse responseColumnInfo = client.execute(get);
+				ClassicHttpResponse responseColumnInfo = (ClassicHttpResponse) client.execute(get);
 		  
 			    String responseBodyColumnInfo = EntityUtils.toString(responseColumnInfo.getEntity());
 					        
 
 			        
 			        
-				    if(responseColumnInfo.getStatusLine().getStatusCode()==200)
+				    if(responseColumnInfo.getCode()==200)
 					     {   
 				    	
 				    	String[][] columnHeaders = parseColumnHeaderInfo(responseBodyColumnInfo);
@@ -305,8 +305,8 @@ public class GetSPListItemsNodeModel extends NodeModel {
 						
 						 while(getNext)
 				    	 {
-					         get.setURI(URI.create(url));
-					    	 HttpResponse response = client.execute(get);
+					         get.setUri(URI.create(url));
+					    	 ClassicHttpResponse response = (ClassicHttpResponse) client.execute(get);
 							 String responseBody = EntityUtils.toString(response.getEntity());
 							 
 							 JSONObject jsonObj = new JSONObject(responseBody);
@@ -334,7 +334,7 @@ public class GetSPListItemsNodeModel extends NodeModel {
 							 else
 							 {
 								 pushFlowVariableString("ErrorResponseString", responseBody);
-								 pushFlowVariableString("ErrorResponseStatus", Integer.toString(response.getStatusLine().getStatusCode()));
+								 pushFlowVariableString("ErrorResponseStatus", Integer.toString(response.getCode()));
 								 break;
 							 }
 							 
