@@ -4,15 +4,16 @@ import static java.lang.Math.toIntExact;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+
 import org.json.JSONObject;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -45,7 +46,11 @@ public class SharePointHelper {
 		if(proxyEnabled)
 		{
         RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
+
+        
+        
+        HttpHost proxy = new HttpHost("http",proxyHost,proyPort);
+        
         reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
         RequestConfig config = reqconfigconbuilder.build();
         
@@ -60,7 +65,7 @@ public class SharePointHelper {
 		if(proxyEnabled)
 		{
         RequestConfig.Builder reqconfigconbuilder= RequestConfig.custom();
-        HttpHost proxy = new HttpHost(proxyHost, proyPort, "http");
+        HttpHost proxy = new HttpHost("http",proxyHost,proyPort);
         reqconfigconbuilder = reqconfigconbuilder.setProxy(proxy);
         RequestConfig config = reqconfigconbuilder.build();
         
@@ -71,11 +76,14 @@ public class SharePointHelper {
 	
 	public static void setProxyCredentials(HttpClientBuilder clientbuilder,boolean proxyEnabled, String proxyHost, int proyPort,String proxyUser, String proxyPass) {
 		
+
+		   
 		if(proxyEnabled)
 		{
-        CredentialsProvider credentialsPovider = new BasicCredentialsProvider();
+		BasicCredentialsProvider credentialsPovider = new BasicCredentialsProvider();
+        
     	credentialsPovider.setCredentials(new AuthScope(proxyHost, proyPort), new
-    		   UsernamePasswordCredentials(proxyUser, proxyPass));
+    		   UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray()));
     		
     	clientbuilder = clientbuilder.setDefaultCredentialsProvider(credentialsPovider);
 		}

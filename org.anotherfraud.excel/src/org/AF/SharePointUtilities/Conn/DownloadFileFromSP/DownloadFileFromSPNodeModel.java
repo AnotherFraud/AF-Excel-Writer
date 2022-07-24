@@ -11,11 +11,11 @@ import java.util.Optional;
 import org.AF.Connections.ConnectionInformation;
 import org.AF.Connections.ConnectionInformationPortObject;
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -180,15 +180,15 @@ public class DownloadFileFromSPNodeModel extends NodeModel {
 	
 	        
 	        /* Executing the post request */
-	        HttpResponse response = client.execute(get);
+	        ClassicHttpResponse response = (ClassicHttpResponse) client.execute(get);
 	       
 
-	        pushFlowVariableString("DownloadStatus", response.getStatusLine().toString());
+	        pushFlowVariableString("DownloadStatus", String.valueOf(response.getCode()));
 
 	        
 	        
 	        
-		    if(response.getStatusLine().getStatusCode()==200)
+		    if(response.getCode()==200)
 		    {	
 		    	
 		    

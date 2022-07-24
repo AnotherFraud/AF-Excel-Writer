@@ -6,15 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -217,10 +217,10 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 		    post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
 		    /* Executing the post request */
-		    HttpResponse response = client.execute(post);
+		    ClassicHttpResponse response = (ClassicHttpResponse) client.execute(post);
 
 
-	        pushFlowVariableString("ResponseStatus", response.getStatusLine().toString());
+		    pushFlowVariableString("ResponseStatus", String.valueOf(response.getCode()));
 
 	        
 	        
@@ -228,7 +228,7 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 		    String accessToken = null;
 		    
 		    
-	        if (response.getStatusLine().getStatusCode()==200)
+	        if (response.getCode()==200)
 	        {
 	        	
 	        	JSONObject temp1 = new JSONObject(json_string);  
@@ -249,7 +249,7 @@ public class GetRestAccessTokenNodeModel extends NodeModel {
 				 throw new InvalidSettingsException(
 							"No token response for given settings.\n"
 						 			+ "HttpStatus:" 
-									+ response.getStatusLine().getStatusCode()
+									+ response.getCode()
 									+ "\n"
 									+ json_string
 						 );
