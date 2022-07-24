@@ -19,7 +19,6 @@ package org.AF.ExcelUtilities.ExcelPasswordManager;
  */
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -214,17 +213,26 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 			
 		
 		FileChooserHelper fileHelperTemplate = new FileChooserHelper(m_fs, m_templatefilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathTemplate = fileHelperTemplate.getPathFromSettings();
+		Path templatePath = fileHelperTemplate.getPathFromSettings();
 		
 		
 		
 		
 		
-		String templatefilePath = pathTemplate.toAbsolutePath().toString();
-		String outputPath;
+		String templatefilePath = templatePath.toAbsolutePath().toString();
+		Path outputPath;
+		String outputPathString;
 
 		
-		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
+		Workbook workbook;
+		
+		try(
+				InputStream in = Files.newInputStream(templatePath);
+		)
+		{
+			workbook = openWorkBook(in);
+		};
+		
 	
 	
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
@@ -232,22 +240,23 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 			
 			FileChooserHelper fileHelperOutput;
 			fileHelperOutput = new FileChooserHelper(m_fs, m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-			Path pathOutput = fileHelperOutput.getPathFromSettings();
-			outputPath = pathOutput.toAbsolutePath().toString();
+			outputPath = fileHelperOutput.getPathFromSettings();
+			outputPathString = outputPath.toAbsolutePath().toString();
 			
 		}
 		else
 		{
-			outputPath = templatefilePath;
+			outputPath = templatePath;
+			outputPathString = templatefilePath;
 		}
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
-		pushFlowVariableString("outputFilePath", outputPath);
+		pushFlowVariableString("outputFilePath", outputPathString);
 		
 		
 		
 		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null 
+		if (isFileReachable(outputPathString) != null 
 				&& m_overrideOrFail.getStringValue().equals("Fail") 
 				&& m_copyOrWrite.getStringValue().equals("CopyFrom") 
 		)
@@ -267,11 +276,11 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 
 			
 			try(
-					FileOutputStream out = new FileOutputStream(new File(outputPath))		
+					OutputStream out = Files.newOutputStream(outputPath);
 			)
 			{
 				
-			writeXlsWithPassword(workbook,outputPath, out);	
+			writeXlsWithPassword(workbook, out);	
 			out.close();
 			
 			} catch (Exception c) {
@@ -287,7 +296,6 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 						"Error while writing " + c.getMessage(), c);
 
 		} 
-		
 		
 		
 		
@@ -309,17 +317,17 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 	 * handles the different output write options 
 	 * writes if selected the Excel file with password or without
 	 */
-		private void writeXlsWithPassword(Workbook workbook, String outputPath, FileOutputStream out) throws Exception {
+		private void writeXlsWithPassword(Workbook workbook, OutputStream out) throws Exception {
 			
 			String outputPass = "";
 			
 			
 			if (m_enablePassOption.getStringValue().equals("Add PWD")) {
-				outputPass = m_pwd.getPassword();
+				outputPass = m_pwd.getPassword(getCredentialsProvider());
             } else if (m_enablePassOption.getStringValue().equals("Remove PWD")) {
             	outputPass = "";
             }else if (m_enablePassOption.getStringValue().equals("Change PWD")) {
-            	outputPass = m_outPwd.getPassword();
+            	outputPass = m_outPwd.getPassword(getCredentialsProvider());
             }
 			
 
@@ -355,7 +363,7 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 		/**
 		 * handles xls file encryption
 		 */
-		 public static void encryptXLS(Workbook workbook, FileOutputStream out, String outputPass) throws Exception {
+		 public static void encryptXLS(Workbook workbook, OutputStream out, String outputPass) throws Exception {
 
 	
 			 Biff8EncryptionKey.setCurrentUserPassword(outputPass);
@@ -366,7 +374,7 @@ public class ExcelPasswordManagerNodeModel extends NodeModel {
 			/**
 			 * handles xlsx/xslm file encryption
 			 */	 
-		 public static void encryptXLSX(Workbook workbook, FileOutputStream out,String outputPass) throws Exception {
+		 public static void encryptXLSX(Workbook workbook, OutputStream out,String outputPass) throws Exception {
 
 			  POIFSFileSystem fs = new POIFSFileSystem();
 			  EncryptionInfo info = new EncryptionInfo(EncryptionMode.agile);
@@ -396,7 +404,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 			Workbook workbook = null;
 
 
-			workbook = WorkbookFactory.create(file,m_pwd.getPassword());
+			workbook = WorkbookFactory.create(file,m_pwd.getPassword(getCredentialsProvider()));
 			file.close();
 			
 	
