@@ -285,9 +285,7 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 		Sheet sheetIn;
 		Sheet sheetOut;
 		
-		DataFormat df = workbookIn.createDataFormat();
-		CellStyle textStyle = workbookIn.createCellStyle();
-		textStyle.setDataFormat(df.getFormat("text"));	
+
 		
 		int currentRowCounter = 0;
 		
@@ -307,13 +305,7 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 		}
 		
 
-		//create output sheet
-		sheetOut = workbookOut.createSheet(m_sheetNameOut.getStringValue());
 		
-		
-		
-		copySheetSettings(sheetIn,sheetOut);
-		copyColumnFormats(sheetIn,sheetOut);
 		
 		
 		
@@ -321,23 +313,50 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 		
 		Iterator<Row> rowIterator = sheetIn.iterator();
 		
-		//if (templatefilePath.equals(outputPath))		
-		//Sheet sheetnew = workbook.cloneSheet(workbook.getSheetIndex(sheet.getSheetName()));
-		//workbook.setSheetName(workbook.getSheetIndex(sheetnew), m_sheetNameOut.getStringValue());
+
 			
 
 
 		try
 		{
 			
+		if (templatefilePath.equals(outputPath))		
+				
+		{
+			Sheet sheetnew = workbookIn.cloneSheet(workbookIn.getSheetIndex(sheetIn));
+			workbookIn.setSheetName(workbookIn.getSheetIndex(sheetnew), m_sheetNameOut.getStringValue());
+		}
+		else
+		{
+			
 
+			
+			
+		//create output sheet
+
+		if(workbookOut.getSheetIndex(m_sheetNameOut.getStringValue()) > -1)
+		{
+			workbookOut.removeSheetAt(workbookOut.getSheetIndex(m_sheetNameOut.getStringValue()));
+		}
+
+		
+		sheetOut = workbookOut.createSheet(m_sheetNameOut.getStringValue());
+		
+		
+		DataFormat df = workbookIn.createDataFormat();
+		CellStyle textStyle = workbookIn.createCellStyle();
+		textStyle.setDataFormat(df.getFormat("text"));	
+		
+		
+		copySheetSettings(sheetIn,sheetOut);
+		copyColumnFormats(sheetIn,sheetOut);		
+				
+				
 			
 			// Iterate over the rows of the input table.
 			while (rowIterator.hasNext()) {
 				
-				
-				
-				
+
 			Row currentRow = rowIterator.next();
 			
 			Row outRow = sheetOut.createRow(currentRow.getRowNum());
@@ -348,7 +367,7 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	        {
 
 	            CellStyle rowStyle = currentRow.getRowStyle();
-	            
+            
 	    		CellStyle newStyle = workbookOut.createCellStyle();
 	    		newStyle.cloneStyleFrom(rowStyle);	
 
@@ -397,9 +416,15 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	        
 	 
 	        Drawing drawing = sheetIn.getDrawingPatriarch();
+	        
+	        
 	        Drawing drawingOut = sheetOut.createDrawingPatriarch();
 	   
-	        if (drawing instanceof HSSFPatriarch) {
+	        if (drawing == null)
+	        {
+	        	
+	        }
+	        else if (drawing instanceof HSSFPatriarch) {
 	            HSSFPatriarch hp = (HSSFPatriarch) drawing;
 	            
 
@@ -417,7 +442,9 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	    	        anc.setDx2(xsA.getDx2());
 	    	        anc.setDy1(xsA.getDy1());
 	    	        anc.setDy2(xsA.getDy2());
-	    
+	    	        anc.setCol1(0);
+	    	        anc.setRow1(0);
+
 	 
 	                if (hs instanceof Picture) {
 	                	Picture pic = (Picture) hs; 
@@ -425,13 +452,17 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 		        		 drawingOut.createPicture(pic.getClientAnchor(), picIndex);
 		        	 }
 	                
-	                if (hs instanceof SimpleShape) {	                
+	                if (hs instanceof SimpleShape) {	  
+	                	
+	                	
 	                	HSSFSimpleShape pic = (HSSFSimpleShape) hs; 
 	                	
-	                
-	                	HSSFSimpleShape sp  = hp.createSimpleShape(anc);
+	           
+	                	HSSFSimpleShape shape  = hp.createSimpleShape(anc);
 	 
-	                	sp.setShapeType(pic.getShapeType());
+	                	shape.setShapeType(pic.getShapeType());
+	                	
+	                	
 	                	
 	                	/*
 	                	sp.setText(pic.getText());
@@ -473,22 +504,48 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	    	        anc.setDx2(xsA.getDx2());
 	    	        anc.setDy1(xsA.getDy1());
 	    	        anc.setDy2(xsA.getDy2());
-	    
-	 
+	  
 	                if (xs instanceof Picture) {
 	                	Picture pic = (Picture) xs; 
 	        		        		 int picIndex = workbookOut.addPicture(pic.getPictureData().getData(),  pic.getPictureData().getPictureType());
 		        		 drawingOut.createPicture(pic.getClientAnchor(), picIndex);
 		        	 }
 	                
-	                if (xs instanceof SimpleShape) {	                
-	                	XSSFSimpleShape pic = (XSSFSimpleShape) xs; 
+	                if (xs instanceof SimpleShape) {
 	                	
-	  
-	           
-	                	XSSFSimpleShape sp  = xdraw.createSimpleShape(anc);
 	 
+	                	
+	                	
+	                	//XSSFDrawing xdrawOut = (XSSFDrawing) drawingOut;
+	                	/*
+	                	
+	        
+	                	XSSFClientAnchor anchor = new XSSFClientAnchor(0, 0, 1023, 255, (short) 2, 4, (short) 13, 26);
+	                	XSSFTextBox textbox = testDraw.createTextbox(anchor);
+	                	XSSFRichTextString rtxt = new XSSFRichTextString("ekozhan");
+	                	XSSFFont font = (XSSFFont) workbookOut.createFont();
+	                	font.setColor((short) 27);
+	                	font.setBold(true);
+	                	font.setFontHeightInPoints((short) 192);
+	                	font.setFontName("Verdana");
+	                	rtxt.applyFont(font);
+	                	textbox.setText(rtxt);
+	              
+	                	textbox.setLineWidth(10);
+	                	textbox.setLineStyle(1);
+	      				*/
+	                	
+	                	
+	    
+	                	/*
+	                	XSSFSimpleShape sp  = xdrawOut.createSimpleShape(anc);
+	                	
 	                	sp.setShapeType(pic.getShapeType());
+	                	sp.setLineStyle(1);
+	                	*/
+	                	
+	                	
+	                	/*
 	                	sp.setText(pic.getText());
 	                	sp.setBottomInset(pic.getBottomInset());
 	                	sp.setLeftInset(pic.getLeftInset());
@@ -500,6 +557,8 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	                	sp.setWordWrap(pic.getWordWrap());
 	                	sp.setVerticalAlignment(pic.getVerticalAlignment());
 	                	sp.setTextAutofit(pic.getTextAutofit());
+	                	*/
+	                	
 		        	 }	                
 	                
 	                
@@ -510,7 +569,7 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 	        }
 	        
 	        
-
+		}
 					
 
 				
@@ -557,9 +616,6 @@ public class CopyExcelSheetNodeModel extends NodeModel {
 		 }
 
 	} 
-	
-	
-	
 
 	
 	
