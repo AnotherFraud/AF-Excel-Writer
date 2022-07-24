@@ -10,13 +10,13 @@ import org.AF.Connections.ConnectionInformation;
 import org.AF.Connections.ConnectionInformationPortObject;
 import org.AF.SharePointUtilities.GetRestAccessToken.GetRestAccessTokenNodeModel;
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.json.JSONObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -192,19 +192,19 @@ public class UploadFileToSPNodeModel extends NodeModel {
 	        //post.addHeader("Proxy-Authorization", "Basic " + authenticationEncoded );
 	        
 	        /* Declaring File Entity */
-	        post.setEntity(new FileEntity(file));
+	        post.setEntity(new FileEntity(file, null));
 
 	        /* Executing the post request */
-	        HttpResponse response = client.execute(post);
+	        ClassicHttpResponse response = (ClassicHttpResponse) client.execute(post);
 	       
 	        
 	        String responseBody = EntityUtils.toString(response.getEntity());
 	        
 
-	        pushFlowVariableString("UploadStatus", response.getStatusLine().toString());
+	        pushFlowVariableString("UploadStatus", String.valueOf(response.getCode()));
 	        pushFlowVariableString("UploadResponse", responseBody);
 	        
-		    if(response.getStatusLine().getStatusCode()==200)
+		    if(response.getCode()==200)
 		    {	
 		    	
 		    	
