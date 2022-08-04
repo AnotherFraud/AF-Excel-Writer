@@ -1,4 +1,4 @@
-package org.AF.SeleniumFire.SendKeys;
+package org.AF.SeleniumFire.SendSpecialKeys;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,11 +27,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.Keys;
 
 
 /**
  * This is an example implementation of the node model of the
- * "SendKeys" node.
+ * "SendSpecialKeys" node.
  * 
  * This example node performs simple number formatting
  * ({@link String#format(String, Object...)}) using a user defined format string
@@ -39,16 +40,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  *
  * @author Another Fraud
  */
-public class SendKeysNodeModel extends NodeModel {
+public class SendSpecialKeysNodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(SendKeysNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(SendSpecialKeysNodeModel.class);
 
-	
 	static final String sendText = "sendText";
     static final String locatorString = "locatorString";
     static final String searchIn = "searchIn";
@@ -56,7 +56,7 @@ public class SendKeysNodeModel extends NodeModel {
 
  
 	static SettingsModelString createSendTextStringSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(sendText, null);
+		SettingsModelString coof = new SettingsModelString(sendText, "ENTER");
 		coof.setEnabled(true);
 		return coof;				
 	}	
@@ -83,12 +83,11 @@ public class SendKeysNodeModel extends NodeModel {
 	private final SettingsModelString m_locatorString = createlocatorStringSettingsModel();
 	private final SettingsModelString m_searchIn = createSearchInSettingsModel();
 	private final SettingsModelString m_findBy = createFindBySettingsModel();
-    
-	
+
 	/**
 	 * Constructor for the node model.
 	 */
-	protected SendKeysNodeModel() {
+	protected SendSpecialKeysNodeModel() {
 		super(new PortType[]{SeleniumConnectionInformationPortObject.TYPE}, new PortType[]{SeleniumConnectionInformationPortObject.TYPE});
 	}
 
@@ -100,17 +99,9 @@ public class SendKeysNodeModel extends NodeModel {
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec)
 			throws Exception {
-		/*
-		 * The functionality of the node is implemented in the execute method. This
-		 * implementation will format each double column of the input table using a user
-		 * provided format String. The output will be one String column for each double
-		 * column of the input containing the formatted number from the input table. For
-		 * simplicity, all other columns are ignored in this example.
-		 * 
-		 * Some example log output. This will be printed to the KNIME console and KNIME
-		 * log.
-		 */
-		LOGGER.info("Start executing SendKeys");
+
+		
+		LOGGER.info("Start executing SendSpecialKeys");
 		
 		
 		SeleniumConnectionInformationPortObject spConn = (SeleniumConnectionInformationPortObject)inObjects[0];
@@ -131,8 +122,10 @@ public class SendKeysNodeModel extends NodeModel {
 		WebDriverWait wait = new WebDriverWait(driver,connInfo.getPageWaitSeconds());
 		wait.until((Function<WebDriver, WebElement>)ExpectedConditions.presenceOfElementLocated(by));    
 		
-		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);      
-        element.sendKeys(m_sendText.getStringValue());
+		WebElement element = FireHelper.locatorOrCurrentWebWelement(m_searchIn.getStringValue(), currentElement, by, driver);
+		
+
+        element.sendKeys(Keys.valueOf(m_sendText.getStringValue()));
 
 		return new PortObject[]{spConn};
 	}
