@@ -158,6 +158,8 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
         initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.autostart", "false","boolean" ));
         initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.autostart.2", "false","boolean" ));
         initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.warmup.maxTabs","2","integer" ));
+        initialPrefs.add(new FirefoxPreferences("Sandbox","--sandbox","argument" ));
+        
  
 		SettingsModelFirefoxSettings coof = new SettingsModelFirefoxSettings(foxSettings, initialPrefs);
 
@@ -280,7 +282,7 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		FirefoxOptions options = new FirefoxOptions();
 
 		options.setBinary(firefoxBinary);
-		options.addArguments("--sandbox");
+		//options.addArguments("--sandbox");
 		
 		setOptions(options);
 		options.addPreference("browser.download.dir",downloadPath);
@@ -330,6 +332,12 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
     	        case "boolean":
     	        	options.addPreference(pref.getColumnAt(0),BooleanUtils.toBoolean(pref.getColumnAt(1)));
     	            break;
+    	        case "argument":
+    	            options.addArguments(pref.getColumnAt(1), "");
+    	        	break;
+    	        case "argument2":
+    	            options.addArguments(pref.getColumnAt(0), pref.getColumnAt(1));
+    	        	break;
     	        default:
     	        	//ignore wrong types
     	            break;
