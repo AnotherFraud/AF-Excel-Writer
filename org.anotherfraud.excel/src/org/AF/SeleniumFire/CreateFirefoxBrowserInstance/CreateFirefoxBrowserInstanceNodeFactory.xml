@@ -28,7 +28,9 @@
 		</option>	
 		
   		<option name="Firefox Preferences">
-  				Define all firefox preferences the session should use
+  				Define all firefox preferences or arguments the session should use
+  				argument: --sandbox
+  				argument2: -profile C:/folder/profile
 		</option>	
 		
 		<option name="Proxy Options">

@@ -170,6 +170,11 @@
 	
 	<node
 	      category-path="/community/AF_Utilities/FirefoxUtil"
+	      factory-class="org.AF.SeleniumFire.SendSpecialKeys.SendSpecialKeysNodeFactory">	 
+	</node>
+	
+	<node
+	      category-path="/community/AF_Utilities/FirefoxUtil"
 	      factory-class="org.AF.SeleniumFire.Submit.SubmitNodeFactory">	 
 	</node>  
 	           
