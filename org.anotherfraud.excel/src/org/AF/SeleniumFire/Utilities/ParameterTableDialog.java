@@ -120,6 +120,8 @@ public class ParameterTableDialog extends JDialog {
 			comboBox.addItem("integer");
 			comboBox.addItem("string");
 			comboBox.addItem("boolean");
+			comboBox.addItem("argument");
+			comboBox.addItem("argument2");
 			comboColumn.setCellEditor(new DefaultCellEditor(comboBox));
 			
 			//Set up tool tips for the sport cells.
