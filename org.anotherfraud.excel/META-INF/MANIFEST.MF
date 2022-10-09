@@ -21,17 +21,18 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,5.0.0)",
  com.sun.jna.platform;bundle-version="4.5.1",
  org.apache.commons.lang;bundle-version="2.6.0",
  org.knime.ext.seleniumdrivers.multios;bundle-version="[4.3.1,5.0.0)",
- org.apache.servicemix.bundles.poi;bundle-version="4.1.2",
  org.apache.httpcomponents.fluent-hc;bundle-version="4.5.10",
  org.apache.httpcomponents.httpmime;bundle-version="4.5.10",
  org.openqa.selenium;bundle-version="3.12.0",
  org.apache.commons.codec;bundle-version="1.14.0",
  org.apache.commons.logging;bundle-version="1.2.0",
  org.knime.filehandling.core;bundle-version="[4.6.0.0,5.0.0)",
- org.slf4j.api;bundle-version="1.7.30"
+ org.slf4j.api;bundle-version="1.7.30",
+ org.apache.poi;bundle-version="4.1.1",
+ org.apache.poi.ooxml;bundle-version="4.1.1"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.WriteToExcelTemplate,
  org.AF.KeepassUtilities.KeepassReader,
@@ -84,4 +85,3 @@ Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.TableToExcelCellUpdater,
  org.AF.ExcelUtilities.CopyExcelSheet,
  org.AF.TableUtil.RangeBuilder
-Import-Package: org.w3c.dom.events;version="3.0.0"
