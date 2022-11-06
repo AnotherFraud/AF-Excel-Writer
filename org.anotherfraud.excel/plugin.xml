@@ -11,6 +11,10 @@
             category-path="/community/AF_Utilities/ExcelUtil"
             factory-class="org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeFactory">	 
       </node>	 
+       <node
+            category-path="/community/AF_Utilities/ExcelUtil"
+            factory-class="org.AF.ExcelUtilities.WriteToExcelTemplateWithPath.WriteToExcelTemplateWithPathNodeFactory">	 
+      </node>	 
       <node
             category-path="/community/AF_Utilities"
             factory-class="org.AF.KeepassUtilities.KeepassReader.KeepassReaderNodeFactory">	 
