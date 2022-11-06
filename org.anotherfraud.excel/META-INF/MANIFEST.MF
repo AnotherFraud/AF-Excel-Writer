@@ -36,6 +36,7 @@ Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.WriteToExcelTemplate,
+ org.AF.ExcelUtilities.WriteToExcelTemplateWithPath,
  org.AF.KeepassUtilities.KeepassReader,
  org.AF.PGPUtilities.PGPDecryptor,
  org.AF.PGPUtilities.PGPEncryptor,
