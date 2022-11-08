@@ -284,7 +284,13 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 		options.setBinary(firefoxBinary);
 		//options.addArguments("--sandbox");
 		
+		
+		
+
+		
 		setOptions(options);
+		
+		
 		options.addPreference("browser.download.dir",downloadPath);
 		
 		/*
@@ -300,17 +306,13 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
 	 	options.setCapability("acceptInsecureCerts", true);
 	 	*/
 	 	
-    	
-
+		
 		options.setHeadless(m_headless.getBooleanValue());
+		
 		FirefoxDriver driver = new FirefoxDriver(options); 
-		
-
-		
 	    
 		WebdriverHandler handle = WebdriverHandler.getInstance(m_connectionKey);
 		handle.setDriver(driver);
-		
 
 		return new PortObject[]{new SeleniumConnectionInformationPortObject(createSpec(m_connectionKey, screenShotPath, downloadPath))};
 	}
