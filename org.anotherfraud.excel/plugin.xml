@@ -254,7 +254,14 @@
             category-path="/community/AF_Utilities/MiscUtil"
             factory-class="org.AF.TableUtil.RangeBuilder.RangeBuilderNodeFactory">	 
     </node>
-    
+	<node
+            category-path="/community/AF_Utilities/Views"
+            factory-class="org.AF.Views.TableEditWithSelection.TableEditWithSelectionNodeFactory">	 
+    </node>    
+	
+	
+	
+	
 	
 		                 
    </extension>
@@ -314,6 +321,15 @@
             name="MiscUtil"
             path="/community/AF_Utilities">
       </category>
+      
+       <category
+            description="AF Views"
+            icon="MiscCategory.png"
+            level-id="Views"
+            locked="true"
+            name="Views"
+            path="/community/AF_Utilities">
+      </category>
             
    </extension>
    <extension
@@ -337,6 +353,70 @@
             specClass="org.AF.Selenium.Port.SeleniumConnectionInformationPortObjectSpec"
             specSerializer="org.AF.Selenium.Port.SeleniumConnectionInformationPortObjectSpec$Serializer">
       </portType>
+   </extension>
+<extension
+         point="org.knime.js.core.webResources">
+	     
+	     	 <webResourceBundle
+	            debug="true"
+	            name="Tabulator"
+	            usesDefine="false"
+	            version="1.0.0"
+	            webResourceBundleID="org.AF.Views.Tabulator">
+	         <webResource
+	               relativePathSource="js-src/Tabulator/"
+	               relativePathTarget="js-src/Tabulator/">
+	         </webResource>
+	         <importResource
+	               relativePath="js-src/Tabulator/tabulator.min.js"
+	               type="JAVASCRIPT">
+	         </importResource>
+	         <importResource
+	               relativePath="js-src/Tabulator/tabulator.min.css"
+	               type="CSS">
+	         </importResource>    
+	      </webResourceBundle>
+	      <webResourceBundle
+	            debug="true"
+	            name="Table Edit With Selection"
+	            usesDefine="false"
+	            version="1.0.0"
+	            webResourceBundleID="org.AF.Views.TableEditWithSelection.bundle">
+	         <webResource
+	               relativePathSource="js-src/TableEditWithSelection/"
+	               relativePathTarget="js-src/TableEditWithSelection/">
+	         </webResource>
+	         <importResource
+	               relativePath="js-src/TableEditWithSelection/form.js"
+	               type="JAVASCRIPT">
+	         </importResource>
+	         <importResource
+	               relativePath="js-src/TableEditWithSelection/form.css"
+	               type="CSS">
+	         </importResource>
+	            <webDependency
+	               webResourceBundleID="bootstrap_3.3.6">
+	         </webDependency>    
+	            <webDependency
+	               webResourceBundleID="jQuery_3.1.1">
+	         </webDependency>  
+	            <webDependency
+	               webResourceBundleID="org.AF.Views.Tabulator">
+	         </webDependency>     	         
+	         
+	         
+	      </webResourceBundle>
+   </extension>
+   <extension
+         point="org.knime.js.core.javascriptComponents">
+      <javascriptComponent
+            getComponentValue-method-name="getComponentValue"
+            implementationBundleID="org.AF.Views.TableEditWithSelection.bundle"
+            init-method-name="init"
+            javascriptComponentID="table_Edit_With_Selection"
+            name="Table Edit With Selection"
+            namespace="table_Edit_With_Selection">
+      </javascriptComponent>
    </extension>
    
 </plugin>
