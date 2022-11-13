@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -66,16 +67,13 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-
 
 /**
  * This is an example implementation of the node model of the
@@ -88,7 +86,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * @author Another Fraud
  */
 public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
-    
+	
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
@@ -101,7 +99,6 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     static final String rowOffset = "rowOff";
     static final String outputfilePath = "outputFile";
     static final String copyOrWrite = "copywrite";
-    static final String overrideOrFail = "overridefail";
     static final String sheetName = "sheet";
     static final String sheetIndex = "sheetIndex";
     static final String sheetNameOrIndex = "sheetOrIndex";
@@ -112,27 +109,12 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     static final String password = "pwd";
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
+    
         
 	static SettingsModelString createTemplateFilePathSettingsModel() {
 		return new SettingsModelString(templatefilePath, null);
 	}
 	
-	
-	
-	static SettingsModelReaderFileChooser createTemplateFilePathSettingsModel(PortsConfiguration ports) {
-		
-		
-		return new SettingsModelReaderFileChooser(
-				templatefilePath, 
-				ports,
-				"File System Connection"
-	            ,EnumConfig.create(FilterMode.FILE)
-	            , new String[] { ".xlsx", ".xls", ".xlsm" });
-		
-
-		
-		
-	}
 	
 	
 
@@ -151,19 +133,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 
 	
 
-	static SettingsModelWriterFileChooser createOutputFilePathSettingsModel(PortsConfiguration ports) {
-		
 
-		SettingsModelWriterFileChooser ofp = new SettingsModelWriterFileChooser(outputfilePath, ports,
-				"File System Connection", EnumConfig.create(FilterMode.FILE),
-		            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.APPEND),
-		            new String[] { ".xlsx", ".xls", ".xlsm" });
-		 
-
-		ofp.setEnabled(false);	
-		return ofp;
-	}
-	
 
 	
 	
@@ -192,13 +162,6 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	}	
 	
 	
-	
-	static SettingsModelString createOverrideOrFailModelSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(overrideOrFail, "Fail");
-		coof.setEnabled(false);
-		return coof;				
-	}	
-	
 
 	static SettingsModelIntegerBounded createRowOffsetSettingsModel() {
 		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(rowOffset, 2, 1, 1048575);
@@ -226,8 +189,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();
 	private final SettingsModelAuthentication m_outPwd = createOutPassSettingsModel();
 	private final SettingsModelString m_sheetName = createSheetNamesModel();
-	private final SettingsModelReaderFileChooser m_templatefilePath; 
-	private final SettingsModelWriterFileChooser m_outputfilePath; 
+
 
 	private final SettingsModelString m_copyOrWrite = createCopyOrWriteSettingsModel();
 	private final SettingsModelString m_sheetOrIndex = createSheetNameOrIndexSettingsModel();
@@ -237,7 +199,6 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     private final SettingsModelIntegerBounded m_colOffset = createColOffsetSettingsModel();
     private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();      
     private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
-    private final SettingsModelString m_overrideOrFail = createOverrideOrFailModelSettingsModel();
 
     private final SettingsModelBoolean m_writeHeaderOption =
             new SettingsModelBoolean(writeHeaderOption, false);
@@ -248,6 +209,9 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     private final SettingsModelBoolean m_forceFormulaUpdateOption =
             new SettingsModelBoolean(froceFormulaUpdate, false);
     
+    private final WriteToExcelTemplateWithPathConfig m_cfg;
+    private final NodeModelStatusConsumer m_statusConsumer;
+    
 	/**
 	 * Constructor for the node model.
 	 */
@@ -257,8 +221,14 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 		 * In this case its one input and one output table.
 		 */       
 		super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
-		m_outputfilePath = createOutputFilePathSettingsModel(portsConfig);
-		m_templatefilePath = createTemplateFilePathSettingsModel(portsConfig);
+		
+		m_cfg = new WriteToExcelTemplateWithPathConfig(portsConfig);
+		
+		m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
+
+		
+		
+	
 	}
 
 
@@ -272,11 +242,22 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 			throws Exception {
 		LOGGER.info("Start execution of excel file to template");
 
-		
 
 		
-		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
+		SettingsModelReaderFileChooser m_templatefilePath = m_cfg.getSrcFileChooserModel();
+		SettingsModelWriterFileChooser m_outputfilePath = m_cfg.getDestFileChooserModel();
+
+		
+		//System.out.println(m_templatefilePath.getLocation().getPath());
+		//System.out.println(m_templatefilePath.getFileSystemName());
+		
+
+		//System.out.println(m_outputfilePath.getLocation().getPath());
+		//System.out.println(m_outputfilePath.getFileSystemName());
+		
+
+		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
 		/*
 		 * A counter for how many rows have already been processed. This is used to
@@ -289,40 +270,40 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	try 
 	{
 		
-		NodeModelStatusConsumer statusMessage = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
+		NodeModelStatusConsumer statusMessage = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR));
 
+		
 		
 		ReadPathAccessor readAccessor = m_templatefilePath.createReadPathAccessor();		
 		FSPath templatePath = readAccessor.getFSPaths(statusMessage).get(0);
 		          
 
-		WritePathAccessor writeAccessor = m_outputfilePath.createWritePathAccessor();
-		FSPath outPath = writeAccessor.getOutputPath(statusMessage);
-		
-	
-		
-		
+		FSPath outPath = templatePath ;
 		
 		String templatefilePath = m_templatefilePath.getPath();
 		String outputPath;
 
-		
 
-		Workbook workbook = openWorkBook(FSFiles.newInputStream(templatePath, FileOverwritePolicy.IGNORE.getOpenOptions()));
-	
+
+		Workbook workbook = openWorkBook(FSFiles.newInputStream(templatePath, StandardOpenOption.READ));
 	
 		
 		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
-			outputPath = outPath.toFSLocation().getPath();
+			WritePathAccessor writeAccessor = m_outputfilePath.createWritePathAccessor();
+			
+			outPath = writeAccessor.getOutputPath(statusMessage);
+			outputPath = writeAccessor.getOutputPath(statusMessage).toFSLocation().getPath();
 			
 		}
 		else
 		{
 			outputPath = templatefilePath;
-			outPath = templatePath;
 		}
+		
+
+		
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
 		pushFlowVariableString("outputFilePath", outputPath);
@@ -420,11 +401,10 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 			
 			OpenOption[] writePol;
 			
-			if(m_overrideOrFail.getStringValue().equals("Fail") 
-					&& m_copyOrWrite.getStringValue().equals("CopyFrom")
+			if(m_copyOrWrite.getStringValue().equals("CopyFrom")
 			)
 			{
-				writePol = FileOverwritePolicy.FAIL.getOpenOptions();
+				writePol = m_outputfilePath.getFileOverwritePolicy().getOpenOptions();
 			}
 			else
 			{
@@ -437,7 +417,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 			
 			
 			try(
-					OutputStream out = FSFiles.newOutputStream(templatePath, writePol);	
+					OutputStream out = FSFiles.newOutputStream(outPath, writePol);	
 			)
 			{
 				
@@ -790,37 +770,25 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-		/*
-		 * Check if the node is executable, e.g. all required user settings are
-		 * available and valid, or the incoming types are feasible for the node to
-		 * execute. In case the node can execute in its current configuration with the
-		 * current input, calculate and return the table spec that would result of the
-		 * execution of this node. I.e. this method precalculates the table spec of the
-		 * output table.
-		 * 
-		 * Here we perform a sanity check on the entered number format String. In this
-		 * case we just try to apply it to some dummy double number. If there is a
-		 * problem, an IllegalFormatException will be thrown. We catch the exception and
-		 * wrap it in a InvalidSettingsException with an informative message for the
-		 * user. The message should make clear what the problem is and how it can be
-		 * fixed if this information is available. This will be displayed in the KNIME
-		 * console and printed to the KNIME log. The log will also contain the stack
-		 * trace.
-		 */
 
-		//validateUserInput();
+		
+	       m_cfg.getSrcFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	       
+	       
+	       if (m_cfg.getDestFileChooserModel().isEnabled())
+	       {
+	       m_cfg.getDestFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	       }
 
-
-		/*
-		 * Similar to the return type of the execute method, we need to return an array
-		 * of DataTableSpecs with the length of the number of outputs ports of the node
-		 * (as specified in the constructor). The resulting table created in the execute
-		 * methods must match the spec created in this method. As we will need to
-		 * calculate the output table spec again in the execute method in order to
-		 * create a new data container, we create a new method to do that.
-		 */
-		//DataTableSpec inputTableSpec = inSpecs[0];
-		//return new DataTableSpec[] { createOutputSpec(inputTableSpec) };
+	       /*
+	        try {
+	            m_cfg.getDestFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+	        } catch (InvalidSettingsException e) {
+	        	throw e;
+	        }
+	        */
+	        
 		return new PortObjectSpec[]{};
 	}
 
@@ -896,11 +864,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.saveSettingsTo(settings);
 		m_writeHeaderOption.saveSettingsTo(settings);
 		m_writeFormulaOption.saveSettingsTo(settings);
-		m_overrideOrFail.saveSettingsTo(settings);
 		m_pwd.saveSettingsTo(settings);
 		m_outPwd.saveSettingsTo(settings);
-		m_templatefilePath.saveSettingsTo(settings);
-		m_outputfilePath.saveSettingsTo(settings);
+		m_cfg.saveSettingsForModel(settings);
+
 		m_enablePassOption.saveSettingsTo(settings);
 		m_forceFormulaUpdateOption.saveSettingsTo(settings);
 	}
@@ -930,11 +897,9 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.loadSettingsFrom(settings);
 		m_writeHeaderOption.loadSettingsFrom(settings);
 		m_writeFormulaOption.loadSettingsFrom(settings);
-		m_overrideOrFail.loadSettingsFrom(settings);
 		m_pwd.loadSettingsFrom(settings);
 		m_outPwd.loadSettingsFrom(settings);
-		m_templatefilePath.loadSettingsFrom(settings);
-		m_outputfilePath.loadSettingsFrom(settings);
+		m_cfg.loadSettingsForModel(settings);
 		m_enablePassOption.loadSettingsFrom(settings);
 		m_forceFormulaUpdateOption.loadSettingsFrom(settings);
 	}
@@ -960,11 +925,9 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.validateSettings(settings);
 		m_writeHeaderOption.validateSettings(settings);
 		m_writeFormulaOption.validateSettings(settings);
-		m_overrideOrFail.validateSettings(settings);
 		m_pwd.validateSettings(settings);
 		m_outPwd.validateSettings(settings);
-		m_templatefilePath.validateSettings(settings);
-		m_outputfilePath.validateSettings(settings);
+		m_cfg.validateSettingsForModel(settings);
 		m_enablePassOption.validateSettings(settings);
 		m_forceFormulaUpdateOption.validateSettings(settings);
 		validateUserInput();
