@@ -40,15 +40,24 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
 	 * New dialog pane for configuring the node. The dialog created here
 	 * will show up when double clicking on a node in KNIME Analytics Platform.
 	 */
+	
+	private final WriteToExcelTemplateWithPathConfig m_cfg;
+	
     protected WriteToExcelTemplateWithPathNodeDialog(final PortsConfiguration portsConfig) {
         super();
         
-      	
+
+        m_cfg = new WriteToExcelTemplateWithPathConfig(portsConfig);
+        
+
+        
+        
     	final SettingsModelString sheetNamesModel = WriteToExcelTemplateWithPathNodeModel.createSheetNamesModel();
         final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateWithPathNodeModel.createSheetNameOrIndexSettingsModel();
         final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateWithPathNodeModel.createSheetIndexModel();
 
-        final SettingsModelReaderFileChooser templateFilePathModel = WriteToExcelTemplateWithPathNodeModel.createTemplateFilePathSettingsModel(portsConfig);
+        final SettingsModelReaderFileChooser templateFilePathModel = m_cfg.getSrcFileChooserModel();
+        
         final SettingsModelAuthentication passwordModel = WriteToExcelTemplateWithPathNodeModel.createPassSettingsModel();
         final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateWithPathNodeModel.createOutPassSettingsModel();
         
@@ -57,10 +66,9 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
         		Arrays.asList("default", ""),true);
 
 
-    	final SettingsModelWriterFileChooser outputFilePathModel = WriteToExcelTemplateWithPathNodeModel.createOutputFilePathSettingsModel(portsConfig);
+    	final SettingsModelWriterFileChooser outputFilePathModel = m_cfg.getDestFileChooserModel();
         
     	final SettingsModelString copyOrWriteModel = WriteToExcelTemplateWithPathNodeModel.createCopyOrWriteSettingsModel();
-    	final SettingsModelString overrideOrFailModel = WriteToExcelTemplateWithPathNodeModel.createOverrideOrFailModelSettingsModel();
     	
     	
     	final SettingsModelBoolean lastRowModel = WriteToExcelTemplateWithPathNodeModel.createWriteLastRowSettingsModel();
@@ -98,11 +106,9 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
         copyOrWriteModel.addChangeListener(e -> {
             if (copyOrWriteModel.getStringValue().equals("WriteInto")) {
             	outputFilePathModel.setEnabled(false);  
-            	overrideOrFailModel.setEnabled(false); 
             	
             } else if (copyOrWriteModel.getStringValue().equals("CopyFrom")) {
             	outputFilePathModel.setEnabled(true); 
-            	overrideOrFailModel.setEnabled(true);  
             }
         });
         
@@ -205,13 +211,7 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
         addDialogComponent(new DialogComponentWriterFileChooser(outputFilePathModel, "XLSoutput", tplfvm));
         
 
-        addDialogComponent(new DialogComponentButtonGroup(
-        		overrideOrFailModel      		
-        		, "", false
-        			,new String[] { "Override existing file", "Fail if file exists"}
-        			,new String[] { "Override", "Fail"}
-        		));
-        
+
         
         closeCurrentGroup();
         
