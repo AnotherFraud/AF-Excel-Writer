@@ -72,6 +72,7 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
     	
     	
     	final SettingsModelBoolean lastRowModel = WriteToExcelTemplateWithPathNodeModel.createWriteLastRowSettingsModel();
+    	final SettingsModelBoolean clearData = WriteToExcelTemplateWithPathNodeModel.createClearDataSettingsModel();
     	final SettingsModelString enablePassModel = WriteToExcelTemplateWithPathNodeModel.enablePasswordSettingsModel();
     	final SettingsModelIntegerBounded rowOffModel = WriteToExcelTemplateWithPathNodeModel.createRowOffsetSettingsModel();
     	final SettingsModelIntegerBounded colOffModel = WriteToExcelTemplateWithPathNodeModel.createColOffsetSettingsModel();
@@ -83,7 +84,7 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
     	//listener try to read in sheet names from given template file
         templateFilePathModel.addChangeListener(e -> {	
             if (templateFilePathModel.getPath().length() > 0) {
-            	List<String> sheetNames = WriteToExcelTemplateWithPathNodeModel.tryGetExcelSheetNames(templateFilePathModel.getPath(),passwordModel.getPassword()); 	
+            	List<String> sheetNames = WriteToExcelTemplateWithPathNodeModel.tryGetExcelSheetNames(templateFilePathModel,passwordModel.getPassword()); 	
             		if(sheetNames != null)
             		{
             			if (!sheetNames.contains(sheetNamesModel.getStringValue()))
@@ -239,6 +240,9 @@ public class WriteToExcelTemplateWithPathNodeDialog extends DefaultNodeSettingsP
         addDialogComponent(new DialogComponentNumber(rowOffModel, "Starting row", 1));
         
         addDialogComponent(new DialogComponentNumber(colOffModel, "Starting column", 1));
+        
+        addDialogComponent(new DialogComponentBoolean(clearData, "Remove all data before writing?"));
+        
         
 
         createNewGroup("Excel Template Password"); 
