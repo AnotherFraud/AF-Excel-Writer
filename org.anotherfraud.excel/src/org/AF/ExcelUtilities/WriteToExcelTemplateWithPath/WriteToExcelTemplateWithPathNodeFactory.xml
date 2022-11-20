@@ -48,6 +48,10 @@
 		<option name="Should all exising formulas be recalculated?">Select if you want to recalculate all existing formulas in your Excel
 			file.
 		</option>			
+		<option name="Remove all data before writing?">Remove all data from sheet (except formatting / hyperlinks) before writing
+			file.
+		</option>			
+		
 		
 			
 		<option name="Offsets">Select on which row/column the writer should start.

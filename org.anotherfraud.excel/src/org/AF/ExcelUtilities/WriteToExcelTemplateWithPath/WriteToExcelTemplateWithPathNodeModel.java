@@ -105,6 +105,8 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     static final String writeHeaderOption = "writeHeader";
     static final String writeFormulaOption = "writeFormula";
     static final String froceFormulaUpdate = "forceFormula";
+    
+    static final String clearDataFromSheet = "clearData";
     static final String writeLastRowOption = "lastRowOption";
     static final String password = "pwd";
     static final String outPassword = "outpwd";
@@ -178,6 +180,14 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 		SettingsModelBoolean wlr = new SettingsModelBoolean(writeLastRowOption, false);
 		return wlr;				
 	}	
+	
+	
+	static SettingsModelBoolean createClearDataSettingsModel() {
+		SettingsModelBoolean wlr = new SettingsModelBoolean(clearDataFromSheet, false);
+		return wlr;				
+	}		
+	
+	
 
 	static SettingsModelString enablePasswordSettingsModel() {
 		SettingsModelString epw = new SettingsModelString(enablePassOption, "No PWD needed");
@@ -197,7 +207,10 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	
 	private final SettingsModelIntegerBounded m_rowOffset = createRowOffsetSettingsModel();
     private final SettingsModelIntegerBounded m_colOffset = createColOffsetSettingsModel();
-    private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();      
+    private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();   
+    private final SettingsModelBoolean m_clearData = createClearDataSettingsModel();   
+    
+    
     private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
 
     private final SettingsModelBoolean m_writeHeaderOption =
@@ -327,14 +340,30 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 		//use sheet name if available
 		if (m_sheetName.getStringValue().length() > 0 && m_sheetOrIndex.getStringValue().equals("name"))
 		{
+			
 			sheet = workbook.getSheet(m_sheetName.getStringValue());
+			if (sheet == null)
+			{
+				sheet = workbook.createSheet(m_sheetName.getStringValue());
+			}
 			
 		} else
 		{
 			sheet = workbook.getSheetAt(m_sheetIndex.getIntValue());
+			if (sheet == null)
+			{
+				sheet = workbook.createSheet("sheetIndex" + m_sheetIndex.getIntValue());
+			}
 		}
 		
 
+		
+		
+		if(m_clearData.getBooleanValue())
+		{
+
+			removeAllDataFromSheet(sheet);
+		}
 		
 		
 		//get last row in Excel if write to last row option is selected
@@ -458,6 +487,21 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	
 	
 	
+	private void removeAllDataFromSheet(Sheet sheet) {
+
+
+		for (Row row : sheet) {
+		      for (Cell cell : row) {  	  
+		          cell.setBlank();
+		        }
+			}
+		
+	}
+
+
+
+
+
 	/**
 	 * handles the different output write options 
 	 * writes if selected the Excel file with password or without
@@ -798,46 +842,35 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	 /**
 		 * try to read sheet names from given 
 		 */		
-	static List<String> tryGetExcelSheetNames(String filePath, String pass)
-	{
-		
-		
-		Workbook workbook;
-	
-		File checkFile = new File(filePath);
-	
-		
 
+	public static List<String> tryGetExcelSheetNames(SettingsModelReaderFileChooser templateFilePathModel,
+			String pass) {
+
+
+		Workbook workbook;
 		
-		if (checkFile.exists() && checkFile.canRead())
-		{
-			
-			
-			
-			
-			try (FileInputStream fileStream = new FileInputStream(checkFile))
-			{
-				workbook = WorkbookFactory.create(fileStream,pass);
-					
-				List<String> sheetNames = new ArrayList<String>();
-				for (int i=0; i<workbook.getNumberOfSheets(); i++) {
-				    sheetNames.add( workbook.getSheetName(i) );
-				}
+		ReadPathAccessor readAccessor = templateFilePathModel.createReadPathAccessor();		
+		FSPath templatePath;
+		try {
+			templatePath = readAccessor.getFSPaths(new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING))).get(0);
+
+
+			workbook = WorkbookFactory.create(FSFiles.newInputStream(templatePath, StandardOpenOption.READ),pass);
 				
-				return sheetNames;
-			} catch (Exception e) { 
-				return null;
+			List<String> sheetNames = new ArrayList<String>();
+			for (int i=0; i<workbook.getNumberOfSheets(); i++) {
+			    sheetNames.add( workbook.getSheetName(i) );
 			}
-		}
-		else
-		{
+			
+			return sheetNames;
+		} catch (Exception e) { 
 			return null;
 		}
+		
+		
+		
 
-	}
-	
-
-   
+	}   
 		
 		
 
@@ -867,7 +900,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_pwd.saveSettingsTo(settings);
 		m_outPwd.saveSettingsTo(settings);
 		m_cfg.saveSettingsForModel(settings);
-
+		m_clearData.saveSettingsTo(settings);
 		m_enablePassOption.saveSettingsTo(settings);
 		m_forceFormulaUpdateOption.saveSettingsTo(settings);
 	}
@@ -890,6 +923,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_sheetName.loadSettingsFrom(settings);
 		m_colOffset.loadSettingsFrom(settings);
 		m_rowOffset.loadSettingsFrom(settings);
+		m_clearData.loadSettingsFrom(settings);
 		
 		m_copyOrWrite.loadSettingsFrom(settings);
 		m_sheetOrIndex.loadSettingsFrom(settings);
@@ -930,6 +964,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_cfg.validateSettingsForModel(settings);
 		m_enablePassOption.validateSettings(settings);
 		m_forceFormulaUpdateOption.validateSettings(settings);
+		m_clearData.validateSettings(settings);
 		validateUserInput();
 
 	}
@@ -995,5 +1030,11 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 * and the data handled in loadInternals/saveInternals will be erased.
 		 */
 	}
+
+
+
+
+
+
 }
 
