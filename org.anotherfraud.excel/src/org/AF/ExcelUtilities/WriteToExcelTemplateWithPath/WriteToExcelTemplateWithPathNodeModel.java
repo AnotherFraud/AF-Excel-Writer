@@ -10,9 +10,13 @@ import java.io.OutputStream;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey;
@@ -27,6 +31,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Picture;
@@ -39,6 +44,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.date.DateAndTimeCell;
+import org.knime.core.data.date.DateAndTimeValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -67,6 +73,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -74,6 +81,13 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.core.data.time.duration.DurationValue;
+import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeValue;
+import org.knime.core.data.time.period.PeriodValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+
 
 /**
  * This is an example implementation of the node model of the
@@ -224,6 +238,8 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
     
     private final WriteToExcelTemplateWithPathConfig m_cfg;
     private final NodeModelStatusConsumer m_statusConsumer;
+    final Map<String, CellStyle> m_cellStyles;
+    
     
 	/**
 	 * Constructor for the node model.
@@ -238,7 +254,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 		m_cfg = new WriteToExcelTemplateWithPathConfig(portsConfig);
 		
 		m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
-
+		m_cellStyles = new HashMap<String, CellStyle>();
 		
 		
 	
@@ -677,19 +693,98 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		else if(cell.getType().getCellClass().equals((DateAndTimeCell.class))) 
 		{
 			
-			DateAndTimeCell timeDateCell = (DateAndTimeCell) cell;
-			xlsxCell.setCellValue(
-					timeDateCell.getStringValue());			
-
+			DateAndTimeValue dateAndTime = (DateAndTimeValue)cell;
 			
+	        String format = "";
+	        if (dateAndTime.hasDate()) {
+	            format += "yyyy-mm-dd";
+	        }
+	        if (dateAndTime.hasDate() && dateAndTime.hasTime()) {
+	            format += "T";
+	        }
+	        if (dateAndTime.hasTime()) {
+	            format += "hh:mm:ss";
+	        }
+	        if (dateAndTime.hasTime() && dateAndTime.hasMillis()) {
+	            format += ".";
+	        }
+	        if (dateAndTime.hasMillis()) {
+	            format += "000";
+	        }
+	        
+	        
+	        xlsxCell.setCellStyle(getStyle(workbook, format));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(dateAndTime.getUTCCalendarClone(), false));
+	
 		}
+		
+		
 		else if(cell.getType().getCellClass().equals((TimestampCell.class))) 
 		{
 			
 			TimestampCell timeCell = (TimestampCell) cell;
 			xlsxCell.setCellValue(
 					timeCell.getDate());			
-		}					
+		}	
+		
+		
+		
+		else if (cell.getType().isCompatible(LocalDateValue.class)) {
+			
+			
+		       final LocalDateValue val = (LocalDateValue) cell;
+		       
+		       xlsxCell.setCellStyle(getStyle(workbook, "yyyy-mm-dd"));
+		       xlsxCell.setCellValue(DateUtil.getExcelDate(val.getLocalDate().atStartOfDay()));
+            
+        } 
+		
+		else if (cell.getType().isCompatible(PeriodValue.class)) {
+			
+			
+			xlsxCell.setCellValue(((PeriodValue)cell).getPeriod().toString());
+        } 
+		
+		
+		else if (cell.getType().isCompatible(LocalTimeValue.class)) {
+			
+	        LocalTimeValue val = (LocalTimeValue) cell;
+	        xlsxCell.setCellStyle(getStyle(workbook, "hh:mm:ss;@"));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(LocalDateTime.of(LocalDate.of(1900, 1, 1), val.getLocalTime())) % 1);
+        } 
+		
+		
+		
+		
+		
+		else if (cell.getType().isCompatible(LocalDateTimeValue.class)) {
+			
+	        LocalDateTimeValue val = (LocalDateTimeValue) cell;
+	        xlsxCell.setCellStyle(getStyle(workbook, "yyyy-mm-dd hh:mm:ss"));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(val.getLocalDateTime()));
+	        
+	        
+        } 
+		
+		else if (cell.getType().isCompatible(ZonedDateTimeValue.class)) {
+			xlsxCell.setCellValue(((ZonedDateTimeValue) cell).getZonedDateTime().toString());
+        }
+		
+		else if (cell.getType().isCompatible(DurationValue.class)) {
+			
+			xlsxCell.setCellValue(((DurationValue) cell).getDuration().toString());
+			
+
+        } else if (cell.getType().isCompatible(FSLocationValue.class)) {
+        	xlsxCell.setCellValue(((FSLocationValue) cell).getFSLocation().getPath());
+        	
+        } 
+		
+		
+		
+		
+		
+		
 		else if(cell.getType().getCellClass().equals((BooleanCell.class))) 
 		{
 			BooleanCell boolCell = (BooleanCell) cell;
@@ -870,7 +965,32 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		
 		
 
-	}   
+	} 
+	
+	
+	private CellStyle getStyle(Workbook book, String format) {
+			
+		
+		
+		if (m_cellStyles.containsKey(format))
+		{
+			return m_cellStyles.get(format);
+		}
+		else
+		{
+			
+			
+	        CellStyle cellStyle = book.createCellStyle();
+	        // Workbook#createDataFormat is getOrCreate
+	        cellStyle.setDataFormat(book.createDataFormat().getFormat(format));
+	        m_cellStyles.put(format, cellStyle);
+	        
+	        return cellStyle;
+		}
+		
+
+		
+	}  
 		
 		
 
