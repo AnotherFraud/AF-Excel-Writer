@@ -1,8 +1,15 @@
 package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
+import java.util.Optional;
+
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortType;
+import org.knime.filehandling.core.port.FileSystemPortObject;
+
 
 /*
  * This program is free software: you can redistribute it and/or modify
@@ -23,16 +30,29 @@ import org.knime.core.node.NodeView;
  */
 
 
-public class WriteToExcelTemplateXLSXNodeFactory 
-        extends NodeFactory<WriteToExcelTemplateXLSXNodeModel> {
+public class WriteToExcelTemplateXLSXNodeFactory extends ConfigurableNodeFactory<WriteToExcelTemplateXLSXNodeModel>{
 
+    /** The file system ports group id. */
+    static final String FS_CONNECT_GRP_ID = "File System Connection";
+    static final String DATA_GRP_ID = "Data Port";
+
+    @Override
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final var b = new PortsConfigurationBuilder();
+        b.addFixedInputPortGroup(DATA_GRP_ID, new PortType[]{BufferedDataTable.TYPE});
+        b.addOptionalInputPortGroup(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE);
+        
+        return Optional.of(b);
+    }
+    
+    
     /**
      * {@inheritDoc}
      */
     @Override
-    public WriteToExcelTemplateXLSXNodeModel createNodeModel() {
+    public WriteToExcelTemplateXLSXNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
 		// Create and return a new node model.
-        return new WriteToExcelTemplateXLSXNodeModel();
+        return new WriteToExcelTemplateXLSXNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
     /**
@@ -67,10 +87,9 @@ public class WriteToExcelTemplateXLSXNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
-		// This node has a dialog, hence we create and return it here. Also see "hasDialog()".
-        return new WriteToExcelTemplateXLSXNodeDialog();
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+		// This example node has a dialog, hence we create and return it here. Also see "hasDialog()".
+        return new WriteToExcelTemplateXLSXNodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
 }
-
