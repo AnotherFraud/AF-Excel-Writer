@@ -21,18 +21,22 @@ package org.AF.ExcelUtilities.WriteToExcelTemplate;
 
 
 
+
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey;
@@ -47,6 +51,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Picture;
@@ -59,6 +64,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.date.DateAndTimeCell;
+import org.knime.core.data.date.DateAndTimeValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -68,6 +74,12 @@ import org.knime.core.data.def.TimestampCell;
 import org.knime.core.data.image.png.PNGImageCell;
 import org.knime.core.data.image.png.PNGImageContent;
 import org.knime.core.data.image.png.PNGImageValue;
+import org.knime.core.data.time.duration.DurationValue;
+import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeValue;
+import org.knime.core.data.time.period.PeriodValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -77,6 +89,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -84,16 +97,16 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
+import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 
 @SuppressWarnings("deprecation")
@@ -107,39 +120,29 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateXLSXNodeModel.class);
 	
 	
-	private FSConnection con = DefaultFSConnectionFactory.createLocalFSConnection();
-	private Optional<FSConnection> m_fs = Optional.of(con);
-	
-	
-	private int defaulttimeoutInSeconds = 5;
-    static final String templatefilePath2 = "templateFile2";
-    static final String templatefilePath = "templateFile";
+	static final String templatefilePath = "templateFile";
     static final String colOffset = "colOff";
     static final String rowOffset = "rowOff";
-    static final String outputfilePath2 = "outputFile2";
     static final String outputfilePath = "outputFile";
     static final String copyOrWrite = "copywrite";
-    static final String overrideOrFail = "overridefail";
     static final String sheetName = "sheet";
     static final String sheetIndex = "sheetIndex";
     static final String sheetNameOrIndex = "sheetOrIndex";
     static final String writeHeaderOption = "writeHeader";
     static final String writeFormulaOption = "writeFormula";
     static final String froceFormulaUpdate = "forceFormula";
+    
+    static final String clearDataFromSheet = "clearData";
     static final String writeLastRowOption = "lastRowOption";
     static final String password = "pwd";
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
+    
         
 	static SettingsModelString createTemplateFilePathSettingsModel() {
 		return new SettingsModelString(templatefilePath, null);
 	}
 	
-	
-	
-	static SettingsModelFileChooser2 createTemplateFilePath2SettingsModel() {
-		return new SettingsModelFileChooser2(templatefilePath2, new String[] { ".xlsx", ".xls", ".xlsm" });
-	}
 	
 	
 
@@ -157,20 +160,8 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	}
 
 	
-	static SettingsModelString createOutputFilePathSettingsModel() {
-		SettingsModelString ofp = new SettingsModelString(outputfilePath, null);
-		ofp.setEnabled(false);	
-		return ofp;
-	}
-	
 
 
-	static SettingsModelFileChooser2 createOutputFilePath2SettingsModel() {
-		SettingsModelFileChooser2 ofp = new SettingsModelFileChooser2(outputfilePath2, new String[] { ".xlsx", ".xls", ".xlsm" });
-		ofp.setEnabled(false);	
-		return ofp;
-	}
-	
 
 	
 	
@@ -199,13 +190,6 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	}	
 	
 	
-	
-	static SettingsModelString createOverrideOrFailModelSettingsModel() {
-		SettingsModelString coof = new SettingsModelString(overrideOrFail, "Fail");
-		coof.setEnabled(false);
-		return coof;				
-	}	
-	
 
 	static SettingsModelIntegerBounded createRowOffsetSettingsModel() {
 		SettingsModelIntegerBounded roff = new SettingsModelIntegerBounded(rowOffset, 2, 1, 1048575);
@@ -222,6 +206,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		SettingsModelBoolean wlr = new SettingsModelBoolean(writeLastRowOption, false);
 		return wlr;				
 	}	
+	
+	
+	static SettingsModelBoolean createClearDataSettingsModel() {
+		SettingsModelBoolean wlr = new SettingsModelBoolean(clearDataFromSheet, false);
+		return wlr;				
+	}		
+	
+	
 
 	static SettingsModelString enablePasswordSettingsModel() {
 		SettingsModelString epw = new SettingsModelString(enablePassOption, "No PWD needed");
@@ -233,8 +225,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();
 	private final SettingsModelAuthentication m_outPwd = createOutPassSettingsModel();
 	private final SettingsModelString m_sheetName = createSheetNamesModel();
-	private final SettingsModelFileChooser2 m_templatefilePath2 = createTemplateFilePath2SettingsModel();
-	private final SettingsModelFileChooser2 m_outputfilePath2 = createOutputFilePath2SettingsModel();
+
 
 	private final SettingsModelString m_copyOrWrite = createCopyOrWriteSettingsModel();
 	private final SettingsModelString m_sheetOrIndex = createSheetNameOrIndexSettingsModel();
@@ -242,9 +233,11 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 	private final SettingsModelIntegerBounded m_rowOffset = createRowOffsetSettingsModel();
     private final SettingsModelIntegerBounded m_colOffset = createColOffsetSettingsModel();
-    private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();      
+    private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();   
+    private final SettingsModelBoolean m_clearData = createClearDataSettingsModel();   
+    
+    
     private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
-    private final SettingsModelString m_overrideOrFail = createOverrideOrFailModelSettingsModel();
 
     private final SettingsModelBoolean m_writeHeaderOption =
             new SettingsModelBoolean(writeHeaderOption, false);
@@ -255,54 +248,57 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     private final SettingsModelBoolean m_forceFormulaUpdateOption =
             new SettingsModelBoolean(froceFormulaUpdate, false);
     
-	/**
-	 * The settings model to manage the shared settings. This model will hold the
-	 * value entered by the user in the dialog and will update once the user changes
-	 * the value. Furthermore, it provides methods to easily load and save the value
-	 * to and from the shared settings (see:
-	 * <br>
-	 * {@link #loadValidatedSettingsFrom(NodeSettingsRO)},
-	 * {@link #saveSettingsTo(NodeSettingsWO)}). 
-	 * <br>
-	 * Here, we use a SettingsModelString as the number format is a String. 
-	 * There are models for all common data types. Also have a look at the comments 
-	 * in the constructor of the {@link WriteToExcelTemplateXLSXNodeDialog} as the settings 
-	 * models are also used to create simple dialogs.
-	 */
+    private final WriteToExcelTemplateXLSXConfig m_cfg;
+    private final NodeModelStatusConsumer m_statusConsumer;
+    final Map<String, CellStyle> m_cellStyles;
+    
+    
 
 
 	/**
 	 * Constructor for the node model.
 	 */
-	protected WriteToExcelTemplateXLSXNodeModel() {
+	protected WriteToExcelTemplateXLSXNodeModel(final PortsConfiguration portsConfig) {
 		/**
 		 * Here we specify how many data input and output tables the node should have.
 		 * In this case its one input and one output table.
-		 */
-		super(1,0);
+		 */       
+		super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
+		
+		m_cfg = new WriteToExcelTemplateXLSXConfig(portsConfig);
+		
+		m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
+		m_cellStyles = new HashMap<String, CellStyle>();
+		
+		
+	
 	}
-
 
 	/**
 	 * 
 	 * {@inheritDoc}
-	 * @return 
 	 */
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec)
 			throws Exception {
-		/*
-		 * The functionality of the node is implemented in the execute method. This
-		 * implementation will write in input buffered table to the selected Excel sheet
-		 * output
-		 */
 		LOGGER.info("Start execution of excel file to template");
 
-	
 
-	
-		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
+		
+		SettingsModelReaderFileChooser m_templatefilePath = m_cfg.getSrcFileChooserModel();
+		SettingsModelWriterFileChooser m_outputfilePath = m_cfg.getDestFileChooserModel();
+
+		
+		//System.out.println(m_templatefilePath.getLocation().getPath());
+		//System.out.println(m_templatefilePath.getFileSystemName());
+		
+
+		//System.out.println(m_outputfilePath.getLocation().getPath());
+		//System.out.println(m_outputfilePath.getFileSystemName());
+		
+
+		BufferedDataTable inputTable =  (BufferedDataTable)inObjects[0];
 		
 		/*
 		 * A counter for how many rows have already been processed. This is used to
@@ -314,49 +310,48 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 	try 
 	{
-			
-		FSConnection con2 = retrieveFSConnection(m_templatefilePath2, defaulttimeoutInSeconds * 1000);		
-		Path pathTemplate = getPathFromSettings(m_templatefilePath2, con2);	
 		
-	
+		NodeModelStatusConsumer statusMessage = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR));
 
-		FSConnection con3 = retrieveFSConnection(m_outputfilePath2, defaulttimeoutInSeconds * 1000);
-		Path pathOutput = getPathFromSettings(m_outputfilePath2, con3);	
+		
+		
+		ReadPathAccessor readAccessor = m_templatefilePath.createReadPathAccessor();		
+		FSPath templatePath = readAccessor.getFSPaths(statusMessage).get(0);
+		          
 
-		String templatefilePath = pathTemplate.toAbsolutePath().toString();
+		FSPath outPath = templatePath ;
+		
+		String templatefilePath = m_templatefilePath.getPath();
 		String outputPath;
 
 
-		
-		Workbook workbook = openWorkBook(Files.newInputStream(pathTemplate));
-	
+
+		Workbook workbook = openWorkBook(FSFiles.newInputStream(templatePath, StandardOpenOption.READ));
 	
 		
 		
 		if (m_copyOrWrite.getStringValue().equals("CopyFrom"))
 		{	
-			outputPath = pathOutput.toAbsolutePath().toString();
+			WritePathAccessor writeAccessor = m_outputfilePath.createWritePathAccessor();
+			
+			outPath = writeAccessor.getOutputPath(statusMessage);
+			outputPath = writeAccessor.getOutputPath(statusMessage).toFSLocation().getPath();
 			
 		}
 		else
 		{
 			outputPath = templatefilePath;
-			pathOutput = pathTemplate;
 		}
+		
+
+		
 		
 		pushFlowVariableString("templatefilePath", templatefilePath);
 		pushFlowVariableString("outputFilePath", outputPath);
 		
 		
 		
-		//fail if file exists and fail on exists was selected
-		if (isFileReachable(outputPath) != null 
-				&& m_overrideOrFail.getStringValue().equals("Fail") 
-				&& m_copyOrWrite.getStringValue().equals("CopyFrom")
-				)
-		{
-			throw new IOException("Output file exists and fail overwrite option was selected");
-		}
+
 		
 		Sheet sheet;
 		
@@ -373,14 +368,30 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		//use sheet name if available
 		if (m_sheetName.getStringValue().length() > 0 && m_sheetOrIndex.getStringValue().equals("name"))
 		{
+			
 			sheet = workbook.getSheet(m_sheetName.getStringValue());
+			if (sheet == null)
+			{
+				sheet = workbook.createSheet(m_sheetName.getStringValue());
+			}
 			
 		} else
 		{
 			sheet = workbook.getSheetAt(m_sheetIndex.getIntValue());
+			if (sheet == null)
+			{
+				sheet = workbook.createSheet("sheetIndex" + m_sheetIndex.getIntValue());
+			}
 		}
 		
 
+		
+		
+		if(m_clearData.getBooleanValue())
+		{
+
+			removeAllDataFromSheet(sheet);
+		}
 		
 		
 		//get last row in Excel if write to last row option is selected
@@ -442,9 +453,28 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			
 			
 			
+
+			
+			
+			OpenOption[] writePol;
+			
+			if(m_copyOrWrite.getStringValue().equals("CopyFrom")
+			)
+			{
+				writePol = m_outputfilePath.getFileOverwritePolicy().getOpenOptions();
+			}
+			else
+			{
+				writePol = FileOverwritePolicy.OVERWRITE.getOpenOptions();
+			}
+			
+			
+			
+			
+			
 			
 			try(
-					OutputStream out = Files.newOutputStream(pathOutput);	
+					OutputStream out = FSFiles.newOutputStream(outPath, writePol);	
 			)
 			{
 				
@@ -485,6 +515,21 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 	
 	
+	private void removeAllDataFromSheet(Sheet sheet) {
+
+
+		for (Row row : sheet) {
+		      for (Cell cell : row) {  	  
+		          cell.setBlank();
+		        }
+			}
+		
+	}
+
+
+
+
+
 	/**
 	 * handles the different output write options 
 	 * writes if selected the Excel file with password or without
@@ -660,19 +705,98 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		else if(cell.getType().getCellClass().equals((DateAndTimeCell.class))) 
 		{
 			
-			DateAndTimeCell timeDateCell = (DateAndTimeCell) cell;
-			xlsxCell.setCellValue(
-					timeDateCell.getStringValue());			
-
+			DateAndTimeValue dateAndTime = (DateAndTimeValue)cell;
 			
+	        String format = "";
+	        if (dateAndTime.hasDate()) {
+	            format += "yyyy-mm-dd";
+	        }
+	        if (dateAndTime.hasDate() && dateAndTime.hasTime()) {
+	            format += "T";
+	        }
+	        if (dateAndTime.hasTime()) {
+	            format += "hh:mm:ss";
+	        }
+	        if (dateAndTime.hasTime() && dateAndTime.hasMillis()) {
+	            format += ".";
+	        }
+	        if (dateAndTime.hasMillis()) {
+	            format += "000";
+	        }
+	        
+	        
+	        xlsxCell.setCellStyle(getStyle(workbook, format));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(dateAndTime.getUTCCalendarClone(), false));
+	
 		}
+		
+		
 		else if(cell.getType().getCellClass().equals((TimestampCell.class))) 
 		{
 			
 			TimestampCell timeCell = (TimestampCell) cell;
 			xlsxCell.setCellValue(
 					timeCell.getDate());			
-		}					
+		}	
+		
+		
+		
+		else if (cell.getType().isCompatible(LocalDateValue.class)) {
+			
+			
+		       final LocalDateValue val = (LocalDateValue) cell;
+		       
+		       xlsxCell.setCellStyle(getStyle(workbook, "yyyy-mm-dd"));
+		       xlsxCell.setCellValue(DateUtil.getExcelDate(val.getLocalDate().atStartOfDay()));
+            
+        } 
+		
+		else if (cell.getType().isCompatible(PeriodValue.class)) {
+			
+			
+			xlsxCell.setCellValue(((PeriodValue)cell).getPeriod().toString());
+        } 
+		
+		
+		else if (cell.getType().isCompatible(LocalTimeValue.class)) {
+			
+	        LocalTimeValue val = (LocalTimeValue) cell;
+	        xlsxCell.setCellStyle(getStyle(workbook, "hh:mm:ss;@"));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(LocalDateTime.of(LocalDate.of(1900, 1, 1), val.getLocalTime())) % 1);
+        } 
+		
+		
+		
+		
+		
+		else if (cell.getType().isCompatible(LocalDateTimeValue.class)) {
+			
+	        LocalDateTimeValue val = (LocalDateTimeValue) cell;
+	        xlsxCell.setCellStyle(getStyle(workbook, "yyyy-mm-dd hh:mm:ss"));
+	        xlsxCell.setCellValue(DateUtil.getExcelDate(val.getLocalDateTime()));
+	        
+	        
+        } 
+		
+		else if (cell.getType().isCompatible(ZonedDateTimeValue.class)) {
+			xlsxCell.setCellValue(((ZonedDateTimeValue) cell).getZonedDateTime().toString());
+        }
+		
+		else if (cell.getType().isCompatible(DurationValue.class)) {
+			
+			xlsxCell.setCellValue(((DurationValue) cell).getDuration().toString());
+			
+
+        } else if (cell.getType().isCompatible(FSLocationValue.class)) {
+        	xlsxCell.setCellValue(((FSLocationValue) cell).getFSLocation().getPath());
+        	
+        } 
+		
+		
+		
+		
+		
+		
 		else if(cell.getType().getCellClass().equals((BooleanCell.class))) 
 		{
 			BooleanCell boolCell = (BooleanCell) cell;
@@ -786,6 +910,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		}
 		
 	}
+	
+	
+
+
 
 
 	/**
@@ -793,37 +921,25 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-		/*
-		 * Check if the node is executable, e.g. all required user settings are
-		 * available and valid, or the incoming types are feasible for the node to
-		 * execute. In case the node can execute in its current configuration with the
-		 * current input, calculate and return the table spec that would result of the
-		 * execution of this node. I.e. this method precalculates the table spec of the
-		 * output table.
-		 * 
-		 * Here we perform a sanity check on the entered number format String. In this
-		 * case we just try to apply it to some dummy double number. If there is a
-		 * problem, an IllegalFormatException will be thrown. We catch the exception and
-		 * wrap it in a InvalidSettingsException with an informative message for the
-		 * user. The message should make clear what the problem is and how it can be
-		 * fixed if this information is available. This will be displayed in the KNIME
-		 * console and printed to the KNIME log. The log will also contain the stack
-		 * trace.
-		 */
 
-		//validateUserInput();
+		
+	       m_cfg.getSrcFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	       
+	       
+	       if (m_cfg.getDestFileChooserModel().isEnabled())
+	       {
+	       m_cfg.getDestFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	       }
 
-
-		/*
-		 * Similar to the return type of the execute method, we need to return an array
-		 * of DataTableSpecs with the length of the number of outputs ports of the node
-		 * (as specified in the constructor). The resulting table created in the execute
-		 * methods must match the spec created in this method. As we will need to
-		 * calculate the output table spec again in the execute method in order to
-		 * create a new data container, we create a new method to do that.
-		 */
-		//DataTableSpec inputTableSpec = inSpecs[0];
-		//return new DataTableSpec[] { createOutputSpec(inputTableSpec) };
+	       /*
+	        try {
+	            m_cfg.getDestFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+	            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+	        } catch (InvalidSettingsException e) {
+	        	throw e;
+	        }
+	        */
+	        
 		return new PortObjectSpec[]{};
 	}
 
@@ -833,140 +949,60 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	 /**
 		 * try to read sheet names from given 
 		 */		
-	static List<String> tryGetExcelSheetNames(String filePath, String pass)
-	{
-		
-		
+
+	public static List<String> tryGetExcelSheetNames(SettingsModelReaderFileChooser templateFilePathModel,
+			String pass) {
+
+
 		Workbook workbook;
-	
-		File checkFile = new File(filePath);
-	
+		
+		ReadPathAccessor readAccessor = templateFilePathModel.createReadPathAccessor();		
+		FSPath templatePath;
+		try {
+			templatePath = readAccessor.getFSPaths(new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING))).get(0);
+
+
+			workbook = WorkbookFactory.create(FSFiles.newInputStream(templatePath, StandardOpenOption.READ),pass);
+				
+			List<String> sheetNames = new ArrayList<String>();
+			for (int i=0; i<workbook.getNumberOfSheets(); i++) {
+			    sheetNames.add( workbook.getSheetName(i) );
+			}
+			
+			return sheetNames;
+		} catch (Exception e) { 
+			return null;
+		}
+		
+		
 		
 
+	} 
+	
+	
+	private CellStyle getStyle(Workbook book, String format) {
+			
 		
-		if (checkFile.exists() && checkFile.canRead())
+		
+		if (m_cellStyles.containsKey(format))
 		{
-			
-			
-			
-			
-			try (FileInputStream fileStream = new FileInputStream(checkFile))
-			{
-				workbook = WorkbookFactory.create(fileStream,pass);
-					
-				List<String> sheetNames = new ArrayList<String>();
-				for (int i=0; i<workbook.getNumberOfSheets(); i++) {
-				    sheetNames.add( workbook.getSheetName(i) );
-				}
-				
-				return sheetNames;
-			} catch (Exception e) { 
-				return null;
-			}
+			return m_cellStyles.get(format);
 		}
 		else
 		{
-			return null;
-		}
-
-	}
-	
-
-    public Path getPathFromSettings(SettingsModelFileChooser2 m_settings, FSConnection fs) throws InvalidSettingsException  {
-        if (m_settings.getPathOrURL() == null || m_settings.getPathOrURL().isEmpty()) {
-            throw new InvalidSettingsException("No path specified");
-        }
-        
-        
-
-        final FSPath pathOrUrl;
-        final Choice fileSystemChoice = m_settings.getFileSystemChoice().getType();
-        switch (fileSystemChoice) {
-            case CONNECTED_FS:
-                return fs.getFileSystem().getPath(m_settings.getPathOrURL());
-            case CUSTOM_URL_FS:
-                return fs.getFileSystem().getPath(toCustomUrlFSLocation(m_settings.getPathOrURL(), defaulttimeoutInSeconds*1000));
-            case KNIME_FS:
-                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
-                ValidationUtils.validateKnimeFSPath(pathOrUrl);
-                return pathOrUrl;
-            case KNIME_MOUNTPOINT:
-                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
-                if (!pathOrUrl.isAbsolute()) {
-                    throw new InvalidSettingsException("The path must be absolute, i.e. it must start with '/'.");
-                }
-                return pathOrUrl;
-            case LOCAL_FS:
-                ValidationUtils.validateLocalFsAccess();
-                pathOrUrl = fs.getFileSystem().getPath(m_settings.getPathOrURL());
-                if (!pathOrUrl.isAbsolute()) {
-                    throw new InvalidSettingsException("The path must be absolute.");
-                }
-                return pathOrUrl;
-            default:
-                final String errMsg =
-                    String.format("Unknown choice enum '%s', make sure the switch covers all cases!", fileSystemChoice);
-                throw new RuntimeException(errMsg);
-        }
-    }
-    
-    
-    public static final FSConnection retrieveFSConnection(final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
-
-            final FileSystemChoice choice = settings.getFileSystemChoice();
-            switch (choice.getType()) {
-                case LOCAL_FS:
-                    return DefaultFSConnectionFactory.createLocalFSConnection();
-                case CUSTOM_URL_FS:
-                    return DefaultFSConnectionFactory.createCustomURLConnection(settings.getPathOrURL(), timeoutInMillis);
-                case KNIME_MOUNTPOINT:
-                    final var mountID = settings.getKnimeMountpointFileSystem();
-                    return DefaultFSConnectionFactory.createMountpointConnection(mountID);
-                case KNIME_FS:
-                    final RelativeTo type = RelativeTo.fromSettingsValue(settings.getKNIMEFileSystem());
-                    return DefaultFSConnectionFactory.createRelativeToConnection(type);
-                default:
-                    throw new IllegalArgumentException("Unsupported file system choice: " + choice.getType());
-            }
-        }
-    
-    private static FSLocation toCustomUrlFSLocation(final String url, final int timeoutInMillis) {
-        return new FSLocation(FSCategory.CUSTOM_URL, Integer.toString(timeoutInMillis), url);
-    }
-    
-    
-    
-    
-	 /**
-		 * try to reach file and return file from filepath/url if exists
-		 */				
-	public File isFileReachable(String filePathOrUrl) {
-        
-			File returnFile = null;
 			
-	
-            try {
-                URL url = new URL(filePathOrUrl);
-                returnFile = new File(url.getFile());
-                }
-            catch (Exception e)
-            { 
-            }
-            if (returnFile == null)
-            {
-            	try {
-            		File f = new File(filePathOrUrl);
-            		if (f.exists() && f.canRead() && f.isFile()) {
-            			returnFile = f;
-            		}
-            	}catch (Exception e)
-                { 
-                }
-            }
-            return returnFile;
-            
+			
+	        CellStyle cellStyle = book.createCellStyle();
+	        // Workbook#createDataFormat is getOrCreate
+	        cellStyle.setDataFormat(book.createDataFormat().getFormat(format));
+	        m_cellStyles.put(format, cellStyle);
+	        
+	        return cellStyle;
+		}
+		
 
-	}
+		
+	}  
 		
 		
 
@@ -993,11 +1029,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.saveSettingsTo(settings);
 		m_writeHeaderOption.saveSettingsTo(settings);
 		m_writeFormulaOption.saveSettingsTo(settings);
-		m_overrideOrFail.saveSettingsTo(settings);
 		m_pwd.saveSettingsTo(settings);
 		m_outPwd.saveSettingsTo(settings);
-		m_templatefilePath2.saveSettingsTo(settings);
-		m_outputfilePath2.saveSettingsTo(settings);
+		m_cfg.saveSettingsForModel(settings);
+		m_clearData.saveSettingsTo(settings);
 		m_enablePassOption.saveSettingsTo(settings);
 		m_forceFormulaUpdateOption.saveSettingsTo(settings);
 	}
@@ -1020,6 +1055,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_sheetName.loadSettingsFrom(settings);
 		m_colOffset.loadSettingsFrom(settings);
 		m_rowOffset.loadSettingsFrom(settings);
+		m_clearData.loadSettingsFrom(settings);
 		
 		m_copyOrWrite.loadSettingsFrom(settings);
 		m_sheetOrIndex.loadSettingsFrom(settings);
@@ -1027,11 +1063,9 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.loadSettingsFrom(settings);
 		m_writeHeaderOption.loadSettingsFrom(settings);
 		m_writeFormulaOption.loadSettingsFrom(settings);
-		m_overrideOrFail.loadSettingsFrom(settings);
 		m_pwd.loadSettingsFrom(settings);
 		m_outPwd.loadSettingsFrom(settings);
-		m_templatefilePath2.loadSettingsFrom(settings);
-		m_outputfilePath2.loadSettingsFrom(settings);
+		m_cfg.loadSettingsForModel(settings);
 		m_enablePassOption.loadSettingsFrom(settings);
 		m_forceFormulaUpdateOption.loadSettingsFrom(settings);
 	}
@@ -1057,13 +1091,12 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeLastRowOption.validateSettings(settings);
 		m_writeHeaderOption.validateSettings(settings);
 		m_writeFormulaOption.validateSettings(settings);
-		m_overrideOrFail.validateSettings(settings);
 		m_pwd.validateSettings(settings);
 		m_outPwd.validateSettings(settings);
-		m_templatefilePath2.validateSettings(settings);
-		m_outputfilePath2.validateSettings(settings);
+		m_cfg.validateSettingsForModel(settings);
 		m_enablePassOption.validateSettings(settings);
 		m_forceFormulaUpdateOption.validateSettings(settings);
+		m_clearData.validateSettings(settings);
 		validateUserInput();
 
 	}
@@ -1129,5 +1162,12 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 * and the data handled in loadInternals/saveInternals will be erased.
 		 */
 	}
+
+
+
+
+
+
 }
+
 

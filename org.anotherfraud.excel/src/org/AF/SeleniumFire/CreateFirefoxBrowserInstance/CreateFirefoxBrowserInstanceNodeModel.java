@@ -159,7 +159,6 @@ public class CreateFirefoxBrowserInstanceNodeModel extends NodeModel {
         initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.autostart.2", "false","boolean" ));
         initialPrefs.add(new FirefoxPreferences("browser.tabs.remote.warmup.maxTabs","2","integer" ));
         initialPrefs.add(new FirefoxPreferences("Sandbox","--sandbox","argument" ));
-        
  
 		SettingsModelFirefoxSettings coof = new SettingsModelFirefoxSettings(foxSettings, initialPrefs);
 
