@@ -2,17 +2,16 @@
 <knimeNode icon="./Hmac.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
     <name>Hmac Hashing</name>
     
-    <shortDescription>Returns substring of a regex</shortDescription>
+    <shortDescription>Creates Hmac hash with a secret key</shortDescription>
     <fullDescription>
-		<intro>Returns match(es) of a substring as a new string column
-			<br/>Multiple return modes cn be selected (first match, last match, match by number or concat all matches)
+		<intro>This node produces Hmac hashes in UTF-8 format
 		</intro>
 
 		<option name="Key column">
-				Column you want to apply the regex to
+				Secret used for hashing
 		</option>	
 		<option name="Message column">
-				Column you want to apply the regex to
+				Message you want to hash
 		</option>	
 				
 		<option name="Hmac Mode">
