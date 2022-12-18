@@ -425,6 +425,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 
 				
 				for (int i = 0; i < numberOfCells; i++) {
+
 					writeXlsSSCell(workbook, sheet,textStyle, currentRowCounter + xlsxRowOffset, i + xlsxColOffset, currentRow.getCell(i));
 					}
 					
@@ -601,7 +602,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		CreationHelper createHelper = workbook.getCreationHelper();
 		FormulaEvaluator evaluator = createHelper.createFormulaEvaluator();
 		
-	
+
 		Row row = sheet.getRow(rowIndex);
 		
 

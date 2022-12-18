@@ -273,6 +273,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 
 
 		
+		m_cellStyles.clear();
 		
 		SettingsModelReaderFileChooser m_templatefilePath = m_cfg.getSrcFileChooserModel();
 		SettingsModelWriterFileChooser m_outputfilePath = m_cfg.getDestFileChooserModel();
@@ -298,6 +299,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 	
 	try 
 	{
+		
 		
 		NodeModelStatusConsumer statusMessage = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR));
 
@@ -424,6 +426,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 
 				
 				for (int i = 0; i < numberOfCells; i++) {
+			
 					writeXlsSSCell(workbook, sheet,textStyle, currentRowCounter + xlsxRowOffset, i + xlsxColOffset, currentRow.getCell(i));
 					}
 					
@@ -693,6 +696,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		else if(cell.getType().getCellClass().equals((DateAndTimeCell.class))) 
 		{
 			
+			
 			DateAndTimeValue dateAndTime = (DateAndTimeValue)cell;
 			
 	        String format = "";
@@ -731,11 +735,14 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		
 		else if (cell.getType().isCompatible(LocalDateValue.class)) {
 			
-			
+
 		       final LocalDateValue val = (LocalDateValue) cell;
 		       
 		       xlsxCell.setCellStyle(getStyle(workbook, "yyyy-mm-dd"));
+		       
+
 		       xlsxCell.setCellValue(DateUtil.getExcelDate(val.getLocalDate().atStartOfDay()));
+
             
         } 
 		
@@ -978,7 +985,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		}
 		else
 		{
-			
 			
 	        CellStyle cellStyle = book.createCellStyle();
 	        // Workbook#createDataFormat is getOrCreate
