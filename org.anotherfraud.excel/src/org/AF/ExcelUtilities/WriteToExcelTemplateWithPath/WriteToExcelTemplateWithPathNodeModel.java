@@ -273,7 +273,7 @@ public class WriteToExcelTemplateWithPathNodeModel extends NodeModel {
 
 
 		
-		
+		m_cellStyles.clear();
 		SettingsModelReaderFileChooser m_templatefilePath = m_cfg.getSrcFileChooserModel();
 		SettingsModelWriterFileChooser m_outputfilePath = m_cfg.getDestFileChooserModel();
 
