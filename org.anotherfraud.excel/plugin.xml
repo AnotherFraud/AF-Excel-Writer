@@ -251,7 +251,10 @@
             factory-class="org.AF.TableUtil.RangeBuilder.RangeBuilderNodeFactory">	 
     </node>
     
-	
+	<node
+            category-path="/community/AF_Utilities/MiscUtil"
+            factory-class="org.AF.ExecuteShellScript.ExecuteShellScriptNodeFactory">	 
+    </node>	
 		                 
    </extension>
    <extension
