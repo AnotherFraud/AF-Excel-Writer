@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./executeScript.png" type="Other" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Execute Shell Script</name>    
+    <shortDescription>Executes shell scripts</shortDescription>
+    
+    <fullDescription>
+		<intro>This node executes shell scripts e.g. cmd/sh
+		</intro>
+  	   	<option name="Script to execute">
+			Here you can entered the script to execute
+	   	</option>
+	   	<option name="Path to execution dir">
+		 	here you you can enter the path to an execution dir 
+		 	this is optional
+	   	</option>
+		
+	  	<option name="Path to environment">
+			here you can change environment variables
+		</option>
+		
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="output">Output of the script</outPort>
+        <outPort index="1" name="error">Output of possible errors</outPort>
+    </ports>    
+</knimeNode>
