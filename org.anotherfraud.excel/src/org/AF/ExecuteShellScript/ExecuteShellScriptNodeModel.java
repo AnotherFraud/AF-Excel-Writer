@@ -155,14 +155,18 @@ public class ExecuteShellScriptNodeModel extends NodeModel {
 	    for (ScriptEnvironmentPreferences pref : m_environment.getSettings()) {
 	    	
 	    	envs.put(pref.getColumnAt(0), pref.getColumnAt(1));  	
+	    	//System.out.println(pref.getColumnAt(0)+ " " + pref.getColumnAt(1));
     	}
-	    
+
 	    
 	    
 
 	    
 	    if (isWindows()) {
-	    	builder.command(script.split(" "));
+	    	//builder.command(script.split(" "));
+	    	builder.command( ArrayUtils.addAll(new String[]{"cmd.exe", "/c"}, script.split(" ")));
+	    	//builder.command("cmd.exe", "/c", "echo", "%mode%");
+	    	
 	    } else {
 	    	builder.command( ArrayUtils.addAll(new String[]{"sh", "-c"}, script.split(" ")));
 	    } 
@@ -175,7 +179,7 @@ public class ExecuteShellScriptNodeModel extends NodeModel {
 	      try {
 	    	  process = builder.start();
 	      } catch (IOException e) {
-	         throw new InvalidSettingsException("Error while executing script");
+	         throw new InvalidSettingsException("Error while executing script:" + e.getMessage());
 	      }
 	      
 	      
