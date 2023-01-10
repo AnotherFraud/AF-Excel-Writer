@@ -15,6 +15,7 @@ import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 public class PathHelper {
+	
 
     public static final FSConnection retrieveFSConnection(final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
 
