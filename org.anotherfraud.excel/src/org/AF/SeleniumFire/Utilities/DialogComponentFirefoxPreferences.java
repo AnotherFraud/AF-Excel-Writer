@@ -26,7 +26,7 @@ import org.knime.core.node.port.PortObjectSpec;
 
 
 
-
+ 
 public final class DialogComponentFirefoxPreferences extends DialogComponent {    
 	private final JPanel contentPanel = new JPanel();
 	private final JTable table;
