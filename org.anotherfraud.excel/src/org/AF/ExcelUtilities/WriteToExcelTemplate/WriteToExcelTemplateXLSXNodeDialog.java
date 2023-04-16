@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
@@ -18,12 +22,14 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.Authe
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-
 
 /*
  * This program is free software: you can redistribute it and/or modify
@@ -49,15 +55,21 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
 
 	
 	private final WriteToExcelTemplateXLSXConfig m_cfg;
+
+ 	final SettingsModelFileChooser2 templateFilePathModelOld = WriteToExcelTemplateXLSXNodeModel.createTemplatePathOldSettingsModel();
+ 	final SettingsModelFileChooser2 outputFilePathModelOld = WriteToExcelTemplateXLSXNodeModel.createOldOutputFilePathSettingsModel();
+ 	final SettingsModelString overrideOrFailModelOld = WriteToExcelTemplateXLSXNodeModel.createOverrideOrFailOldModelSettingsModel();
+ 	final SettingsModelString copyOrWriteModel = WriteToExcelTemplateXLSXNodeModel.createCopyOrWriteSettingsModel();
     
-    
+
+ 	
 	@SuppressWarnings("deprecation")
 	protected WriteToExcelTemplateXLSXNodeDialog(final PortsConfiguration portsConfig) {
         super();
 
 
     
-    	
+ 
         
     	
         m_cfg = new WriteToExcelTemplateXLSXConfig(portsConfig);
@@ -66,22 +78,22 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
         
         
      	final SettingsModelString sheetNamesModel = WriteToExcelTemplateXLSXNodeModel.createSheetNamesModel();
-         final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetNameOrIndexSettingsModel();
-         final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetIndexModel();
+        final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetNameOrIndexSettingsModel();
+        final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetIndexModel();
 
-         final SettingsModelReaderFileChooser templateFilePathModel = m_cfg.getSrcFileChooserModel();
+        final SettingsModelReaderFileChooser templateFilePathModel = m_cfg.getSrcFileChooserModel();
          
-         final SettingsModelAuthentication passwordModel = WriteToExcelTemplateXLSXNodeModel.createPassSettingsModel();
-         final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateXLSXNodeModel.createOutPassSettingsModel();
+        final SettingsModelAuthentication passwordModel = WriteToExcelTemplateXLSXNodeModel.createPassSettingsModel();
+        final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateXLSXNodeModel.createOutPassSettingsModel();
          
 
-         final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(sheetNamesModel, "Sheet Name",
+        final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(sheetNamesModel, "Sheet Name",
          		Arrays.asList("default", ""),true);
 
 
      	final SettingsModelWriterFileChooser outputFilePathModel = m_cfg.getDestFileChooserModel();
          
-     	final SettingsModelString copyOrWriteModel = WriteToExcelTemplateXLSXNodeModel.createCopyOrWriteSettingsModel();
+     	
      	
      	
      	final SettingsModelBoolean lastRowModel = WriteToExcelTemplateXLSXNodeModel.createWriteLastRowSettingsModel();
@@ -91,7 +103,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
      	final SettingsModelIntegerBounded colOffModel = WriteToExcelTemplateXLSXNodeModel.createColOffsetSettingsModel();
 
      	
-     	
+
      	
      	
      	//listener try to read in sheet names from given template file
@@ -177,10 +189,6 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
          
          
 
-         
-         
-     
-         
          createNewGroup("Template File Selection");
          
 
@@ -273,6 +281,36 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
          
          closeCurrentGroup();
      }
+	
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    	templateFilePathModelOld.saveSettingsTo(settings);    	
+    	outputFilePathModelOld.saveSettingsTo(settings); 
+    	overrideOrFailModelOld.saveSettingsTo(settings); 
+    	
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
+            final PortObjectSpec[] specs) throws NotConfigurableException {
+    	
+    	//check if old path variables where set
+    	// if so load them into new 
+    	try {
+        	templateFilePathModelOld.loadSettingsFrom(settings);    	
+    	} catch (InvalidSettingsException e) {}
+    	
+    	try {	
+        	outputFilePathModelOld.loadSettingsFrom(settings); 
+    	} catch (InvalidSettingsException e) {}	
+    	
+    	try {	
+    		overrideOrFailModelOld.loadSettingsFrom(settings); 
+    	} catch (InvalidSettingsException e) {}	
+	
+    }
+    
+    
  }
 
 

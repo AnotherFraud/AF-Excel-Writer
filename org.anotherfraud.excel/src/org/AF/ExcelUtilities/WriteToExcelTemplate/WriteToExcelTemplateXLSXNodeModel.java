@@ -100,6 +100,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -120,7 +121,11 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateXLSXNodeModel.class);
 	
 	
-	static final String templatefilePath = "templateFile";
+
+
+	
+	
+	
     static final String colOffset = "colOff";
     static final String rowOffset = "rowOff";
     static final String outputfilePath = "outputFile";
@@ -138,15 +143,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
     
-        
-	static SettingsModelString createTemplateFilePathSettingsModel() {
-		return new SettingsModelString(templatefilePath, null);
-	}
-	
-	
-	
+	static final String templatefilePathOld = "templateFile2";
+	static final String outputfilePathOld = "outputFile2";
+    static final String overrideOrFailOld = "overridefail";
 
-	
+    
+    
+    
+    
 	static SettingsModelAuthentication createPassSettingsModel() {
 		SettingsModelAuthentication cps = new SettingsModelAuthentication(password, AuthenticationType.PWD);
 		cps.setEnabled(false);
@@ -159,11 +163,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		return cps;
 	}
 
-	
 
-
-
-	
 	
 	static SettingsModelString createCopyOrWriteSettingsModel() {
 		return new SettingsModelString(copyOrWrite, "WriteInto");
@@ -221,6 +221,26 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	}	    
     
 
+    static SettingsModelFileChooser2 createTemplatePathOldSettingsModel() {
+		return new SettingsModelFileChooser2(templatefilePathOld, new String[] { ".xlsx", ".xls", ".xlsm" });
+	}
+    
+
+
+	static SettingsModelFileChooser2 createOldOutputFilePathSettingsModel() {
+		return new SettingsModelFileChooser2(outputfilePathOld, new String[] { ".xlsx", ".xls", ".xlsm" });
+	}
+	
+	
+	static SettingsModelString createOverrideOrFailOldModelSettingsModel() {
+		return new SettingsModelString(overrideOrFailOld, "Fail");			
+	}	
+	
+	
+	private final SettingsModelString m_overrideOrFailOld = createOverrideOrFailOldModelSettingsModel();
+	
+	
+	
 	
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();
 	private final SettingsModelAuthentication m_outPwd = createOutPassSettingsModel();
@@ -236,7 +256,10 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();   
     private final SettingsModelBoolean m_clearData = createClearDataSettingsModel();   
     
-    
+	private final SettingsModelFileChooser2 m_templatePathOld = createTemplatePathOldSettingsModel();
+	private final SettingsModelFileChooser2 m_outputPathOld = createOldOutputFilePathSettingsModel();
+	
+
     private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
 
     private final SettingsModelBoolean m_writeHeaderOption =
@@ -253,7 +276,13 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     final Map<String, CellStyle> m_cellStyles;
     
     
+    
+    
+    
 
+	
+
+    
 
 	/**
 	 * Constructor for the node model.
@@ -267,8 +296,13 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		
 		m_cfg = new WriteToExcelTemplateXLSXConfig(portsConfig);
 		
+		
+		
 		m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
 		m_cellStyles = new HashMap<String, CellStyle>();
+		
+		
+		
 		
 		
 	
@@ -289,6 +323,10 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 		SettingsModelReaderFileChooser m_templatefilePath = m_cfg.getSrcFileChooserModel();
 		SettingsModelWriterFileChooser m_outputfilePath = m_cfg.getDestFileChooserModel();
 
+
+		System.out.println(m_templatefilePath.getLocation().getPath());
+		System.out.println(m_outputfilePath.getLocation().getPath());
+		
 		
 		//System.out.println(m_templatefilePath.getLocation().getPath());
 		//System.out.println(m_templatefilePath.getFileSystemName());
@@ -1020,6 +1058,11 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 */
 		//m_numberFormatSettings.saveSettingsTo(settings);
 		
+
+		
+		
+		m_templatePathOld.saveSettingsTo(settings);    	
+		m_outputPathOld.saveSettingsTo(settings); 
 		m_sheetName.saveSettingsTo(settings);
 		m_copyOrWrite.saveSettingsTo(settings);
 		m_colOffset.saveSettingsTo(settings);
@@ -1050,14 +1093,36 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 * (from the view) can be retrieved from the settings model.
 		 */
 
+		m_copyOrWrite.loadSettingsFrom(settings);
 		
+    	try {
+    		m_cfg.loadSettingsForModel(settings); 
+    		if(m_copyOrWrite.getStringValue().equals("CopyFrom"))
+    		{
+    			m_cfg.getDestFileChooserModel().setEnabled(true);
+    		}
+    	} catch (InvalidSettingsException e) {}   	
+    	
+    	
+    	
+		//old setting do not have to be filled
+    	loadOldSettings(settings);	
+    	
+    	
+		
+    	//new setting do not have to be filled
+    	try {
+    		m_clearData.loadSettingsFrom(settings);    	
+    	} catch (InvalidSettingsException e) {}
+    	
+    	
 
 		m_sheetName.loadSettingsFrom(settings);
 		m_colOffset.loadSettingsFrom(settings);
 		m_rowOffset.loadSettingsFrom(settings);
-		m_clearData.loadSettingsFrom(settings);
 		
-		m_copyOrWrite.loadSettingsFrom(settings);
+		
+		
 		m_sheetOrIndex.loadSettingsFrom(settings);
 		m_sheetIndex.loadSettingsFrom(settings);
 		m_writeLastRowOption.loadSettingsFrom(settings);
@@ -1065,9 +1130,46 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeFormulaOption.loadSettingsFrom(settings);
 		m_pwd.loadSettingsFrom(settings);
 		m_outPwd.loadSettingsFrom(settings);
-		m_cfg.loadSettingsForModel(settings);
 		m_enablePassOption.loadSettingsFrom(settings);
 		m_forceFormulaUpdateOption.loadSettingsFrom(settings);
+	}
+
+
+	//this is needed to map old path models to new without breaking existing workflows
+	private void loadOldSettings(final NodeSettingsRO settings) {
+		
+		
+		try {
+    		m_templatePathOld.loadSettingsFrom(settings); 
+    		if(!m_templatePathOld.getPathOrURL().isEmpty())
+        	{
+    			m_cfg.getSrcFileChooserModel().setPath(m_templatePathOld.getPathOrURL());
+        	}
+    	} catch (InvalidSettingsException e) {}
+    	
+		
+    	try {	
+    		m_outputPathOld.loadSettingsFrom(settings); 
+    		if(!m_outputPathOld.getPathOrURL().isEmpty())
+        	{
+    			m_cfg.getDestFileChooserModel().setPath(m_outputPathOld.getPathOrURL());
+        	}		
+    	} catch (InvalidSettingsException e) {}	
+		
+    	
+    	try {	
+    		m_overrideOrFailOld.loadSettingsFrom(settings); 
+    		
+    		if (m_overrideOrFailOld.getStringValue().equals("Override"))
+    		{
+    			m_cfg.getDestFileChooserModel().setFileOverwritePolicy(FileOverwritePolicy.OVERWRITE);
+    		}
+    		else if (m_overrideOrFailOld.getStringValue().equals("Fail"))
+    		{
+    			m_cfg.getDestFileChooserModel().setFileOverwritePolicy(FileOverwritePolicy.FAIL);
+    		}
+    		
+    	} catch (InvalidSettingsException e) {}
 	}
 
 	/**
@@ -1081,7 +1183,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		 * already handled in the dialog. Do not actually set any values of any member
 		 * variables.
 		 */
-
 		m_sheetName.validateSettings(settings);
 		m_colOffset.validateSettings(settings);
 		m_rowOffset.validateSettings(settings);
@@ -1093,10 +1194,10 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		m_writeFormulaOption.validateSettings(settings);
 		m_pwd.validateSettings(settings);
 		m_outPwd.validateSettings(settings);
-		m_cfg.validateSettingsForModel(settings);
+		//m_cfg.validateSettingsForModel(settings);
 		m_enablePassOption.validateSettings(settings);
 		m_forceFormulaUpdateOption.validateSettings(settings);
-		m_clearData.validateSettings(settings);
+		//m_clearData.validateSettings(settings);
 		validateUserInput();
 
 	}
