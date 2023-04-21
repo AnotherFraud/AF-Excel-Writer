@@ -13,8 +13,7 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -36,6 +35,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 
 /**
@@ -195,18 +198,17 @@ public class GetSharePointListColumnsNodeModel extends NodeModel {
 	
 	
 	private void parseJsonResult(String responseBody, BufferedDataContainer container) {
-		JSONObject jsonObj = new JSONObject(responseBody); 
-		    // "I want to iterate though the objects in the array..."
-
-		    JSONObject innerObject = jsonObj.getJSONObject("d");
-		    
-		    JSONArray jsonArray = innerObject.getJSONArray("results");
+		
+			Gson gson = new Gson();
+			JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+			JsonObject innerObject = jsonObj.getAsJsonObject("d");
+			JsonArray jsonArray = innerObject.getAsJsonArray("results");
 		    int rowCnt = 0;
 		    
 		    
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		    JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		            
 		      
 		      addRow(

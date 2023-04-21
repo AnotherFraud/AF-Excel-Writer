@@ -12,7 +12,10 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -172,18 +175,22 @@ public class CreateSPFolderNodeModel extends NodeModel {
 	        pushFlowVariableString("ResponseString", responseBody);
 	        
 	        
-	        JSONObject jsonObj = new JSONObject(responseBody);  
+	   
 		    
-
+	        Gson gson = new Gson();
+	        JsonElement element = gson.fromJson(responseBody, JsonElement.class);
+	        JsonObject jsonObj = element.getAsJsonObject();
+	        
 
 	        
 	        if(response.getCode()==200)
 	        {
-	        JSONObject responseJson = jsonObj.getJSONObject("d");
+	        JsonObject responseJson = jsonObj.getAsJsonObject("d");
+	        
 
-	        pushFlowVariableString("ServerRelativeUrl", responseJson.getString("ServerRelativeUrl"));
-	        pushFlowVariableString("TimeCreated", responseJson.getString("TimeCreated"));
-	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
+	        pushFlowVariableString("ServerRelativeUrl", responseJson.get("ServerRelativeUrl").getAsString());
+	        pushFlowVariableString("TimeCreated", responseJson.get("TimeCreated").getAsString());
+	        pushFlowVariableString("UniqueId", responseJson.get("UniqueId").getAsString());
 	        }
 
 	        

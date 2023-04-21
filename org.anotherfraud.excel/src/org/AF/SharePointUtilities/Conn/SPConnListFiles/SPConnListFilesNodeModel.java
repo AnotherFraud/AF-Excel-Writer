@@ -12,12 +12,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -42,6 +41,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
 
 /**
  * This is an example implementation of the node model of the
@@ -168,31 +172,31 @@ public class SPConnListFilesNodeModel extends NodeModel {
 	        
 
 	     	
-	
+	    	System.out.print(url);
         	
         		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
 	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
 	   	 
 	        HttpClient client = clientbuilder.build();
+
+
+	        HttpGet get = new HttpGet(url);
+	        SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
 	        
 
 	        
- 
-	        HttpPost post = new HttpPost(url);
-	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
 	        
-
+	        
+	        get.setHeader("Authorization", "Bearer " + token);
+	        get.setHeader("accept", "application/json;odata=verbose");
+	
+		
+		   
 		    
-	        
-		    post.setHeader("Authorization", "Bearer " + token);
-		    post.setHeader("accept", "application/json;odata=verbose");
-
-	        
-
 	        /* Executing the post request */
-		    ClassicHttpResponse response = (ClassicHttpResponse) client.execute(post);
-	       
+		    ClassicHttpResponse response = (ClassicHttpResponse) client.execute(get);
+	
 	        
 	        String responseBody = EntityUtils.toString(response.getEntity());
 	        
@@ -236,18 +240,16 @@ public class SPConnListFilesNodeModel extends NodeModel {
 
 
 	private void parseJsonResult(String responseBody, BufferedDataContainer container) {
-		JSONObject jsonObj = new JSONObject(responseBody); 
-		    // "I want to iterate though the objects in the array..."
-
-		    JSONObject innerObject = jsonObj.getJSONObject("d").getJSONObject("Files");
-		    
-		    JSONArray jsonArray = innerObject.getJSONArray("results");
+			Gson gson = new Gson();
+			JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+			JsonObject innerObject = jsonObj.getAsJsonObject("d").getAsJsonObject("Files");
+			JsonArray jsonArray = innerObject.getAsJsonArray("results");
 		    int rowCnt = 0;
 		    
 		    
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		    JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		            
 		      
 		      addRow(
@@ -281,13 +283,17 @@ public class SPConnListFilesNodeModel extends NodeModel {
 		    
 		    
 		    
-		    innerObject = jsonObj.getJSONObject("d").getJSONObject("Folders"); 
-		    jsonArray = innerObject.getJSONArray("results");
+		    innerObject = jsonObj.getAsJsonObject("d").getAsJsonObject("Folders");
+		    jsonArray = innerObject.getAsJsonArray("results");
 
 		    
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+
+		    
+		    
+		    
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		      JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		      addRow(
 		    		  container
 		    		  ,"Row:"+String.valueOf(rowCnt)
@@ -440,7 +446,7 @@ public class SPConnListFilesNodeModel extends NodeModel {
 	
 	
 	
-	private String getJsonString (JSONObject json, String key)
+	private String getJsonString (JsonObject json, String key)
 	{
 	
 		
@@ -450,26 +456,14 @@ public class SPConnListFilesNodeModel extends NodeModel {
 
         if (json.has(key))
 		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return String.valueOf((int) value);
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	
-	        	return String.valueOf((long) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	return String.valueOf((float) value);
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	return String.valueOf((double) value);
-	
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return String.valueOf((boolean) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	return (String) value;
-	        }	
-	        else if (dataType.equalsIgnoreCase("Null")) {
-	        	return "";
-	        }
+        	if(json.get(key) != JsonNull.INSTANCE )
+        	{
+        	return json.get(key).getAsString();
+        	}
+        	else
+        	{
+        	return "";
+        	}
 		}
 		return new String("not defined data " + dataType);
 		
@@ -477,115 +471,45 @@ public class SPConnListFilesNodeModel extends NodeModel {
 
 	
 	
-	private Integer getJsonInt (JSONObject json, String key)
+	private Integer getJsonInt (JsonObject json, String key)
 	{
-	
-		
-		Object value = json.get(key);
-        String dataType = value.getClass().getSimpleName();
-
 
         if (json.has(key))
 		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return (int) value;
-	        	
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	
-	        	return toIntExact((long) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	return Math.round((float) value);
-	        	
-	        	
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	return (int) Math.round((double) value);
-	
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return (boolean) value ? 1 : 0; 
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	if (NumberUtils.isNumber(((String) value)))
-	        	{
-	        		return NumberUtils.toInt((String) value);
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}
-	        }					
+        	
+        	if(json.get(key) != JsonNull.INSTANCE )
+        	{
+        		
+        		return json.get(key).getAsInt();
+        	}
+        	else
+        	{
+        		return null;
+        	}
+
 		}
 		return null;
 		
 	}
 	
-	private Boolean intToBooleanOrNull (int value)
-	{
-		
-		if (value == 1)
-    	{
-    		return true;
-    	}
-    	else if (value == 0)
-    	{
-    		return false;
-    	}
-    	else
-    	{
-    		return null;
-    	}
-	}
-	
-	private Boolean getJsonBoolean (JSONObject json, String key)
+
+	private Boolean getJsonBoolean (JsonObject json, String key)
 	{
 	
-		
-		Object value = json.get(key);
-        String dataType = value.getClass().getSimpleName();
 
         if (json.has(key))
 		{  
-	        if (dataType.equalsIgnoreCase("Integer")) {	
-	        	return intToBooleanOrNull((int) value);
-	        	
-	        } else if (dataType.equalsIgnoreCase("Long")) {
-	        	return intToBooleanOrNull(toIntExact((long) value));
-	        	
-	        } else if (dataType.equalsIgnoreCase("Float")) {
-	        	float f = (float) value;
-	        	
-	        	if(f % 1 == 0)
-	        	{
-	        		return intToBooleanOrNull(Math.round(f));
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}
-
-	        } else if (dataType.equalsIgnoreCase("Double")) {
-	        	
-	        	double f = (double) value;
-	        	
-	        	if(f % 1 == 0)
-	        	{
-	        		return intToBooleanOrNull((int) Math.round(f));
-	        	}
-	        	else
-	        	{
-	        		return null;
-	        	}	        	
-	        	
-
-	        } else if (dataType.equalsIgnoreCase("Boolean")) {
-	        	return (boolean) value; 
-	        	
-	        } else if (dataType.equalsIgnoreCase("String")) {
-	        	
-	        	return BooleanUtils.toBooleanObject((String) value);
-	        		
-	        	
-	        }					
+        	
+        	if(json.get(key) != JsonNull.INSTANCE )
+        	{
+        		
+        		return json.get(key).getAsBoolean();
+        	}
+        	else
+        	{
+        		return null;
+        	}
+	
 		}
 		return null;
 	

@@ -10,7 +10,6 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -28,6 +27,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 /**
  * This is an example implementation of the node model of the
@@ -223,18 +225,20 @@ public class CreateSPFolderNodeModel extends NodeModel {
 	        pushFlowVariableString("ResponseString", responseBody);
 	        
 	        
-	        JSONObject jsonObj = new JSONObject(responseBody);  
+	        Gson gson = new Gson();
+	        JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+	        
 		    
 
 
 	        
 	        if(response.getCode()==200)
 	        {
-	        JSONObject responseJson = jsonObj.getJSONObject("d");
+	        JsonObject responseJson = jsonObj.getAsJsonObject("d");
 
-	        pushFlowVariableString("ServerRelativeUrl", responseJson.getString("ServerRelativeUrl"));
-	        pushFlowVariableString("TimeCreated", responseJson.getString("TimeCreated"));
-	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
+	        pushFlowVariableString("ServerRelativeUrl", responseJson.get("ServerRelativeUrl").getAsString());
+	        pushFlowVariableString("TimeCreated", responseJson.get("TimeCreated").getAsString());
+	        pushFlowVariableString("UniqueId", responseJson.get("UniqueId").getAsString());
 	        }
 
 	        

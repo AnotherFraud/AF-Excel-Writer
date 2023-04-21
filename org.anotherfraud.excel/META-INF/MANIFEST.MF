@@ -9,7 +9,10 @@ Bundle-ClassPath: excelpasswordmanager.jar,
  lib/bcprov-ext-jdk18on-171.jar,
  lib/openkeepass-0.8.1.jar,
  lib/commons-collections4-4.4.jar,
- lib/json-20230227.jar
+ lib/httpclient5-5.2.1.jar,
+ lib/httpcore5-5.2.jar,
+ lib/httpcore5-h2-5.2.jar,
+ lib/slf4j-api-1.7.36.jar
 Bundle-Activator: org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodePlugin
 Bundle-Vendor: AnotherFraudExcel
 Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,5.0.0)",
@@ -24,15 +27,14 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,5.0.0)",
  org.knime.time;bundle-version="[4.7.0.0,5.0.0)",
  org.slf4j.api;bundle-version="[1.7.30,5.0.0)",
  org.apache.commons.logging;bundle-version="[1.2.0,7.0.0)",
- org.apache.httpcomponents.client5.httpclient5;bundle-version="[5.1.2,6.0.0)",
- org.apache.httpcomponents.core5.httpcore5;bundle-version="[5.1.2,6.0.0)",
  org.apache.commons.codec;bundle-version="[1.14.0,7.0.0)",
  org.apache.commons.lang3;bundle-version="[3.9.0,7.0.0)",
  org.apache.poi;bundle-version="[4.1.1,7.0.0)",
  org.apache.poi.ooxml;bundle-version="[4.1.1,7.0.0)",
  org.apache.poi.ooxml.schemas;bundle-version="[4.1.1,7.0.0)",
  org.knime.ext.seleniumdrivers.multios;bundle-version="[4.7.0,6.0.0)",
- org.openqa.selenium;bundle-version="3.12.0"
+ org.openqa.selenium;bundle-version="3.12.0",
+ com.google.gson;bundle-version="[2.8.6,5.0.0)"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-17
