@@ -15,17 +15,17 @@ Bundle-ClassPath: excelpasswordmanager.jar,
  lib/slf4j-api-1.7.36.jar
 Bundle-Activator: org.AF.ExcelUtilities.ExcelPasswordManager.ExcelPasswordManagerNodePlugin
 Bundle-Vendor: AnotherFraudExcel
-Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,5.0.0)",
- org.knime.workbench.core;bundle-version="[4.2.1.0,5.0.0)",
- org.knime.workbench.repository;bundle-version="[4.2.1.0,5.0.0)",
- org.knime.base;bundle-version="[4.2.1.0,5.0.0)",
- com.sun.jna;bundle-version="4.5.1",
- com.sun.jna.platform;bundle-version="4.5.1",
+Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,6.0.0)",
+ org.knime.workbench.core;bundle-version="[4.2.1.0,6.0.0)",
+ org.knime.workbench.repository;bundle-version="[4.2.1.0,6.0.0)",
+ org.knime.base;bundle-version="[4.2.1.0,6.0.0)",
+ com.sun.jna;bundle-version="[4.5.1,6.0.0)",
+ com.sun.jna.platform;bundle-version="[4.5.1,6.0.0)",
  org.apache.httpcomponents.fluent-hc;bundle-version="[4.5.10,6.0.0)",
  org.apache.httpcomponents.httpmime;bundle-version="[4.5.10,6.0.0)",
- org.knime.filehandling.core;bundle-version="[4.6.0.0,5.0.0)",
- org.knime.time;bundle-version="[4.7.0.0,5.0.0)",
- org.slf4j.api;bundle-version="[1.7.30,5.0.0)",
+ org.knime.filehandling.core;bundle-version="[4.6.0.0,6.0.0)",
+ org.knime.time;bundle-version="[4.7.0.0,6.0.0)",
+ org.slf4j.api;bundle-version="[1.7.30,6.0.0)",
  org.apache.commons.logging;bundle-version="[1.2.0,7.0.0)",
  org.apache.commons.codec;bundle-version="[1.14.0,7.0.0)",
  org.apache.commons.lang3;bundle-version="[3.9.0,7.0.0)",
@@ -34,12 +34,13 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.17.0,5.0.0)",
  org.apache.poi.ooxml.schemas;bundle-version="[4.1.1,7.0.0)",
  org.knime.ext.seleniumdrivers.multios;bundle-version="[4.7.0,6.0.0)",
  org.openqa.selenium;bundle-version="3.12.0",
- com.google.gson;bundle-version="[2.8.6,5.0.0)"
+ com.google.gson;bundle-version="[2.8.6,6.0.0)"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.AnotherFraudExcel.PasswordManager
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: org.AF.ExcelUtilities.ExcelPasswordManager,
  org.AF.ExcelUtilities.WriteToExcelTemplate,
+ org.AF.ExcelUtilities.WriteToExcelTemplateV2,
  org.AF.KeepassUtilities.KeepassReader,
  org.AF.PGPUtilities.PGPDecryptor,
  org.AF.PGPUtilities.PGPEncryptor,
