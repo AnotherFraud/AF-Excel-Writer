@@ -1,15 +1,17 @@
 package org.AF.SharePointUtilities.CheckoutSPFile;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.URL;
 
 import org.AF.SharePointUtilities.SharePointHelper.SharePointHelper;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -174,7 +176,7 @@ public class CheckoutSPFileNodeModel extends NodeModel {
  	    String proxyPass = m_proxy.getPassword(getCredentialsProvider());
  	    		
     	String proxyHost = m_proxyHost.getStringValue();
-		int proyPort = m_proxyPort.getIntValue();    
+		int proxyPort = m_proxyPort.getIntValue();    
 	    boolean proxyEnabled = m_useProxy.getStringValue().equals("Use Proxy");
 	    	    
 	    /* Null or fail check */
@@ -199,34 +201,63 @@ public class CheckoutSPFileNodeModel extends NodeModel {
 	    	 
 	        
 
-	        HttpClientBuilder clientbuilder = HttpClients.custom();
-	        SharePointHelper.setProxyCredentials(clientbuilder, proxyEnabled, proxyHost, proyPort, proxyUser, proxyPass);
-	        
-	        HttpClient client = clientbuilder.build();
+				URL sourceUrl = new URL(url);
+	            HttpURLConnection sourceConn;
+	            
+	            
+	            
+	            
+				if (proxyEnabled) {
+	                // Set proxy details
+	                Proxy proxy = new Proxy(Proxy.Type.HTTP, new java.net.InetSocketAddress(proxyHost, proxyPort));
 
+	                // Set proxy authentication
+	                Authenticator authenticator = new Authenticator() {
+	                    @Override
+	                    protected PasswordAuthentication getPasswordAuthentication() {
+	                        if (getRequestorType() == RequestorType.PROXY) {
+	                            return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+	                        }
+	                        return null;
+	                    }
+	                };
+	                Authenticator.setDefault(authenticator);
 
-	        
-	        
-	        HttpPost post = new HttpPost(url);
-	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
-		        
-		    post.setHeader("Authorization", "Bearer " + token);
-		    post.setHeader("accept", "application/json;odata=verbose");
-		    post.setHeader("IF-MATCH","*");
-		    
+	                // Create connection for the source file with proxy
+	                sourceConn = (HttpURLConnection) sourceUrl.openConnection(proxy);
+	            } else {
+	                // Create connection for the source file without proxy
+	                sourceConn = (HttpURLConnection) sourceUrl.openConnection();
+	            }
+				
 
-		    
-	
+				
+				sourceConn.setRequestMethod("POST");
+				
+	            sourceConn.setDoOutput(true);
+	           
+	   
 
-	        /* Executing the post request */
-		    ClassicHttpResponse response = (ClassicHttpResponse)  client.execute(post);
-	       
-	        
-	        String responseBody = EntityUtils.toString(response.getEntity());
-	        
+	            // Set credentials for the source file request
+	            sourceConn.setRequestProperty("Authorization", "Bearer " + token);
+	            sourceConn.setRequestProperty("accept", "application/json;odata=verbose");
+	            sourceConn.setRequestProperty("IF-MATCH", "*");
+	            sourceConn.setChunkedStreamingMode(0);
+	            
+	            
+	            int responseCode = sourceConn.getResponseCode();
+	            //System.out.println("Response Code: " + responseCode);
 
-	        pushFlowVariableString("ResponseStatus", String.valueOf(response.getCode()));
-	        pushFlowVariableString("ResponseString", responseBody);
+	            // Read the response body
+	            String responseBody = readResponseBody(sourceConn);
+	            //System.out.println("Response Body: " + responseBody);
+	            
+	            
+	            sourceConn.disconnect();
+
+	            
+				pushFlowVariableString("ResponseStatus", String.valueOf(responseCode));
+				pushFlowVariableString("ResponseString", responseBody);
 	        
 	        
 
@@ -236,6 +267,26 @@ public class CheckoutSPFileNodeModel extends NodeModel {
 		return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
 		
 	}
+	
+	
+	 private static String readResponseBody(HttpURLConnection connection) throws IOException {
+	        InputStream inputStream;
+	        if (connection.getResponseCode() >= 200 && connection.getResponseCode() <= 299) {
+	            inputStream = connection.getInputStream();
+	        } else {
+	            inputStream = connection.getErrorStream();
+	        }
+
+	        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+	        StringBuilder response = new StringBuilder();
+	        String line;
+	        while ((line = reader.readLine()) != null) {
+	            response.append(line);
+	        }
+	        reader.close();
+
+	        return response.toString();
+	    }
 
 	/**
 	 * {@inheritDoc}
