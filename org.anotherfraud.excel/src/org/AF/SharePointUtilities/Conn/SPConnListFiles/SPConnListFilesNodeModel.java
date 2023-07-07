@@ -172,7 +172,6 @@ public class SPConnListFilesNodeModel extends NodeModel {
 	        
 
 	     	
-	    	System.out.print(url);
         	
         		
 	        HttpClientBuilder clientbuilder = HttpClients.custom();
