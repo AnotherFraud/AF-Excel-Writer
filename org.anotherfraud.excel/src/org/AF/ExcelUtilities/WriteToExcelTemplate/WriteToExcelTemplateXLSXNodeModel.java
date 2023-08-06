@@ -233,7 +233,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 	
 	static SettingsModelString createOverrideOrFailOldModelSettingsModel() {
-		return new SettingsModelString(overrideOrFailOld, "Fail");			
+		return new SettingsModelString(overrideOrFailOld, "");			
 	}	
 	
 	
