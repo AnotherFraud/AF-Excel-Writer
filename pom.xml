@@ -107,7 +107,7 @@
 				<plugin>
 					<groupId>org.eclipse.tycho.extras</groupId>
 					<artifactId>tycho-dependency-tools-plugin</artifactId>
-					<version>1.7.0</version>
+					<version>3.0.0</version>
 					<executions>
 						<execution>
 							<id>list-dependencies</id>

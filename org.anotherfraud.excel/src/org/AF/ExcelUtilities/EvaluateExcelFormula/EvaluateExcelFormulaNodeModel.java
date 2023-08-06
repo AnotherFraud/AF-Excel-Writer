@@ -52,6 +52,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 
+
 /**
  * This is an example implementation of the node model of the
  * "EvaluateExcelFormula" node.
