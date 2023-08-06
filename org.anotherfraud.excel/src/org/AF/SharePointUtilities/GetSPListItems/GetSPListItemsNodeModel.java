@@ -11,8 +11,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -42,6 +40,10 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 
 
@@ -301,28 +303,32 @@ public class GetSPListItemsNodeModel extends NodeModel {
 						 
 						 int rowCnt = 0;
 						 int responseCnt = 0;
-						 JSONObject responseJson = new JSONObject();
-						
+				
+
+						 
+						 Gson gson = new Gson();
+						 JsonObject responseJson = new JsonObject();
+	 
 						 while(getNext)
 				    	 {
 					         get.setUri(URI.create(url));
 					    	 ClassicHttpResponse response = (ClassicHttpResponse) client.execute(get);
 							 String responseBody = EntityUtils.toString(response.getEntity());
 							 
-							 JSONObject jsonObj = new JSONObject(responseBody);
+							 JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
 							 if (jsonObj.has("d"))
 							 {
 								 
 								 rowCnt = parseJsonResult(responseBody, container, columnHeaders,rowCnt);					 
-								 responseJson.put("response"+String.valueOf(responseCnt), jsonObj);
+								 responseJson.add("response" + String.valueOf(responseCnt), jsonObj);
 								 
-								 JSONObject innerObject = jsonObj.getJSONObject("d");
+								 JsonObject innerObject = jsonObj.getAsJsonObject("d");
 								
 								 if (innerObject.has("__next") 
 										 && (m_loadall.getBooleanValue() || itemlimt > rowCnt)
 								 )
 								 {				
-								 url = (String) innerObject.get("__next");
+								 url = innerObject.get("__next").getAsString();
 								 responseCnt++;
 								 }
 								 else
@@ -372,17 +378,17 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		private String[][] parseColumnHeaderInfo(String tableConfig)
 		{
 			
-			JSONObject jsonObj = new JSONObject(tableConfig);
-			
-		    JSONObject innerObject = jsonObj.getJSONObject("d");	    
-		    JSONArray jsonArray = innerObject.getJSONArray("results");		
+			Gson gson = new Gson();
+			JsonObject jsonObj = gson.fromJson(tableConfig, JsonObject.class);
+			JsonObject innerObject = jsonObj.getAsJsonObject("d");
+			JsonArray jsonArray = innerObject.getAsJsonArray("results");	
 		    
-		    String[][] columnHeader = new String[jsonArray.length()][3];
+		    String[][] columnHeader = new String[jsonArray.size()][3];
 		    		    
 
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		      JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		            
 		      columnHeader[i][0] = SharePointHelper.getJsonString(objectInArray, "Title");
 		      columnHeader[i][1] = SharePointHelper.getJsonString(objectInArray, "TypeAsString");
@@ -396,11 +402,10 @@ public class GetSPListItemsNodeModel extends NodeModel {
 		
 		
 		private int parseJsonResult(String responseBody, BufferedDataContainer container, String[][] columnHeaders, int rowCnt) {
-			JSONObject jsonObj = new JSONObject(responseBody); 
-
-
-			    JSONObject innerObject = jsonObj.getJSONObject("d");	    
-			    JSONArray jsonArray = innerObject.getJSONArray("results");
+				Gson gson = new Gson();
+				JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+				JsonObject innerObject = jsonObj.getAsJsonObject("d");
+				JsonArray jsonArray = innerObject.getAsJsonArray("results");
 			     
 
 			    
@@ -410,9 +415,9 @@ public class GetSPListItemsNodeModel extends NodeModel {
 			    
 			 
 			    
-			    for (int i = 0, size = jsonArray.length(); i < size; i++)
+			    for (int i = 0, size = jsonArray.size(); i < size; i++)
 			    {
-			      JSONObject objectInArray = jsonArray.getJSONObject(i);
+			     JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 			            
 			      
 

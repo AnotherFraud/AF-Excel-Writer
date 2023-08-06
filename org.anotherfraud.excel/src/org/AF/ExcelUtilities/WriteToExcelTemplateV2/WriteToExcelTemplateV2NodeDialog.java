@@ -1,15 +1,9 @@
-package org.AF.ExcelUtilities.WriteToExcelTemplate;
-
-
+package org.AF.ExcelUtilities.WriteToExcelTemplateV2;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.knime.core.node.FlowVariableModel;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentAuthentication;
@@ -22,68 +16,53 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.Authe
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 
-/*
- * This program is free software: you can redistribute it and/or modify
- * Copyright [2021] [Another Fraud]
+/**
+ * This is an example implementation of the node dialog of the
+ * "WriteToExcelTemplateV2" node.
+ *
+ * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
+ * creation of a simple dialog with standard components. If you need a more
+ * complex dialog please derive directly from
+ * {@link org.knime.core.node.NodeDialogPane}. In general, one can create an
+ * arbitrary complex dialog using Java Swing.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
+ * @author Another Fraud
  */
+public class WriteToExcelTemplateV2NodeDialog extends DefaultNodeSettingsPane {
 
 
-public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane {
+
+	private final WriteToExcelTemplateV2Config m_cfg;
 
 
-	
-	private final WriteToExcelTemplateXLSXConfig m_cfg;
-
- 	final SettingsModelFileChooser2 templateFilePathModelOld = WriteToExcelTemplateXLSXNodeModel.createTemplatePathOldSettingsModel();
- 	final SettingsModelFileChooser2 outputFilePathModelOld = WriteToExcelTemplateXLSXNodeModel.createOldOutputFilePathSettingsModel();
- 	final SettingsModelString overrideOrFailModelOld = WriteToExcelTemplateXLSXNodeModel.createOverrideOrFailOldModelSettingsModel();
- 	final SettingsModelString copyOrWriteModel = WriteToExcelTemplateXLSXNodeModel.createCopyOrWriteSettingsModel();
-    
-
+ 	final SettingsModelString copyOrWriteModel = WriteToExcelTemplateV2NodeModel.createCopyOrWriteSettingsModel();
  	
-	@SuppressWarnings("deprecation")
-	protected WriteToExcelTemplateXLSXNodeDialog(final PortsConfiguration portsConfig) {
+ 	
+ 	
+    protected WriteToExcelTemplateV2NodeDialog(final PortsConfiguration portsConfig) {
         super();
 
 
-    
- 
-        
     	
-        m_cfg = new WriteToExcelTemplateXLSXConfig(portsConfig);
+        m_cfg = new WriteToExcelTemplateV2Config(portsConfig);
         
 
         
         
-     	final SettingsModelString sheetNamesModel = WriteToExcelTemplateXLSXNodeModel.createSheetNamesModel();
-        final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetNameOrIndexSettingsModel();
-        final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateXLSXNodeModel.createSheetIndexModel();
+     	final SettingsModelString sheetNamesModel = WriteToExcelTemplateV2NodeModel.createSheetNamesModel();
+        final SettingsModelString sheetOrIndexModel = WriteToExcelTemplateV2NodeModel.createSheetNameOrIndexSettingsModel();
+        final SettingsModelIntegerBounded sheetIndexModel = WriteToExcelTemplateV2NodeModel.createSheetIndexModel();
 
         final SettingsModelReaderFileChooser templateFilePathModel = m_cfg.getSrcFileChooserModel();
          
-        final SettingsModelAuthentication passwordModel = WriteToExcelTemplateXLSXNodeModel.createPassSettingsModel();
-        final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateXLSXNodeModel.createOutPassSettingsModel();
+        final SettingsModelAuthentication passwordModel = WriteToExcelTemplateV2NodeModel.createPassSettingsModel();
+        final SettingsModelAuthentication outPasswordModel = WriteToExcelTemplateV2NodeModel.createOutPassSettingsModel();
          
 
         final DialogComponentStringSelection sheetNameSelection = new DialogComponentStringSelection(sheetNamesModel, "Sheet Name",
@@ -95,11 +74,11 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
      	
      	
      	
-     	final SettingsModelBoolean lastRowModel = WriteToExcelTemplateXLSXNodeModel.createWriteLastRowSettingsModel();
-     	final SettingsModelBoolean clearData = WriteToExcelTemplateXLSXNodeModel.createClearDataSettingsModel();
-     	final SettingsModelString enablePassModel = WriteToExcelTemplateXLSXNodeModel.enablePasswordSettingsModel();
-     	final SettingsModelIntegerBounded rowOffModel = WriteToExcelTemplateXLSXNodeModel.createRowOffsetSettingsModel();
-     	final SettingsModelIntegerBounded colOffModel = WriteToExcelTemplateXLSXNodeModel.createColOffsetSettingsModel();
+     	final SettingsModelBoolean lastRowModel = WriteToExcelTemplateV2NodeModel.createWriteLastRowSettingsModel();
+     	final SettingsModelBoolean clearData = WriteToExcelTemplateV2NodeModel.createClearDataSettingsModel();
+     	final SettingsModelString enablePassModel = WriteToExcelTemplateV2NodeModel.enablePasswordSettingsModel();
+     	final SettingsModelIntegerBounded rowOffModel = WriteToExcelTemplateV2NodeModel.createRowOffsetSettingsModel();
+     	final SettingsModelIntegerBounded colOffModel = WriteToExcelTemplateV2NodeModel.createColOffsetSettingsModel();
 
      	
 
@@ -108,7 +87,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
      	//listener try to read in sheet names from given template file
          templateFilePathModel.addChangeListener(e -> {	
              if (templateFilePathModel.getPath().length() > 0) {
-             	List<String> sheetNames = WriteToExcelTemplateXLSXNodeModel.tryGetExcelSheetNames(templateFilePathModel,passwordModel.getPassword()); 	
+             	List<String> sheetNames = WriteToExcelTemplateV2NodeModel.tryGetExcelSheetNames(templateFilePathModel,passwordModel.getPassword()); 	
              		if(sheetNames != null)
              		{
              			if (!sheetNames.contains(sheetNamesModel.getStringValue()))
@@ -242,13 +221,13 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
          createNewGroup("Header and Formulas"); 
          
          addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
-        		 WriteToExcelTemplateXLSXNodeModel.writeHeaderOption, false), "Write column header?"));
+        		 WriteToExcelTemplateV2NodeModel.writeHeaderOption, false), "Write column header?"));
          
          addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
-        		 WriteToExcelTemplateXLSXNodeModel.writeFormulaOption, false), "Do not write string cells starting with = as formulas?"));
+        		 WriteToExcelTemplateV2NodeModel.writeFormulaOption, false), "Do not write string cells starting with = as formulas?"));
          
          addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
-        		 WriteToExcelTemplateXLSXNodeModel.froceFormulaUpdate, false), "Should all exising formulas be recalculated?"));
+        		 WriteToExcelTemplateV2NodeModel.froceFormulaUpdate, false), "Should all exising formulas be recalculated?"));
          
          closeCurrentGroup();
          
@@ -279,37 +258,7 @@ public class WriteToExcelTemplateXLSXNodeDialog extends DefaultNodeSettingsPane 
          
          
          closeCurrentGroup();
-     }
-	
-    @Override
-    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-    	templateFilePathModelOld.saveSettingsTo(settings);    	
-    	outputFilePathModelOld.saveSettingsTo(settings); 
-    	overrideOrFailModelOld.saveSettingsTo(settings); 
-    	
-    }
+     }   
 
-    @Override
-    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings,
-            final PortObjectSpec[] specs) throws NotConfigurableException {
-    	
-    	//check if old path variables where set
-    	// if so load them into new 
-    	try {
-        	templateFilePathModelOld.loadSettingsFrom(settings);    	
-    	} catch (InvalidSettingsException e) {}
-    	
-    	try {	
-        	outputFilePathModelOld.loadSettingsFrom(settings); 
-    	} catch (InvalidSettingsException e) {}	
-    	
-    	try {	
-    		overrideOrFailModelOld.loadSettingsFrom(settings); 
-    	} catch (InvalidSettingsException e) {}	
-	
-    }
-    
-    
  }
-
 

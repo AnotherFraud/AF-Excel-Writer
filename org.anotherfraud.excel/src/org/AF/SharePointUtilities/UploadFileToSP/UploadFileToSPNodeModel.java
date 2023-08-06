@@ -15,7 +15,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.FileEntity;
-import org.json.JSONObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -36,6 +35,9 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 /**
  * This is an example implementation of the node model of the
@@ -256,24 +258,28 @@ public class UploadFileToSPNodeModel extends NodeModel {
 		    	
 		    	
 		    try {
-	        JSONObject jsonObj = new JSONObject(responseBody);  
-	        JSONObject responseJson = jsonObj.getJSONObject("d");
-        
-	        pushFlowVariableString("CheckInComment", responseJson.getString("CheckInComment"));
-	        pushFlowVariableInt("CheckOutType", responseJson.getInt("CheckOutType"));
-	        pushFlowVariableString("ContentTag", responseJson.getString("ContentTag"));
-	        pushFlowVariableString("ETag", responseJson.getString("ETag"));
-	        pushFlowVariableString("Length", responseJson.getString("Length"));
-	        pushFlowVariableString("LinkingUri", responseJson.getString("LinkingUri"));
-	        pushFlowVariableString("LinkingUrl", responseJson.getString("LinkingUrl"));
-	        pushFlowVariableInt("MajorVersion", responseJson.getInt("MajorVersion"));
-	        pushFlowVariableInt("MinorVersion", responseJson.getInt("MinorVersion"));
-	        pushFlowVariableString("Name", responseJson.getString("Name"));
-	        pushFlowVariableString("ServerRelativeUrl", responseJson.getString("ServerRelativeUrl"));
-	        pushFlowVariableString("TimeCreated", responseJson.getString("TimeCreated"));
-	        pushFlowVariableString("TimeLastModified", responseJson.getString("TimeLastModified"));
-	        pushFlowVariableString("Title", responseJson.getString("Title"));
-	        pushFlowVariableString("UniqueId", responseJson.getString("UniqueId"));
+
+	        Gson gson = new Gson();
+	        JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+
+	        JsonObject responseJson = jsonObj.getAsJsonObject("d");
+	        
+	        
+	        pushFlowVariableString("CheckInComment", responseJson.get("CheckInComment").getAsString());
+	        pushFlowVariableInt("CheckOutType", responseJson.get("CheckOutType").getAsInt());
+	        pushFlowVariableString("ContentTag", responseJson.get("ContentTag").getAsString());
+	        pushFlowVariableString("ETag", responseJson.get("ETag").getAsString());
+	        pushFlowVariableString("Length", responseJson.get("Length").getAsString());
+	        pushFlowVariableString("LinkingUri", responseJson.get("LinkingUri").getAsString());
+	        pushFlowVariableString("LinkingUrl", responseJson.get("LinkingUrl").getAsString());
+	        pushFlowVariableInt("MajorVersion", responseJson.get("MajorVersion").getAsInt());
+	        pushFlowVariableInt("MinorVersion", responseJson.get("MinorVersion").getAsInt());
+	        pushFlowVariableString("Name", responseJson.get("Name").getAsString());
+	        pushFlowVariableString("ServerRelativeUrl", responseJson.get("ServerRelativeUrl").getAsString());
+	        pushFlowVariableString("TimeCreated", responseJson.get("TimeCreated").getAsString());
+	        pushFlowVariableString("TimeLastModified", responseJson.get("TimeLastModified").getAsString());
+	        pushFlowVariableString("Title", responseJson.get("Title").getAsString());
+	        pushFlowVariableString("UniqueId", responseJson.get("UniqueId").getAsString());
 		    } catch (Exception e)
 		    {
 		    	LOGGER.info("Error response - could not generate flow variables");

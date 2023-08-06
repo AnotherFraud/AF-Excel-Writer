@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./TabelToExcelIcon.png" type="Other" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Write To Excel Template (deprecated)</name>
-    <shortDescription>Writes an input table into an existing Excel file (deprecated)</shortDescription>
+<knimeNode icon="./TabelToExcelIcon.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Write To Excel Template</name>
+    <shortDescription>Writes an input table into an existing Excel file</shortDescription>
     <fullDescription>
 		<intro>This node writes the input data table into an existing Excel file without changing its formatting.
 			<br/>Alternatively a new file will be created based on the template file formats and data.
 			The input data will be written to the second row without header by default (can be changed in the Advanced Options)
 			Already populated cells in the input file will be overwritten.
 			<br/>The node supports three formats chosen by file extension: XLS,XLSX,XLSM
-			<br/>This node is deprecated and a newer version can be found in the extension. Future changes will only be done in the newer node
 		</intro>
 		<option name="Template File Type">
 				Select the file type of your template Excel.
@@ -25,7 +24,7 @@
 			You can select the sheet by name or by the sheet index.
 			by default the first sheet will be used.
 		</option>
-		<option name="Writing Options">Select if the template file should be overwritten orderedlist
+		<option name="Writing Options">Select if the template file should be overwritten ordered list
 			if a new file should be created.
 			<i>Note:</i> If "Create new file" is selected - then you have to specify a output file
 		</option>		

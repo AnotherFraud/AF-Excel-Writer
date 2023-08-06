@@ -9,8 +9,16 @@
             
       <node
             category-path="/community/AF_Utilities/ExcelUtil"
+            factory-class="org.AF.ExcelUtilities.WriteToExcelTemplateV2.WriteToExcelTemplateV2NodeFactory">	 
+      </node>	 
+      
+        <node
+            category-path="/community/AF_Utilities/deprecated"
             factory-class="org.AF.ExcelUtilities.WriteToExcelTemplate.WriteToExcelTemplateXLSXNodeFactory">	 
       </node>	 
+      
+      
+      
       <node
             category-path="/community/AF_Utilities"
             factory-class="org.AF.KeepassUtilities.KeepassReader.KeepassReaderNodeFactory">	 
@@ -311,6 +319,15 @@
             level-id="MiscUtil"
             locked="true"
             name="MiscUtil"
+            path="/community/AF_Utilities">
+      </category>
+      
+      <category
+            description="deprecated nodes"
+            icon="MiscCategory.png"
+            level-id="deprecated"
+            locked="true"
+            name="deprecated"
             path="/community/AF_Utilities">
       </category>
             

@@ -20,7 +20,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.json.JSONObject;
+
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -40,6 +40,9 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.core.node.workflow.FlowVariable;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 
 /**
@@ -268,8 +271,9 @@ public class GetSharePointRestConnectionNodeModel extends NodeModel {
 	        if (response.getCode()==200)
 	        {
 	        	
-	        	JSONObject temp1 = new JSONObject(json_string);  
-	    	    accessToken = temp1.get("access_token").toString();
+	        	Gson gson = new Gson();
+	        	JsonObject temp1 = gson.fromJson(json_string, JsonObject.class);
+	    	    accessToken = temp1.get("access_token").getAsString();
 	        }	    
 	
 	        

@@ -10,8 +10,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -35,6 +34,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 
 
@@ -211,19 +214,19 @@ public class ListSPFilesNodeModel extends NodeModel {
 
 	        
  
-	        HttpPost post = new HttpPost(url);
-	        SharePointHelper.createProxyRequestConfig(post, proxyEnabled, proxyHost, proyPort);
+	        HttpPost get = new HttpPost(url);
+	        SharePointHelper.createProxyRequestConfig(get, proxyEnabled, proxyHost, proyPort);
 	        
 
 		    
 	        
-		    post.setHeader("Authorization", "Bearer " + token);
-		    post.setHeader("accept", "application/json;odata=verbose");
+	        get.setHeader("Authorization", "Bearer " + token);
+	        get.setHeader("accept", "application/json;odata=verbose");
 
 	        
 
 	        /* Executing the post request */
-		    ClassicHttpResponse response = (ClassicHttpResponse) client.execute(post);
+		    ClassicHttpResponse response = (ClassicHttpResponse) client.execute(get);
 	       
 	        
 	        String responseBody = EntityUtils.toString(response.getEntity());
@@ -261,18 +264,16 @@ public class ListSPFilesNodeModel extends NodeModel {
 
 
 	private void parseJsonResult(String responseBody, BufferedDataContainer container) {
-		JSONObject jsonObj = new JSONObject(responseBody); 
-		    // "I want to iterate though the objects in the array..."
-
-		    JSONObject innerObject = jsonObj.getJSONObject("d").getJSONObject("Files");
-		    
-		    JSONArray jsonArray = innerObject.getJSONArray("results");
+			Gson gson = new Gson();
+			JsonObject jsonObj = gson.fromJson(responseBody, JsonObject.class);
+			JsonObject innerObject = jsonObj.getAsJsonObject("d").getAsJsonObject("Files");
+			JsonArray jsonArray = innerObject.getAsJsonArray("results");
 		    int rowCnt = 0;
 		    
 		    
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		      JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		            
 		      
 		      addRow(
@@ -304,15 +305,15 @@ public class ListSPFilesNodeModel extends NodeModel {
 		      rowCnt++;
 		    }
 		    
-		    
-		    
-		    innerObject = jsonObj.getJSONObject("d").getJSONObject("Folders"); 
-		    jsonArray = innerObject.getJSONArray("results");
 
 		    
-		    for (int i = 0, size = jsonArray.length(); i < size; i++)
+		    innerObject =  jsonObj.getAsJsonObject("d").getAsJsonObject("Folders");
+		    jsonArray =  innerObject.getAsJsonArray("results");
+
+		    
+		    for (int i = 0, size = jsonArray.size(); i < size; i++)
 		    {
-		      JSONObject objectInArray = jsonArray.getJSONObject(i);
+		      JsonObject objectInArray = jsonArray.get(i).getAsJsonObject();
 		      addRow(
 		    		  container
 		    		  ,"Row:"+String.valueOf(rowCnt)

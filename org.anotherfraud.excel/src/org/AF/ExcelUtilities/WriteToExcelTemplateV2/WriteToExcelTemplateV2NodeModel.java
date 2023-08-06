@@ -1,25 +1,4 @@
-package org.AF.ExcelUtilities.WriteToExcelTemplate;
-
-
-/*
- * This program is free software: you can redistribute it and/or modify
- * Copyright [2021] [Another Fraud]
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- */
-
-
+package org.AF.ExcelUtilities.WriteToExcelTemplateV2;
 
 
 
@@ -111,14 +90,14 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
 
 
 @SuppressWarnings("deprecation")
-public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
+public class WriteToExcelTemplateV2NodeModel extends NodeModel {
     
     /**
 	 * The logger is used to print info/warning/error messages to the KNIME console
 	 * and to the KNIME log file. Retrieve it via 'NodeLogger.getLogger' providing
 	 * the class of this node model.
 	 */
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateXLSXNodeModel.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(WriteToExcelTemplateV2NodeModel.class);
 	
 	
 
@@ -142,10 +121,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     static final String password = "pwd";
     static final String outPassword = "outpwd";
     static final String enablePassOption = "enablePwd";
-    
-	static final String templatefilePathOld = "templateFile2";
-	static final String outputfilePathOld = "outputFile2";
-    static final String overrideOrFailOld = "overridefail";
+
 
     
     
@@ -221,25 +197,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	}	    
     
 
-    static SettingsModelFileChooser2 createTemplatePathOldSettingsModel() {
-		return new SettingsModelFileChooser2(templatefilePathOld, new String[] { ".xlsx", ".xls", ".xlsm" });
-	}
-    
 
-
-	static SettingsModelFileChooser2 createOldOutputFilePathSettingsModel() {
-		return new SettingsModelFileChooser2(outputfilePathOld, new String[] { ".xlsx", ".xls", ".xlsm" });
-	}
-	
-	
-	static SettingsModelString createOverrideOrFailOldModelSettingsModel() {
-		return new SettingsModelString(overrideOrFailOld, "");			
-	}	
-	
-	
-	private final SettingsModelString m_overrideOrFailOld = createOverrideOrFailOldModelSettingsModel();
-	
-	
 	
 	
 	private final SettingsModelAuthentication m_pwd = createPassSettingsModel();
@@ -256,9 +214,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     private final SettingsModelBoolean m_writeLastRowOption = createWriteLastRowSettingsModel();   
     private final SettingsModelBoolean m_clearData = createClearDataSettingsModel();   
     
-	private final SettingsModelFileChooser2 m_templatePathOld = createTemplatePathOldSettingsModel();
-	private final SettingsModelFileChooser2 m_outputPathOld = createOldOutputFilePathSettingsModel();
-	
+
 
     private final SettingsModelString m_enablePassOption = enablePasswordSettingsModel();   
 
@@ -271,7 +227,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
     private final SettingsModelBoolean m_forceFormulaUpdateOption =
             new SettingsModelBoolean(froceFormulaUpdate, false);
     
-    private final WriteToExcelTemplateXLSXConfig m_cfg;
+    private final WriteToExcelTemplateV2Config m_cfg;
     private final NodeModelStatusConsumer m_statusConsumer;
     final Map<String, CellStyle> m_cellStyles;
     
@@ -287,14 +243,14 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	/**
 	 * Constructor for the node model.
 	 */
-	protected WriteToExcelTemplateXLSXNodeModel(final PortsConfiguration portsConfig) {
+	protected WriteToExcelTemplateV2NodeModel(final PortsConfiguration portsConfig) {
 		/**
 		 * Here we specify how many data input and output tables the node should have.
 		 * In this case its one input and one output table.
 		 */       
 		super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
 		
-		m_cfg = new WriteToExcelTemplateXLSXConfig(portsConfig);
+		m_cfg = new WriteToExcelTemplateV2Config(portsConfig);
 		
 		
 		
@@ -1038,7 +994,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	        return cellStyle;
 		}
 		
-
+ 
 		
 	}  
 		
@@ -1059,10 +1015,6 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 		//m_numberFormatSettings.saveSettingsTo(settings);
 		
 
-		
-		
-		m_templatePathOld.saveSettingsTo(settings);    	
-		m_outputPathOld.saveSettingsTo(settings); 
 		m_sheetName.saveSettingsTo(settings);
 		m_copyOrWrite.saveSettingsTo(settings);
 		m_colOffset.saveSettingsTo(settings);
@@ -1103,12 +1055,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
     		}
     	} catch (InvalidSettingsException e) {}   	
     	
-    	
-    	
-		//old setting do not have to be filled
-    	loadOldSettings(settings);	
-    	
-    	
+
 		
     	//new setting do not have to be filled
     	try {
@@ -1135,42 +1082,7 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 	}
 
 
-	//this is needed to map old path models to new without breaking existing workflows
-	private void loadOldSettings(final NodeSettingsRO settings) {
-		
-		
-		try {
-    		m_templatePathOld.loadSettingsFrom(settings); 
-    		if(!m_templatePathOld.getPathOrURL().isEmpty())
-        	{
-    			m_cfg.getSrcFileChooserModel().setPath(m_templatePathOld.getPathOrURL());
-        	}
-    	} catch (InvalidSettingsException e) {}
-    	
-		
-    	try {	
-    		m_outputPathOld.loadSettingsFrom(settings); 
-    		if(!m_outputPathOld.getPathOrURL().isEmpty())
-        	{
-    			m_cfg.getDestFileChooserModel().setPath(m_outputPathOld.getPathOrURL());
-        	}		
-    	} catch (InvalidSettingsException e) {}	
-		
-    	
-    	try {	
-    		m_overrideOrFailOld.loadSettingsFrom(settings); 
-    		
-    		if (m_overrideOrFailOld.getStringValue().equals("Override"))
-    		{
-    			m_cfg.getDestFileChooserModel().setFileOverwritePolicy(FileOverwritePolicy.OVERWRITE);
-    		}
-    		else if (m_overrideOrFailOld.getStringValue().equals("Fail"))
-    		{
-    			m_cfg.getDestFileChooserModel().setFileOverwritePolicy(FileOverwritePolicy.FAIL);
-    		}
-    		
-    	} catch (InvalidSettingsException e) {}
-	}
+
 
 	/**
 	 * {@inheritDoc}
@@ -1270,5 +1182,4 @@ private Workbook openWorkBook(InputStream file) throws IOException, GeneralSecur
 
 
 }
-
 
