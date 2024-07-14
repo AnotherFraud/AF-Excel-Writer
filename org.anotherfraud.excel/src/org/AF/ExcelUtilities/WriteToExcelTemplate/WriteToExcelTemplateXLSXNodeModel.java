@@ -518,12 +518,25 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 				
 			writeXlsWithPassword(workbook, out);	
 			out.close();
+
 			
 			} catch (Exception c) {
 				 throw new InvalidSettingsException(
 							"Error while saving output file " + c.getMessage(), c);
 
 			} 
+			
+			
+			try
+			{
+				workbook = null;
+				sheet = null;
+				
+			} catch (Exception c) {
+				
+			} 
+			
+			
 			
 
 			
@@ -600,7 +613,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 				}
 				else if (workbook instanceof XSSFWorkbook)
 				{
-						encryptXLSX(workbook, out, outputPass);
+					encryptXLSX(workbook, out, outputPass);
 				}
 				else
 				{
@@ -611,7 +624,9 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 			{
 				//write out withtout passwort
 			 workbook.write(out);
+			 workbook.close();
 			}
+			
 
 		
 		
@@ -626,7 +641,7 @@ public class WriteToExcelTemplateXLSXNodeModel extends NodeModel {
 	
 			 Biff8EncryptionKey.setCurrentUserPassword(outputPass);
 			 workbook.write(out);
-				
+			 workbook.close();;
 			 }
 		 
 			/**
