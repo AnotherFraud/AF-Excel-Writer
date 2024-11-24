@@ -22,6 +22,7 @@ package org.AF.KeepassUtilities.KeepassReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.File;
@@ -64,9 +65,6 @@ import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.simpleframework.xml.convert.Converter;
-
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.Credentials;
 import org.knime.core.node.workflow.CredentialsProvider;
@@ -77,11 +75,14 @@ import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.WorkflowLoadHelper;
 import org.knime.core.node.workflow.WorkflowManager;
 
+
+import com.google.common.io.*;
 import java.security.Security;
-import de.slackspace.openkeepass.domain.KeePassFile;
-import de.slackspace.openkeepass.domain.Property;
-import de.slackspace.openkeepass.KeePassDatabase;
-import de.slackspace.openkeepass.domain.Entry;
+import org.linguafranca.pwdb.*;
+import org.linguafranca.pwdb.kdbx.KdbxCreds;
+import org.linguafranca.pwdb.kdbx.jaxb.JaxbDatabase;
+
+
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import org.knime.core.node.workflow.VariableType;
@@ -181,23 +182,32 @@ public class KeepassReaderNodeModel extends NodeModel {
 
 			String inputfilePath = pathTemplate.toAbsolutePath().toString();
 				
-			KeePassFile database = KeePassDatabase.getInstance(Files.newInputStream(pathTemplate)).openDatabase(m_pwd.getPassword(getCredentialsProvider()));
-			Entry passEntry = database.getEntryByTitle(title);	
 			
+		    KdbxCreds creds = new KdbxCreds(m_pwd.getPassword(getCredentialsProvider()).getBytes());
+		    InputStream inputStream = getClass().getClassLoader().getResourceAsStream(inputfilePath);
+		    
+		    
+		    Database database = JaxbDatabase.load(creds, inputStream);
+		    
+		    		
+		    Entry entry = (Entry) database.findEntries(title).get(0);
+		    
+		  
 			
-			String password = passEntry.getPassword();
-			String userName = passEntry.getUsername();
+			String password = entry.getPassword();
+			String userName = entry.getUsername();
 
 			
 			//create credentials variable
 			FlowVariable flowVar =   CredentialsStore.newCredentialsFlowVariable("PWD", userName, password, false, false);
 			Node.invokePushFlowVariable(this, flowVar);
 			
+			pushFlowVariableString("property", "value");
 			
-			List<Property> properties = passEntry.getCustomProperties();
-			for (Property property : properties) {
-				pushFlowVariableString(property.getKey(),property.getValue());
-				}
+			//List<Property> properties = passEntry.getCustomProperties();
+			//for (Property property : properties) {
+			//	pushFlowVariableString(property.getKey(),property.getValue());
+			//	}
 		
 
 		}
@@ -235,18 +245,28 @@ public static List<String> tryLoadKeePassEntryTitles(String filePath, String pas
 
 			try (FileInputStream fileStream = new FileInputStream(checkFile))
 			{
-									
-				KeePassFile database = KeePassDatabase.getInstance(checkFile).openDatabase(pass);
 				
 				List<String> entryNames = new ArrayList<String>();
-				List<Entry> entries = database.getEntries();
-				for (Entry entry : entries) {
-					entryNames.add(entry.getTitle());
-				}
+				entryNames.add("Test");
+				
+				
+				return entryNames;
+				
+				 //Database database = JaxbDatabase.load(creds, inputStream);
+				 //Entry entry = (Entry) database.findEntries(title).get(0);
+				    
+				    
+				//KeePassFile database = KeePassDatabase.getInstance(checkFile).openDatabase(pass);
+				
+				//List<String> entryNames = new ArrayList<String>();
+				//List<Entry> entries = database.getEntries();
+				//for (Entry entry : entries) {
+				//	entryNames.add(entry.getTitle());
+				//}
 			
 				
 
-				return entryNames;
+				
 			} catch (Exception e) { 
 				return null;
 			}
