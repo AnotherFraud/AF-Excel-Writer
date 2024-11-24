@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="resources"/>
-	<classpathentry exported="true" kind="lib" path="lib/simple-xml-2.7.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/simple-xml-safe-2.7.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/bcpg-jdk18on-1.78.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/bcprov-jdk18on-1.78.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpclient5-5.2.1.jar"/>
