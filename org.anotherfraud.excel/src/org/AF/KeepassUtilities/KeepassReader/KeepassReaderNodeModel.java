@@ -64,6 +64,7 @@ import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.simpleframework.xml.convert.Converter;
 
 
 import org.knime.core.node.InvalidSettingsException;
