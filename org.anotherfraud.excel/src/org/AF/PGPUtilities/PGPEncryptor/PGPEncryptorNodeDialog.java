@@ -36,7 +36,7 @@ public class PGPEncryptorNodeDialog extends DefaultNodeSettingsPane {
         
     
         
-        createNewGroup("PGP File Selection");
+        createNewGroup("File Selection");
         
 
         final FlowVariableModel fvm = createFlowVariableModel(
